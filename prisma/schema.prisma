@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model lessons {
+  id              Int               @id @default(autoincrement())
+  start_date      DateTime          @db.Date
+  end_date        DateTime          @db.Date
+  meeting_days    String            @db.VarChar(255)
+  start_time      DateTime          @db.Time(6)
+  end_time        DateTime          @db.Time(6)
+  max_slots       Int
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  swimmer_lessons swimmer_lessons[]
+}
+
+model swimmer_lessons {
+  swimmer_id        Int
+  lesson_id         Int
+  registration_date DateTime? @default(now()) @db.Timestamptz(6)
+  lessons           lessons   @relation(fields: [lesson_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  swimmers          swimmers  @relation(fields: [swimmer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([swimmer_id, lesson_id])
+}
+
+model swimmers {
+  id              Int               @id @default(autoincrement())
+  user_id         Int?
+  name            String            @db.VarChar(255)
+  age             Int?
+  proficiency     String?           @db.VarChar(50)
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  swimmer_lessons swimmer_lessons[]
+  users           users?            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique @db.VarChar(255)
+  password     String     @db.VarChar(255)
+  role         String     @db.VarChar(20)
+  phone_number String?    @db.VarChar(20)
+  parent_name  String?    @db.VarChar(255)
+  created_at   DateTime?  @default(now()) @db.Timestamptz(6)
+  swimmers     swimmers[]
+}
