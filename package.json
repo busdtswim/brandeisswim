@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "alpinejs": "^3.14.1",
     "bcrypt": "^5.1.1",
     "express-rate-limit": "^7.4.0",
     "formik": "^2.4.6",

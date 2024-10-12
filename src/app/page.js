@@ -1,12 +1,11 @@
 import Image from 'next/image'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
-import Schedule from '@/components/Schedule'
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-blue-100">
-      <Header />
+      {/* <Header /> */}
       
       <div className="container mx-auto mt-8 px-4">
         <section className="mb-12">
@@ -57,17 +56,6 @@ export default function Home() {
             <li>LONG HAIR SHOULD BE TIED BACK and SICK children should be left home!</li>
           </ul>
         </section>
-
-        <section>
-          <h2 className="text-3xl font-bold mb-4 text-black">Fees</h2>
-          <ul className="list-disc pl-6 text-black">
-            <li className="mb-2">SESSIONS #1-4 ~ $ 120.00 (4 sessions)</li>
-            <li className="mb-2">SESSIONS #5-12 ~ $ 180.00 (6 sessions)</li>
-            <li>Plus a 6% Service Charge added to your registration fee</li>
-          </ul>
-        </section>
-
-        <Schedule/>
       </div>
 
       <Footer />
