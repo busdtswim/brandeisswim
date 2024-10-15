@@ -17,7 +17,7 @@ const ContactPage = () => {
                 Get in Touch
               </h2>
               <p className="mx-auto mt-4 max-w-3xl text-xl text-gray-600">
-                We're here to help with all your swimming lesson needs
+                We&#39;re here to help with all your swimming lesson needs
               </p>
             </div>
           </div>
@@ -25,7 +25,7 @@ const ContactPage = () => {
             <div className="grid md:grid-cols-2">
               <div className="h-full pr-6">
                 <p className="mt-3 mb-12 text-lg text-gray-600">
-                  Whether you're looking to enroll in swimming lessons, have questions about our programs, or need more information, we're here to assist you. Feel free to reach out using any of the methods below.
+                  Whether you&#39;re looking to enroll in swimming lessons, have questions about our programs, or need more information, we&#39;re here to assist you. Feel free to reach out using any of the methods below.
                 </p>
                 <ul className="mb-6 md:mb-0">
                   <li className="flex mb-4">
@@ -70,7 +70,7 @@ const ContactPage = () => {
                   </li>
                 </ul>
               </div>
-              <ContactForm />
+              {/* <ContactForm /> */}
             </div>
           </div>
         </div>

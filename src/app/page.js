@@ -29,8 +29,8 @@ export default function Home() {
             <div className="flex-1">
               <p className="mb-4">
                 During the college academic year, swimming lessons are offered at Tufts
-                University's Hamilton Pool as a fundraiser for the Men's and Women's
-                Swimming and Diving teams. These fundraisers help support the team's winter
+                University&#39;s Hamilton Pool as a fundraiser for the Men&#39;s and Women&#39;s
+                Swimming and Diving teams. These fundraisers help support the team&#39;s winter
                 break training camp, a vital part of the season.
               </p>
               <p>
