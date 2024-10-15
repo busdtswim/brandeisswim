@@ -11,6 +11,7 @@ const Sidebar = () => {
     { path: '/admin', label: 'Dashboard' },
     { path: '/admin/create-lessons', label: 'Create Lessons' },
     { path: '/admin/view-schedule', label: 'View Schedule' },
+    { path: '/admin/add-instructor', label: 'Add Instructors' },
   ];
 
   return (

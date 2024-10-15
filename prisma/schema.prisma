@@ -15,8 +15,11 @@ model lessons {
   start_time      DateTime          @db.Time(6)
   end_time        DateTime          @db.Time(6)
   max_slots       Int
-  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  instructor_id   Int?
+  instructors     instructors?      @relation(fields: [instructor_id], references: [id], onUpdate: NoAction, map: "fk_instructor")
   swimmer_lessons swimmer_lessons[]
+
+  @@index([instructor_id], map: "idx_instructor_id")
 }
 
 model swimmer_lessons {
@@ -35,7 +38,7 @@ model swimmers {
   name            String            @db.VarChar(255)
   age             Int?
   proficiency     String?           @db.VarChar(50)
-  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  total_lessons   Int?
   swimmer_lessons swimmer_lessons[]
   users           users?            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -46,7 +49,13 @@ model users {
   password     String     @db.VarChar(255)
   role         String     @db.VarChar(20)
   phone_number String?    @db.VarChar(20)
-  parent_name  String?    @db.VarChar(255)
-  created_at   DateTime?  @default(now()) @db.Timestamptz(6)
+  fullname     String?    @db.VarChar(255)
   swimmers     swimmers[]
+}
+
+model instructors {
+  id      Int       @id @default(autoincrement())
+  name    String    @db.VarChar(255)
+  email   String    @unique @db.VarChar(255)
+  lessons lessons[]
 }

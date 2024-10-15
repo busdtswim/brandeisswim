@@ -4,6 +4,8 @@ import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
@@ -12,17 +14,35 @@ const validationSchema = Yup.object().shape({
 });
 
 const LoginForm = () => {
+  const router = useRouter();
   const initialValues = {
     email: '',
     password: '',
     rememberMe: false,
   };
 
-  const handleSubmit = (values, { setSubmitting }) => {
-    console.log(values);
-    // Here you would typically handle the login logic
-    alert("Login attempted");
-    setSubmitting(false);
+  const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: values.email,
+        password: values.password,
+      });
+
+      if (result.error) {
+        setFieldError('email', result.error);
+        setFieldError('password', result.error);
+      } else {
+        console.log('Login successful');
+        router.push('/'); 
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setFieldError('email', 'An error occurred during login');
+      setFieldError('password', 'An error occurred during login');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

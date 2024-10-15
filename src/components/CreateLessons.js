@@ -1,23 +1,37 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const CreateLessons = () => {
-  const [lessons, setLessons] = useState([
-    { id: 1, startDate: '2024-03-05', endDate: '2024-03-28', price: 50, meetingDays: ['Monday', 'Wednesday'], time: '3:00 PM - 4:00 PM', capacity: 10 },
-    { id: 2, startDate: '2024-04-02', endDate: '2024-05-09', price: 75, meetingDays: ['Tuesday', 'Thursday'], time: '5:00 PM - 6:30 PM', capacity: 8 },
-  ]);
-
+  const [lessons, setLessons] = useState([]);
   const [formData, setFormData] = useState({
-    startDate: '',
-    endDate: '',
-    price: '',
-    meetingDays: [],
-    time: '',
-    capacity: '',
+    start_date: '',
+    end_date: '',
+    meeting_days: [],
+    start_time: '',
+    end_time: '',
+    max_slots: '',
   });
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  useEffect(() => {
+    fetchLessons();
+  }, []);
+
+  const fetchLessons = async () => {
+    try {
+      const response = await fetch('/api/auth/admin/create');
+      if (response.ok) {
+        const data = await response.json();
+        setLessons(data);
+      } else {
+        console.error('Failed to fetch lessons');
+      }
+    } catch (error) {
+      console.error('Error fetching lessons:', error);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -30,29 +44,46 @@ const CreateLessons = () => {
   const handleDayToggle = (day) => {
     setFormData(prevState => ({
       ...prevState,
-      meetingDays: prevState.meetingDays.includes(day)
-        ? prevState.meetingDays.filter(d => d !== day)
-        : [...prevState.meetingDays, day]
+      meeting_days: prevState.meeting_days.includes(day)
+        ? prevState.meeting_days.filter(d => d !== day)
+        : [...prevState.meeting_days, day]
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newLesson = {
-      id: lessons.length + 1,
       ...formData,
-      price: parseFloat(formData.price),
-      capacity: parseInt(formData.capacity, 10)
+      meeting_days: formData.meeting_days.join(','),
+      max_slots: parseInt(formData.max_slots, 10)
     };
-    setLessons([...lessons, newLesson]);
-    setFormData({
-      startDate: '',
-      endDate: '',
-      price: '',
-      meetingDays: [],
-      time: '',
-      capacity: '',
-    });
+
+    try {
+      const response = await fetch('/api/auth/admin/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newLesson),
+      });
+
+      if (response.ok) {
+        const createdLesson = await response.json();
+        setLessons([...lessons, createdLesson]);
+        setFormData({
+          start_date: '',
+          end_date: '',
+          meeting_days: [],
+          start_time: '',
+          end_time: '',
+          max_slots: '',
+        });
+      } else {
+        console.error('Failed to create lesson');
+      }
+    } catch (error) {
+      console.error('Error creating lesson:', error);
+    }
   };
 
   return (
@@ -63,49 +94,33 @@ const CreateLessons = () => {
       <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <div className="mb-4 flex space-x-4">
           <div className="flex-1">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="startDate">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="start_date">
               Start Date
             </label>
             <input
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="startDate"
+              id="start_date"
               type="date"
-              name="startDate"
-              value={formData.startDate}
+              name="start_date"
+              value={formData.start_date}
               onChange={handleInputChange}
               required
             />
           </div>
           <div className="flex-1">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="endDate">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="end_date">
               End Date
             </label>
             <input
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="endDate"
+              id="end_date"
               type="date"
-              name="endDate"
-              value={formData.endDate}
+              name="end_date"
+              value={formData.end_date}
               onChange={handleInputChange}
               required
             />
           </div>
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="price">
-            Price ($)
-          </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="price"
-            type="number"
-            step="0.01"
-            placeholder="Price"
-            name="price"
-            value={formData.price}
-            onChange={handleInputChange}
-            required
-          />
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -118,7 +133,7 @@ const CreateLessons = () => {
                   type="button"
                   onClick={() => handleDayToggle(day)}
                   className={`px-3 py-1 rounded ${
-                    formData.meetingDays.includes(day)
+                    formData.meeting_days.includes(day)
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-200 text-gray-700'
                   }`}
@@ -129,32 +144,47 @@ const CreateLessons = () => {
             ))}
           </div>
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="time">
-            Time
-          </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="time"
-            type="text"
-            placeholder="e.g., 3:00 PM - 4:00 PM"
-            name="time"
-            value={formData.time}
-            onChange={handleInputChange}
-            required
-          />
+        <div className="mb-4 flex space-x-4">
+          <div className="flex-1">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="start_time">
+              Start Time
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="start_time"
+              type="time"
+              name="start_time"
+              value={formData.start_time}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="end_time">
+              End Time
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="end_time"
+              type="time"
+              name="end_time"
+              value={formData.end_time}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="capacity">
-            Capacity
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="max_slots">
+            Max Slots
           </label>
           <input
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="capacity"
+            id="max_slots"
             type="number"
             placeholder="Maximum number of participants"
-            name="capacity"
-            value={formData.capacity}
+            name="max_slots"
+            value={formData.max_slots}
             onChange={handleInputChange}
             required
           />
@@ -179,16 +209,13 @@ const CreateLessons = () => {
                 Date Range
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Price
-              </th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Meeting Days
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Time
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Capacity
+                Max Slots
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Actions
@@ -199,19 +226,16 @@ const CreateLessons = () => {
             {lessons.map((lesson) => (
               <tr key={lesson.id}>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  {lesson.startDate} to {lesson.endDate}
+                  {new Date(lesson.start_date).toLocaleDateString()} to {new Date(lesson.end_date).toLocaleDateString()}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  ${lesson.price}
+                  {lesson.meeting_days}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  {lesson.meetingDays.join(', ')}
+                  {new Date(lesson.start_time).toLocaleTimeString()} - {new Date(lesson.end_time).toLocaleTimeString()}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  {lesson.time}
-                </td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  {lesson.capacity}
+                  {lesson.max_slots}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <button className="text-blue-600 hover:text-blue-900">Edit</button>

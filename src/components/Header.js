@@ -2,17 +2,17 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Mail, User, LogOut } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
 
 const Header = () => {
-  // These states will be replaced with actual authentication logic later
-  const [isLoggedIn, setIsLoggedIn] = React.useState(true);
-  const [userRole, setUserRole] = React.useState("customer");
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
-  // This function will be replaced with actual logout logic
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUserRole(null);
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    router.push('/');
   };
 
   return (
@@ -23,14 +23,14 @@ const Header = () => {
           <ul className="flex space-x-4">
             <li><Link href="/" className="text-white hover:text-cyan-300">HOME</Link></li>
             <li><Link href="/contact" className="text-white hover:text-cyan-300 flex items-center"><Mail className="mr-1" size={18} />CONTACT</Link></li>
-            {!isLoggedIn ? (
+            {status === 'unauthenticated' ? (
               <>
                 <li><Link href="/register" className="text-white hover:text-cyan-300">REGISTER</Link></li>
                 <li><Link href="/login" className="text-white hover:text-cyan-300">LOGIN</Link></li>
               </>
-            ) : (
+            ) : status === 'authenticated' && (
               <>
-                {userRole === 'admin' ? (
+                {session.user.role === 'admin' ? (
                   <li><Link href="/admin" className="text-white hover:text-cyan-300">ADMIN DASHBOARD</Link></li>
                 ) : (
                   <>
