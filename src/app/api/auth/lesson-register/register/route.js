@@ -1,3 +1,4 @@
+// src/app/api/auth/lesson-register/register/route.js
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
@@ -5,38 +6,123 @@ const prisma = new PrismaClient();
 
 export async function POST(req) {
   try {
-    const { swimmerId, lessonId } = await req.json();
+    // Validate request body
+    const body = await req.json();
+    
+    if (!body || !body.swimmerId || !body.lessonId) {
+      return NextResponse.json(
+        { error: 'Missing required fields: swimmerId and lessonId' },
+        { status: 400 }
+      );
+    }
 
-    // Check if the lesson is full
+    const { swimmerId, lessonId } = body;
+
+    // Convert IDs to integers
+    const swimmerIdInt = parseInt(swimmerId);
+    const lessonIdInt = parseInt(lessonId);
+
+    if (isNaN(swimmerIdInt) || isNaN(lessonIdInt)) {
+      return NextResponse.json(
+        { error: 'Invalid ID format' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the lesson exists
     const lesson = await prisma.lessons.findUnique({
-      where: { id: lessonId },
-      include: { _count: { select: { swimmer_lessons: true } } }
+      where: { id: lessonIdInt },
+      include: { 
+        _count: { 
+          select: { swimmer_lessons: true } 
+        } 
+      }
     });
 
+    if (!lesson) {
+      return NextResponse.json(
+        { error: 'Lesson not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if the lesson is full
     if (lesson._count.swimmer_lessons >= lesson.max_slots) {
-      return NextResponse.json({ error: 'This lesson is full' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'This lesson is full' },
+        { status: 400 }
+      );
+    }
+
+    // Check if swimmer exists
+    const swimmer = await prisma.swimmers.findUnique({
+      where: { id: swimmerIdInt }
+    });
+
+    if (!swimmer) {
+      return NextResponse.json(
+        { error: 'Swimmer not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if swimmer is already registered for this lesson
+    const existingRegistration = await prisma.swimmer_lessons.findUnique({
+      where: {
+        swimmer_id_lesson_id: {
+          swimmer_id: swimmerIdInt,
+          lesson_id: lessonIdInt
+        }
+      }
+    });
+
+    if (existingRegistration) {
+      return NextResponse.json(
+        { error: 'Swimmer is already registered for this lesson' },
+        { status: 400 }
+      );
     }
 
     // Register the swimmer for the lesson
-    await prisma.swimmer_lessons.create({
+    const registration = await prisma.swimmer_lessons.create({
       data: {
-        swimmer_id: swimmerId,
-        lesson_id: lessonId,
+        swimmer_id: swimmerIdInt,
+        lesson_id: lessonIdInt,
       }
     });
 
     // Fetch the updated lesson
     const updatedLesson = await prisma.lessons.findUnique({
-      where: { id: lessonId },
-      include: { _count: { select: { swimmer_lessons: true } } }
+      where: { id: lessonIdInt },
+      include: { 
+        _count: { 
+          select: { swimmer_lessons: true } 
+        },
+        swimmer_lessons: {
+          include: {
+            swimmers: true
+          }
+        }
+      }
     });
 
     return NextResponse.json({
       ...updatedLesson,
-      registered: updatedLesson._count.swimmer_lessons
+      registered: updatedLesson._count.swimmer_lessons,
+      success: true,
+      message: 'Registration successful'
     });
+
   } catch (error) {
     console.error('Error registering for lesson:', error);
-    return NextResponse.json({ error: 'Failed to register for lesson' }, { status: 500 });
+    return NextResponse.json(
+      { 
+        error: 'Failed to register for lesson',
+        details: error.message 
+      }, 
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
   }
 }

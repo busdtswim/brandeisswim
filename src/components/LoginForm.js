@@ -62,9 +62,10 @@ const LoginForm = () => {
                   type="email"
                   id="email"
                   name="email"
-                  className="shadow-sm rounded-md w-full px-3 py-2 border border-[#003478] focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                  className="shadow-sm rounded-md w-full px-3 py-2 border border-[#003478] focus:outline-none focus:ring-2 focus:ring-cyan-300 text-black"
                   placeholder="your@email.com"
                 />
+
                 <ErrorMessage name="email" component="div" className="text-red-500 text-xs mt-1" />
               </div>
               <div className="mb-4">
@@ -73,7 +74,7 @@ const LoginForm = () => {
                   type="password"
                   id="password"
                   name="password"
-                  className="shadow-sm rounded-md w-full px-3 py-2 border border-[#003478] focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                  className="shadow-sm rounded-md w-full px-3 py-2 border border-[#003478] focus:outline-none focus:ring-2 focus:ring-cyan-300 text-black"
                   placeholder="Enter your password"
                 />
                 <ErrorMessage name="password" component="div" className="text-red-500 text-xs mt-1" />

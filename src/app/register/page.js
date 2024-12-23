@@ -1,9 +1,8 @@
+// src/app/register/page.js
+
 import React from 'react';
-import dynamic from 'next/dynamic';
 import Header from '../../components/Header';
 import RegistrationForm from '../../components/RegistrationForm';
-
-// const RegistrationForm = dynamic(() => import('../../components/RegistrationForm'), { ssr: false });
 
 export default function RegisterPage() {
   return (

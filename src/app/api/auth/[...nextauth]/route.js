@@ -1,7 +1,10 @@
+// src/app/api/auth/[...nextauth]/route.js
+
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { headers } from 'next/headers';
 
 const prisma = new PrismaClient();
 
@@ -18,26 +21,34 @@ export const authOptions = {
           return null;
         }
 
-        const user = await prisma.users.findUnique({
-          where: { email: credentials.email },
-        });
+        try {
+          const user = await prisma.users.findUnique({
+            where: { email: credentials.email },
+          });
 
-        if (!user) {
+          if (!user) {
+            return null;
+          }
+
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password, 
+            user.password
+          );
+
+          if (!isPasswordValid) {
+            return null;
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.fullname,
+            role: user.role,
+          };
+        } catch (error) {
+          console.error('Auth error:', error);
           return null;
         }
-
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.fullname,
-          role: user.role,
-        };
       }
     })
   ],
@@ -62,9 +73,16 @@ export const authOptions = {
   },
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 };
 
-const handler = NextAuth(authOptions);
+export const GET = auth;
+export const POST = auth;
 
-export { handler as GET, handler as POST };
+// Create GET and POST handlers
+async function auth(request, context) {
+  const headersList = await headers();
+  context.headers = Object.fromEntries(headersList.entries());
+  return NextAuth(authOptions)(request, context);
+}

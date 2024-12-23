@@ -1,3 +1,5 @@
+// src/app/admin/layout.js
+
 'use client';
 
 import React from 'react';

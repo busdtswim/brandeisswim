@@ -1,9 +1,24 @@
-// api/auth/lessons/classes.js
+// src/app/api/auth/lessons/classes/route.js
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { calculateAge } from '@/utils/dateUtils';
 
 const prisma = new PrismaClient();
 
+const formatTimeString = (time) => {
+  // Ensure we're working with a Date object
+  const date = time instanceof Date ? time : new Date(time);
+  
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const period = hours >= 12 ? 'PM' : 'AM';
+  
+  // Convert to 12-hour format
+  hours = hours % 12;
+  hours = hours ? hours : 12; // Convert 0 to 12
+  
+  return `${hours}:${minutes}${period}`;
+};
 
 export async function GET() {
   try {
@@ -13,6 +28,7 @@ export async function GET() {
         swimmer_lessons: {
           include: {
             swimmers: true,
+            instructors: true,
           },
         },
       },
@@ -22,15 +38,22 @@ export async function GET() {
       id: cls.id,
       startDate: cls.start_date.toISOString().split('T')[0],
       endDate: cls.end_date.toISOString().split('T')[0],
-      time: `${cls.start_time.toTimeString().slice(0,5)} - ${cls.end_time.toTimeString().slice(0,5)}`,
+      time: `${formatTimeString(cls.start_time)} - ${formatTimeString(cls.end_time)}`,
       meetingDays: cls.meeting_days.split(','),
       capacity: cls.max_slots,
-      instructor: cls.instructors ? { id: cls.instructors.id, name: cls.instructors.name, email: cls.instructors.email } : null,
+      instructor: cls.instructors ? {
+        id: cls.instructors.id,
+        name: cls.instructors.name,
+        email: cls.instructors.email
+      } : null,
       participants: cls.swimmer_lessons.map(sl => ({
         id: sl.swimmers.id,
         name: sl.swimmers.name,
-        age: sl.swimmers.age,
+        age: calculateAge(sl.swimmers.birthdate),
         proficiency: sl.swimmers.proficiency,
+        gender: sl.swimmers.gender,
+        payment_status: sl.payment_status,
+        instructor_id: sl.instructor_id
       })),
     }));
 

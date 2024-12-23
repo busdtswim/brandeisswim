@@ -1,8 +1,8 @@
-// src/app/api/lessons/route.js
+// src/app/api/auth/admin/create/route.js
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]';
+import { authOptions } from '../../[...nextauth]/route';
 
 const prisma = new PrismaClient();
 

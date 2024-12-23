@@ -1,40 +1,37 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import UserClassSchedule from './UserSchedule';
 
 const ViewUserSchedule = () => {
+  const { data: session } = useSession();
   const [userClasses, setUserClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all'); // 'all', 'upcoming', 'past'
 
-  // Simulating an API call to get user's classes
   useEffect(() => {
     const fetchUserClasses = async () => {
-      // In a real application, this would be an API call
-      const mockUserClasses = [
-        {
-          id: 1,
-          startDate: '2024-03-01',
-          endDate: '2024-03-28',
-          time: '3:00 PM - 4:00 PM',
-          meetingDays: ['Monday', 'Wednesday'],
-        },
-        {
-          id: 2,
-          startDate: '2024-04-01',
-          endDate: '2024-04-30',
-          time: '4:30 PM - 6:00 PM',
-          meetingDays: ['Tuesday', 'Thursday'],
-        },
-      ];
-
-      setUserClasses(mockUserClasses);
-      setLoading(false);
+      try {
+        const response = await fetch('/api/auth/customer/schedule');
+        if (!response.ok) {
+          throw new Error('Failed to fetch schedule');
+        }
+        const data = await response.json();
+        setUserClasses(data);
+      } catch (err) {
+        console.error('Error fetching classes:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchUserClasses();
-  }, []);
+    if (session) {
+      fetchUserClasses();
+    }
+  }, [session]);
 
   const filteredClasses = userClasses.filter(classData => {
     const currentDate = new Date();
@@ -49,14 +46,26 @@ const ViewUserSchedule = () => {
   });
 
   if (loading) {
-    return <div>Loading your schedule...</div>;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">Loading your schedule...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-red-500 text-center">Error: {error}</div>
+      </div>
+    );
   }
 
   return (
     <div className="container mx-auto px-4 py-8 text-black">
       <h1 className="text-3xl font-bold mb-8">My Class Schedule</h1>
       
-      <div className="mb-4">
+      <div className="mb-4 flex items-center">
         <label htmlFor="filter" className="mr-2">Filter:</label>
         <select 
           id="filter" 
@@ -71,7 +80,9 @@ const ViewUserSchedule = () => {
       </div>
 
       {filteredClasses.length === 0 ? (
-        <p>No classes found.</p>
+        <div className="bg-white rounded-lg shadow p-6 text-center">
+          <p>No classes found.</p>
+        </div>
       ) : (
         <div className="space-y-4">
           {filteredClasses.map(classData => (

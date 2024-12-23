@@ -1,4 +1,4 @@
-// app/lessons/register/page.js
+// src/app/lessons/page.js
 'use client';
 
 import LessonRegistration from '@/components/LessonRegistration';

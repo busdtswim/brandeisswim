@@ -25,9 +25,12 @@ model lessons {
 model swimmer_lessons {
   swimmer_id        Int
   lesson_id         Int
-  registration_date DateTime? @default(now()) @db.Timestamptz(6)
-  lessons           lessons   @relation(fields: [lesson_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  swimmers          swimmers  @relation(fields: [swimmer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  registration_date DateTime?    @default(now()) @db.Timestamptz(6)
+  payment_status    Boolean?     @default(false)
+  instructor_id     Int?
+  instructors       instructors? @relation(fields: [instructor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_instructor")
+  lessons           lessons      @relation(fields: [lesson_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  swimmers          swimmers     @relation(fields: [swimmer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([swimmer_id, lesson_id])
 }
@@ -36,9 +39,10 @@ model swimmers {
   id              Int               @id @default(autoincrement())
   user_id         Int?
   name            String            @db.VarChar(255)
-  age             Int?
   proficiency     String?           @db.VarChar(50)
   total_lessons   Int?
+  birthdate       DateTime?         @db.Date
+  gender          String?           @db.Char(255)
   swimmer_lessons swimmer_lessons[]
   users           users?            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -50,12 +54,14 @@ model users {
   role         String     @db.VarChar(20)
   phone_number String?    @db.VarChar(20)
   fullname     String?    @db.VarChar(255)
+  is_banned    Boolean?   @default(false)
   swimmers     swimmers[]
 }
 
 model instructors {
-  id      Int       @id @default(autoincrement())
-  name    String    @db.VarChar(255)
-  email   String    @unique @db.VarChar(255)
-  lessons lessons[]
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  email           String            @unique @db.VarChar(255)
+  lessons         lessons[]
+  swimmer_lessons swimmer_lessons[]
 }

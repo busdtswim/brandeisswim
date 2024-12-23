@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ClassSchedule from './ClassSchedule';
 
 const ViewSchedule = () => {
@@ -9,6 +9,7 @@ const ViewSchedule = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [assignError, setAssignError] = useState(null);
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,39 +38,111 @@ const ViewSchedule = () => {
     fetchData();
   }, []);
 
-  const handleInstructorAssign = async (classId, instructorId) => {
+  const filteredClasses = useMemo(() => {
+    const currentDate = new Date();
+    
+    return classes.filter(classData => {
+      const startDate = new Date(classData.startDate);
+      const endDate = new Date(classData.endDate);
+      
+      switch (filter) {
+        case 'past':
+          return endDate < currentDate;
+        case 'current':
+          return startDate <= currentDate && endDate >= currentDate;
+        case 'future':
+          return startDate > currentDate;
+        default:
+          return true; // 'all' case
+      }
+    });
+  }, [classes, filter]);
+
+  const handleInstructorAssign = async (classId, swimmerId, instructorId) => {
     try {
       const response = await fetch(`/api/auth/lessons/assign/${classId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ instructorId }),
+        body: JSON.stringify({
+          swimmerId: parseInt(swimmerId),
+          instructorId: instructorId ? parseInt(instructorId) : null
+        }),
       });
   
       if (!response.ok) {
-        throw new Error('Failed to assign instructor');
+        const errorData = await response.json().catch(() => ({
+          error: 'Failed to parse error response'
+        }));
+        throw new Error(errorData.error || 'Failed to assign instructor');
       }
   
-      // Find the full instructor object
-      const assignedInstructor = instructors.find(instructor => instructor.id === parseInt(instructorId));
+      const updatedAssignment = await response.json();
   
-      // Update local state
-      setClasses(classes.map(cls => 
-        cls.id === parseInt(classId)
-          ? { 
-              ...cls, 
-              instructor_id: parseInt(instructorId),
-              instructor: assignedInstructor || null // Update the instructor object
-            }
-          : cls
-      ));
+      setClasses(prevClasses => prevClasses.map(cls => {
+        if (cls.id === parseInt(classId)) {
+          return {
+            ...cls,
+            participants: cls.participants.map(p => {
+              if (p.id === parseInt(swimmerId)) {
+                const assignedInstructor = instructors.find(i => i.id === parseInt(instructorId));
+                return {
+                  ...p,
+                  instructor_id: instructorId ? parseInt(instructorId) : null,
+                  instructor: assignedInstructor || null
+                };
+              }
+              return p;
+            })
+          };
+        }
+        return cls;
+      }));
   
-      // Clear any previous error
       setAssignError(null);
     } catch (err) {
       console.error('Error assigning instructor:', err);
       setAssignError(err.message);
+    }
+  };
+
+  const handlePaymentStatusChange = async (classId, swimmerId, status) => {
+    try {
+      const response = await fetch('/api/auth/lessons/payment', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lessonId: classId,
+          swimmerId: swimmerId,
+          status: status
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update payment status');
+      }
+
+      setClasses(classes.map(cls => {
+        if (cls.id === classId) {
+          return {
+            ...cls,
+            participants: cls.participants.map(p => {
+              if (p.id === swimmerId) {
+                return { ...p, payment_status: status };
+              }
+              return p;
+            })
+          };
+        }
+        return cls;
+      }));
+
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      setAssignError('Failed to update payment status');
     }
   };
 
@@ -78,23 +151,48 @@ const ViewSchedule = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 text-black">
-      <h1 className="text-3xl font-bold mb-8">View Schedule</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">View Schedule</h1>
+        <div className="flex items-center space-x-4">
+          <label htmlFor="filter" className="font-medium">Filter Classes:</label>
+          <select
+            id="filter"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="border rounded-md p-2 bg-white"
+          >
+            <option value="all">All Classes</option>
+            <option value="past">Past Classes</option>
+            <option value="current">Current Classes</option>
+            <option value="future">Future Classes</option>
+          </select>
+        </div>
+      </div>
+
       {assignError && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
           <strong className="font-bold">Error: </strong>
           <span className="block sm:inline">{assignError}</span>
         </div>
       )}
+
       <div className="space-y-4">
-        {classes.map(classData => (
+        {filteredClasses.map(classData => (
           <ClassSchedule 
             key={classData.id} 
-            classData={classData} 
+            classData={classData}
             instructors={instructors}
             onInstructorAssign={handleInstructorAssign}
+            onPaymentStatusChange={handlePaymentStatusChange}
           />
         ))}
       </div>
+
+      {filteredClasses.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          No classes found for the selected filter.
+        </div>
+      )}
     </div>
   );
 };

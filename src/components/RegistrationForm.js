@@ -3,6 +3,8 @@
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage, FieldArray } from 'formik';
 import * as Yup from 'yup';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
@@ -15,23 +17,31 @@ const validationSchema = Yup.object().shape({
   swimmers: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required('Swimmer\'s name is required'),
-      age: Yup.number().positive('Age must be positive').integer('Age must be an integer').required('Age is required'),
+      birthdate: Yup.date().required('Birthdate is required'),
+      gender: Yup.string().required('Gender is required'),
       proficiency: Yup.string().required('Proficiency level is required'),
     })
   ).min(1, 'At least one swimmer is required'),
 });
 
 const RegistrationForm = () => {
+  const router = useRouter();
+  
   const initialValues = {
     email: '',
     password: '',
     confirmPassword: '',
     phoneNumber: '',
     fullName: '',
-    swimmers: [{ name: '', age: '', proficiency: '' }],
+    swimmers: [{ 
+      name: '', 
+      birthdate: '', 
+      gender: '',
+      proficiency: '' 
+    }],
   };
 
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleSubmit = async (values, { setSubmitting, setErrors }) => {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -42,15 +52,28 @@ const RegistrationForm = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Registration failed');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
       }
 
-      const data = await response.json();
-      console.log('Registration successful:', data);
-      // Handle successful registration (e.g., redirect to login page or dashboard)
+      // Attempt to log in immediately after registration
+      const loginResult = await signIn('credentials', {
+        redirect: false,
+        email: values.email,
+        password: values.password,
+      });
+
+      if (loginResult?.error) {
+        throw new Error(loginResult.error);
+      }
+
+      // Redirect to home page after successful registration and login
+      router.push('/');
     } catch (error) {
       console.error('Registration error:', error);
-      // Handle registration error (e.g., show error message to user)
+      setErrors({ 
+        submit: error.message || 'An error occurred during registration' 
+      });
     } finally {
       setSubmitting(false);
     }
@@ -62,7 +85,7 @@ const RegistrationForm = () => {
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
     >
-      {({ values, errors, touched, isSubmitting }) => (
+      {({ values, isSubmitting }) => (
         <Form className="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-lg">
           <h2 className="text-2xl font-bold mb-6 text-[#003478]">Swim Lesson Registration Form</h2>
 
@@ -105,19 +128,47 @@ const RegistrationForm = () => {
                     
                     <div className="mb-2">
                       <label htmlFor={`swimmers.${index}.name`} className="block mb-1 text-[#003478]">Name</label>
-                      <Field name={`swimmers.${index}.name`} type="text" className="w-full p-2 border border-[#003478] rounded text-black placeholder-black" placeholder="Enter swimmer's name" />
+                      <Field 
+                        name={`swimmers.${index}.name`} 
+                        type="text" 
+                        className="w-full p-2 border border-[#003478] rounded text-black placeholder-black" 
+                        placeholder="Enter swimmer's name" 
+                      />
                       <ErrorMessage name={`swimmers.${index}.name`} component="div" className="text-red-500 text-sm mt-1" />
                     </div>
 
                     <div className="mb-2">
-                      <label htmlFor={`swimmers.${index}.age`} className="block mb-1 text-[#003478]">Age</label>
-                      <Field name={`swimmers.${index}.age`} type="number" className="w-full p-2 border border-[#003478] rounded text-black placeholder-black" placeholder="Enter swimmer's age" />
-                      <ErrorMessage name={`swimmers.${index}.age`} component="div" className="text-red-500 text-sm mt-1" />
+                      <label htmlFor={`swimmers.${index}.birthdate`} className="block mb-1 text-[#003478]">Birth Date</label>
+                      <Field 
+                        name={`swimmers.${index}.birthdate`} 
+                        type="date" 
+                        className="w-full p-2 border border-[#003478] rounded text-black" 
+                      />
+                      <ErrorMessage name={`swimmers.${index}.birthdate`} component="div" className="text-red-500 text-sm mt-1" />
+                    </div>
+
+                    <div className="mb-2">
+                      <label htmlFor={`swimmers.${index}.gender`} className="block mb-1 text-[#003478]">Gender</label>
+                      <Field 
+                        name={`swimmers.${index}.gender`} 
+                        as="select" 
+                        className="w-full p-2 border border-[#003478] rounded text-black"
+                      >
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </Field>
+                      <ErrorMessage name={`swimmers.${index}.gender`} component="div" className="text-red-500 text-sm mt-1" />
                     </div>
 
                     <div className="mb-2">
                       <label htmlFor={`swimmers.${index}.proficiency`} className="block mb-1 text-[#003478]">Proficiency</label>
-                      <Field name={`swimmers.${index}.proficiency`} as="select" className="w-full p-2 border border-[#003478] rounded text-black">
+                      <Field 
+                        name={`swimmers.${index}.proficiency`} 
+                        as="select" 
+                        className="w-full p-2 border border-[#003478] rounded text-black"
+                      >
                         <option value="">Select proficiency</option>
                         <option value="no experience">No Experience</option>
                         <option value="beginner">Beginner</option>
@@ -128,13 +179,21 @@ const RegistrationForm = () => {
                     </div>
 
                     {index > 0 && (
-                      <button type="button" onClick={() => remove(index)} className="mt-2 bg-red-500 text-white p-2 rounded hover:bg-red-600 transition duration-300">
+                      <button 
+                        type="button" 
+                        onClick={() => remove(index)} 
+                        className="mt-2 bg-red-500 text-white p-2 rounded hover:bg-red-600 transition duration-300"
+                      >
                         Remove Swimmer
                       </button>
                     )}
                   </div>
                 ))}
-                <button type="button" onClick={() => push({ name: '', age: '', proficiency: '' })} className="mb-4 bg-green-500 text-white p-2 rounded hover:bg-green-600 transition duration-300">
+                <button 
+                  type="button" 
+                  onClick={() => push({ name: '', birthdate: '', gender: '', proficiency: '' })} 
+                  className="mb-4 bg-green-500 text-white p-2 rounded hover:bg-green-600 transition duration-300"
+                >
                   Add Another Swimmer
                 </button>
               </div>

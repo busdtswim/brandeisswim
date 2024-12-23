@@ -17,7 +17,8 @@ export async function POST(req) {
           prisma.swimmers.create({
             data: {
               name: swimmer.name,
-              age: parseInt(swimmer.age),
+              birthdate: new Date(swimmer.birthdate),
+              gender: swimmer.gender,
               proficiency: swimmer.proficiency,
             },
           })

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { Users, Book } from 'lucide-react';
+import AdminActionModal from './AdminActionModal';
 
 const AdminDashboard = () => {
   const [swimmers, setSwimmers] = useState([]);
@@ -9,6 +10,8 @@ const AdminDashboard = () => {
   const [sortDirection, setSortDirection] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [selectedSwimmer, setSelectedSwimmer] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchSwimmers = async () => {
@@ -27,6 +30,59 @@ const AdminDashboard = () => {
 
     fetchSwimmers();
   }, []);
+
+  const handleDelete = async (swimmerId) => {
+    if (confirm('Are you sure you want to delete this swimmer?')) {
+      try {
+        const response = await fetch(`/api/auth/admin/swimmers/${swimmerId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          setSwimmers(swimmers.filter(s => s.id !== swimmerId));
+          setIsModalOpen(false);
+        }
+      } catch (error) {
+        console.error('Error deleting swimmer:', error);
+      }
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (confirm('Are you sure you want to delete this user and all associated swimmers?')) {
+      try {
+        const response = await fetch(`/api/auth/admin/users/${userId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          setSwimmers(swimmers.filter(s => s.user_id !== userId));
+          setIsModalOpen(false);
+        }
+      } catch (error) {
+        console.error('Error deleting user:', error);
+      }
+    }
+  };
+
+  const handleBanUser = async (userId) => {
+    try {
+      const response = await fetch(`/api/auth/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ is_banned: true })
+      });
+      
+      if (response.ok) {
+        alert('User has been banned');
+        setIsModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Error banning user:', error);
+    }
+  };
 
   const filteredSwimmers = useMemo(() => {
     return swimmers
@@ -100,46 +156,60 @@ const AdminDashboard = () => {
           </select>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-4 py-2 text-left">
-                  <button onClick={() => handleSort('name')} className="font-semibold text-gray-600 hover:text-gray-900">
-                    Name
+        <table className="w-full">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="px-4 py-2 text-left">
+                <button onClick={() => handleSort('name')} className="font-semibold text-gray-600 hover:text-gray-900">
+                  Name
+                </button>
+              </th>
+              <th className="px-4 py-2 text-left">
+                <button onClick={() => handleSort('age')} className="font-semibold text-gray-600 hover:text-gray-900">
+                  Age
+                </button>
+              </th>
+              <th className="px-4 py-2 text-left">
+                <button onClick={() => handleSort('gender')} className="font-semibold text-gray-600 hover:text-gray-900">
+                  Gender
+                </button>
+              </th>
+              <th className="px-4 py-2 text-left">
+                <button onClick={() => handleSort('proficiency')} className="font-semibold text-gray-600 hover:text-gray-900">
+                  Proficiency
+                </button>
+              </th>
+              <th className="px-4 py-2 text-left">
+                <button onClick={() => handleSort('total_lessons')} className="font-semibold text-gray-600 hover:text-gray-900">
+                  Total Lessons
+                </button>
+              </th>
+              <th className="px-4 py-2 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedSwimmers.map(swimmer => (
+              <tr key={swimmer.id}>
+                <td className="px-4 py-2">{swimmer.name}</td>
+                <td className="px-4 py-2">{swimmer.age || 'N/A'}</td>
+                <td className="px-4 py-2">{swimmer.gender}</td>
+                <td className="px-4 py-2">{swimmer.proficiency}</td>
+                <td className="px-4 py-2">{swimmer.total_lessons || 0}</td>
+                <td className="px-4 py-2">
+                  <button 
+                    className="text-blue-500 hover:text-blue-700"
+                    onClick={() => {
+                      setSelectedSwimmer(swimmer);
+                      setIsModalOpen(true);
+                    }}
+                  >
+                    Edit
                   </button>
-                </th>
-                <th className="px-4 py-2 text-left">
-                  <button onClick={() => handleSort('age')} className="font-semibold text-gray-600 hover:text-gray-900">
-                    Age
-                  </button>
-                </th>
-                <th className="px-4 py-2 text-left">
-                  <button onClick={() => handleSort('proficiency')} className="font-semibold text-gray-600 hover:text-gray-900">
-                    Proficiency
-                  </button>
-                </th>
-                <th className="px-4 py-2 text-left">
-                  <button onClick={() => handleSort('total_lessons')} className="font-semibold text-gray-600 hover:text-gray-900">
-                    Total Lessons
-                  </button>
-                </th>
-                <th className="px-4 py-2 text-left">Actions</th>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {paginatedSwimmers.map(swimmer => (
-                <tr key={swimmer.id}>
-                  <td className="px-4 py-2">{swimmer.name}</td>
-                  <td className="px-4 py-2">{swimmer.age}</td>
-                  <td className="px-4 py-2">{swimmer.proficiency}</td>
-                  <td className="px-4 py-2">{swimmer.total_lessons || 0}</td>
-                  <td className="px-4 py-2">
-                    <button className="text-blue-500 hover:text-blue-700">Edit</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
         </div>
         <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
           <div>
@@ -176,6 +246,15 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
+
+      <AdminActionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDelete={handleDelete}
+        onDeleteUser={handleDeleteUser}
+        onBanUser={handleBanUser}
+        swimmer={selectedSwimmer}
+      />
     </div>
   );
 };

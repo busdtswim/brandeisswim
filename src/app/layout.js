@@ -1,4 +1,4 @@
-// app/layout.js
+// src/app/layout.js
 import './globals.css';
 import Header from '@/components/Header';
 import { Providers } from './providers';

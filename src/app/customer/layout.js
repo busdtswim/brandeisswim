@@ -1,3 +1,5 @@
+// src/app/customer/layout.js
+
 'use client';
 
 import React from 'react';

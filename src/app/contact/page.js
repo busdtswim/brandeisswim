@@ -1,3 +1,5 @@
+// src/app/contact/page.js
+
 import React from 'react';
 import Header from '../../components/Header';
 import ContactForm from '../../components/ContactForm';
@@ -70,7 +72,7 @@ const ContactPage = () => {
                   </li>
                 </ul>
               </div>
-              {/* <ContactForm /> */}
+              <ContactForm />
             </div>
           </div>
         </div>
