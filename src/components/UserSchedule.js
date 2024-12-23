@@ -8,7 +8,7 @@ const UserSchedule = ({ classData }) => {
   return (
     <div className="bg-white shadow-md rounded-lg mb-4 overflow-hidden">
       <div className={`p-4 ${isUpcoming ? 'bg-blue-500' : 'bg-gray-500'} text-white`}>
-        <h3 className="text-lg font-semibold">{classData.swimmerName}'s {classData.meetingDays.join(', ')} Lesson</h3>
+      <h3 className="text-lg font-semibold">{classData.swimmerName}&apos;s {classData.meetingDays.join(', ')} Lesson</h3>
       </div>
       <div className="p-4 space-y-2">
         <p>
