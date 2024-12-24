@@ -22,7 +22,6 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ req, token }) => {
-        // Allow home page access to all authenticated and unauthenticated users
         if (req.nextUrl.pathname === "/") {
           return true;
         }
