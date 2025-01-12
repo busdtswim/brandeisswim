@@ -15,11 +15,8 @@ model lessons {
   start_time      DateTime          @db.Time(6)
   end_time        DateTime          @db.Time(6)
   max_slots       Int
-  instructor_id   Int?
-  instructors     instructors?      @relation(fields: [instructor_id], references: [id], onUpdate: NoAction, map: "fk_instructor")
+  exception_dates String?
   swimmer_lessons swimmer_lessons[]
-
-  @@index([instructor_id], map: "idx_instructor_id")
 }
 
 model swimmer_lessons {
@@ -29,8 +26,8 @@ model swimmer_lessons {
   payment_status    Boolean?     @default(false)
   instructor_id     Int?
   instructors       instructors? @relation(fields: [instructor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_instructor")
-  lessons           lessons      @relation(fields: [lesson_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  swimmers          swimmers     @relation(fields: [swimmer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  lessons           lessons      @relation(fields: [lesson_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_lesson")
+  swimmers          swimmers     @relation(fields: [swimmer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_swimmer")
 
   @@id([swimmer_id, lesson_id])
 }
@@ -40,11 +37,17 @@ model swimmers {
   user_id         Int?
   name            String            @db.VarChar(255)
   proficiency     String?           @db.VarChar(50)
-  total_lessons   Int?
   birthdate       DateTime?         @db.Date
   gender          String?           @db.Char(255)
   swimmer_lessons swimmer_lessons[]
   users           users?            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model instructors {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  email           String            @unique @db.VarChar(255)
+  swimmer_lessons swimmer_lessons[]
 }
 
 model users {
@@ -54,14 +57,15 @@ model users {
   role         String     @db.VarChar(20)
   phone_number String?    @db.VarChar(20)
   fullname     String?    @db.VarChar(255)
-  is_banned    Boolean?   @default(false)
   swimmers     swimmers[]
 }
 
-model instructors {
-  id              Int               @id @default(autoincrement())
-  name            String            @db.VarChar(255)
-  email           String            @unique @db.VarChar(255)
-  lessons         lessons[]
-  swimmer_lessons swimmer_lessons[]
+model site_content {
+  id           Int       @id @default(autoincrement())
+  section      String    @unique @db.VarChar(255)
+  title        String?   @db.VarChar(255)
+  content      String
+  is_custom    Boolean?  @default(false)
+  order_num    Int?      @default(0)
+  last_updated DateTime? @default(now()) @db.Timestamptz(6)
 }

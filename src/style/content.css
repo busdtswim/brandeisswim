@@ -1,0 +1,13 @@
+/* //src/style/content.css */
+.custom-prose ul {
+    list-style-type: disc;
+    color: black !important;
+  }
+  
+  .custom-prose ul li {
+    color: black !important;
+  }
+  
+  .custom-prose ul li::marker {
+    color: black !important;
+  }

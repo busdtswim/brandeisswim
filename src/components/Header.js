@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, User, LogOut } from 'lucide-react';
+import { Mail, LogOut } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 
 const Header = () => {

@@ -12,12 +12,18 @@ export async function DELETE(request, context) {
       return NextResponse.json({ error: 'Swimmer ID is required' }, { status: 400 });
     }
 
-    // Delete all swim lesson registrations first
+    const swimmer = await prisma.swimmers.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!swimmer) {
+      return NextResponse.json({ error: 'Swimmer not found' }, { status: 404 });
+    }
+
     await prisma.swimmer_lessons.deleteMany({
       where: { swimmer_id: parseInt(id) }
     });
 
-    // Then delete the swimmer
     await prisma.swimmers.delete({
       where: { id: parseInt(id) }
     });
@@ -26,5 +32,7 @@ export async function DELETE(request, context) {
   } catch (error) {
     console.error('Error deleting swimmer:', error.message);
     return NextResponse.json({ error: 'Failed to delete swimmer' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }

@@ -8,15 +8,33 @@ const ClassSchedule = ({
   classData, 
   instructors, 
   onInstructorAssign, 
-  onPaymentStatusChange
+  onPaymentStatusChange,
+  onEditExceptions,
+  onRemoveSwimmer 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [error, setError] = useState('');
   const [participants, setParticipants] = useState(classData.participants);
 
   useEffect(() => {
-    setParticipants(classData.participants);
-  }, [classData.participants]);
+    const updatedClassData = { ...classData };
+  
+    if (updatedClassData.meetingDays && !Array.isArray(updatedClassData.meetingDays)) {
+      updatedClassData.meetingDays = updatedClassData.meetingDays.split(',');
+    }
+  
+    if (updatedClassData.exception_dates) {
+      if (typeof updatedClassData.exception_dates === 'string') {
+        updatedClassData.exception_dates = updatedClassData.exception_dates.split(',').filter(date => date.trim());
+      } else if (!Array.isArray(updatedClassData.exception_dates)) {
+        updatedClassData.exception_dates = [];
+      }
+    } else {
+      updatedClassData.exception_dates = [];
+    }
+    
+    setParticipants(updatedClassData.participants || []);
+  }, [classData]);
 
   const handleInstructorAssign = async (lessonId, participantId, newInstructorId) => {
     try {
@@ -53,7 +71,6 @@ const ClassSchedule = ({
 
       await onInstructorAssign(lessonId, participantId, newInstructorId);
       
-      // Update local state after successful assignment
       setParticipants(prevParticipants => 
         prevParticipants.map(p => 
           p.id === participantId 
@@ -71,7 +88,6 @@ const ClassSchedule = ({
     try {
       await onPaymentStatusChange(lessonId, participantId, status);
       
-      // Update local state after successful payment status change
       setParticipants(prevParticipants => 
         prevParticipants.map(p => 
           p.id === participantId 
@@ -85,30 +101,76 @@ const ClassSchedule = ({
     }
   };
 
-  return (
-    <div className="bg-white shadow-md rounded-lg mb-4 overflow-hidden text-black">
-      <div 
-        className="bg-blue-500 text-white p-4 cursor-pointer flex justify-between items-center"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div>
-          <h3 className="text-lg font-semibold">
-            {classData.meetingDays.join(', ')} Swim Class
-          </h3>
-          <p className="text-sm opacity-90">
-            {formatDate(classData.startDate)} - {formatDate(classData.endDate)}
-          </p>
-        </div>
-        <span>{isExpanded ? '▲' : '▼'}</span>
+  const handleRemoveSwimmer = async (lessonId, swimmerId) => {
+    if (window.confirm('Are you sure you want to remove this swimmer from the lesson?')) {
+      try {
+        const response = await fetch('/api/auth/lessons/remove-swimmer', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ lessonId, swimmerId }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to remove swimmer');
+        }
+
+        onRemoveSwimmer(lessonId, swimmerId);
+        setError('');
+      } catch (error) {
+        console.error('Error removing swimmer:', error);
+        setError('Failed to remove swimmer from lesson');
+      }
+    }
+  };
+
+return (
+  <div className="bg-white shadow-md rounded-lg mb-4 overflow-hidden text-black">
+    <div 
+      className="bg-blue-500 text-white p-4 cursor-pointer"
+      onClick={() => setIsExpanded(!isExpanded)} 
+    >
+      <div className="flex items-center"> 
+        <h3 className="text-lg font-semibold">
+          {classData.meetingDays?.join(', ') || ''} Swim Class
+        </h3>
+        <p className="text-sm opacity-90 ml-4">
+          {formatDate(classData.startDate)} - {formatDate(classData.endDate)}
+        </p>
       </div>
-      
-      {isExpanded && (
-        <div className="p-4">
-          <div className="mb-4">
-            <p><strong>Time:</strong> {classData.time}</p>
-            <p><strong>Days:</strong> {classData.meetingDays.join(', ')}</p>
-            <p><strong>Capacity:</strong> {participants.length}/{classData.capacity}</p>
+      <span className="float-right mt-[-24px]">{isExpanded ? '▲' : '▼'}</span> 
+    </div>
+    
+    {isExpanded && (
+      <div className="p-4">
+        <div className="mb-4">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <p><strong>Time:</strong> {classData.time}</p>
+              <p><strong>Days:</strong> {classData.meetingDays?.join(', ') || ''}</p>
+              <p><strong>Capacity:</strong> {participants?.length || 0}/{classData.capacity}</p>
+              {classData.exception_dates && Array.isArray(classData.exception_dates) && classData.exception_dates.length > 0 && (
+                <p className="text-red-600">
+                  <strong>No Classes On:</strong> {
+                    classData.exception_dates.map(date => 
+                      new Date(date).toLocaleDateString()
+                    ).join(', ')
+                  }
+                </p>
+              )}
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditExceptions(classData);
+              }}
+              className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600"
+            >
+              Edit Exceptions
+            </button>
           </div>
+        </div>
 
           {error && (
             <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
@@ -125,6 +187,7 @@ const ClassSchedule = ({
                   <th className="px-4 py-2 text-left">Proficiency</th>
                   <th className="px-4 py-2 text-left">Instructor</th>
                   <th className="px-4 py-2 text-center">Payment</th>
+                  <th className="px-4 py-2 text-left">Remove Swimmer</th>
                 </tr>
               </thead>
               <tbody>
@@ -165,6 +228,14 @@ const ClassSchedule = ({
                         )}
                         className="form-checkbox h-5 w-5 text-blue-600"
                       />
+                    </td>
+                    <td className="px-4 py-2">
+                      <button
+                        onClick={() => handleRemoveSwimmer(classData.id, participant.id)}
+                        className="text-red-500 hover:text-red-700 font-medium"
+                      >
+                        Remove
+                      </button>
                     </td>
                   </tr>
                 ))}

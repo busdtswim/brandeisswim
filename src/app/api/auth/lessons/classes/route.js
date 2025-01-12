@@ -24,7 +24,6 @@ export async function GET() {
   try {
     const classes = await prisma.lessons.findMany({
       include: {
-        instructors: true,
         swimmer_lessons: {
           include: {
             swimmers: true,
@@ -41,11 +40,7 @@ export async function GET() {
       time: `${formatTimeString(cls.start_time)} - ${formatTimeString(cls.end_time)}`,
       meetingDays: cls.meeting_days.split(','),
       capacity: cls.max_slots,
-      instructor: cls.instructors ? {
-        id: cls.instructors.id,
-        name: cls.instructors.name,
-        email: cls.instructors.email
-      } : null,
+      exception_dates: cls.exception_dates ? cls.exception_dates.split(',') : [],
       participants: cls.swimmer_lessons.map(sl => ({
         id: sl.swimmers.id,
         name: sl.swimmers.name,
@@ -53,6 +48,11 @@ export async function GET() {
         proficiency: sl.swimmers.proficiency,
         gender: sl.swimmers.gender,
         payment_status: sl.payment_status,
+        instructor: sl.instructors ? {
+          id: sl.instructors.id,
+          name: sl.instructors.name,
+          email: sl.instructors.email
+        } : null,
         instructor_id: sl.instructor_id
       })),
     }));

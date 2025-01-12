@@ -21,12 +21,8 @@ export async function GET() {
           include: {
             swimmer_lessons: {
               include: {
-                lessons: {
-                  include: {
-                    instructors: true
-                  }
-                },
-                instructors: true // Include the instructor assigned to this specific swimmer-lesson
+                lessons: true,
+                instructors: true
               }
             }
           }

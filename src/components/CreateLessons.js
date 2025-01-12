@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import ExceptionDates from './ExceptionDates';
 
 const CreateLessons = () => {
   const [lessons, setLessons] = useState([]);
@@ -11,6 +12,7 @@ const CreateLessons = () => {
     start_time: '',
     end_time: '',
     max_slots: '',
+    exception_dates: []
   });
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -33,6 +35,25 @@ const CreateLessons = () => {
     }
   };
 
+  const handleDelete = async (lessonId) => {
+    if (window.confirm('Are you sure you want to delete this lesson? This will remove all swimmers and instructor assignments.')) {
+      try {
+        const response = await fetch(`/api/auth/admin/lessons/${lessonId}`, {
+          method: 'DELETE',
+        });
+  
+        if (response.ok) {
+          setLessons(lessons.filter(lesson => lesson.id !== lessonId));
+        } else {
+          const error = await response.json();
+          console.error('Failed to delete lesson:', error);
+        }
+      } catch (error) {
+        console.error('Error deleting lesson:', error);
+      }
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prevState => ({
@@ -50,12 +71,27 @@ const CreateLessons = () => {
     }));
   };
 
+  const handleAddException = (date) => {
+    setFormData(prev => ({
+      ...prev,
+      exception_dates: [...prev.exception_dates, date]
+    }));
+  };
+
+  const handleRemoveException = (date) => {
+    setFormData(prev => ({
+      ...prev,
+      exception_dates: prev.exception_dates.filter(d => d !== date)
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newLesson = {
       ...formData,
       meeting_days: formData.meeting_days.join(','),
-      max_slots: parseInt(formData.max_slots, 10)
+      max_slots: parseInt(formData.max_slots, 10),
+      exception_dates: formData.exception_dates.join(',')
     };
 
     try {
@@ -77,6 +113,7 @@ const CreateLessons = () => {
           start_time: '',
           end_time: '',
           max_slots: '',
+          exception_dates: []
         });
       } else {
         console.error('Failed to create lesson');
@@ -144,6 +181,11 @@ const CreateLessons = () => {
             ))}
           </div>
         </div>
+        <ExceptionDates
+          exceptions={formData.exception_dates}
+          onAdd={handleAddException}
+          onRemove={handleRemoveException}
+        />
         <div className="mb-4 flex space-x-4">
           <div className="flex-1">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="start_time">
@@ -212,6 +254,9 @@ const CreateLessons = () => {
                 Meeting Days
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Exception Dates
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Time
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -232,13 +277,26 @@ const CreateLessons = () => {
                   {lesson.meeting_days}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  {lesson.exception_dates ? 
+                    lesson.exception_dates.split(',').map(date => 
+                      new Date(date).toLocaleDateString()
+                    ).join(', ') 
+                    : 'None'
+                  }
+                </td>
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   {new Date(lesson.start_time).toLocaleTimeString()} - {new Date(lesson.end_time).toLocaleTimeString()}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   {lesson.max_slots}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  <button className="text-blue-600 hover:text-blue-900">Edit</button>
+                  <button 
+                    onClick={() => handleDelete(lesson.id)}
+                    className="text-red-600 hover:text-red-900 mr-2"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
