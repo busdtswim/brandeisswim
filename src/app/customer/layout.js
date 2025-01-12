@@ -1,28 +1,21 @@
-// src/app/customer/layout.js
-
-'use client';
-
 import React from 'react';
-import Header from '@/components/Header';
 import Sidebar from '@/components/CustomerSideBar';
 
-const AdminLayout = ({ children }) => {
+const CustomerLayout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-blue-100 flex flex-col">
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <Header />
-      </div>
-      <div className="flex flex-1">
-        {/* Sidebar */}
+    <div className="min-h-screen bg-blue-100">
+      {/* Main Layout */}
+      <div className="flex pt-16">
         <Sidebar />
-        {/* Main content */}
-        <main className="flex-1 ml-64 p-4 overflow-y-auto">
-          {children}
+        {/* Main Content */}
+        <main className="flex-1 p-4 md:ml-64 transition-all duration-300">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>
   );
 };
 
-export default AdminLayout;
+export default CustomerLayout;

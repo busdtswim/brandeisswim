@@ -1,23 +1,16 @@
 // src/app/admin/layout.js
 
-'use client';
-
 import React from 'react';
-import Header from '@/components/Header';
 import Sidebar from '@/components/AdminSideBar';
 
 const AdminLayout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-blue-100 flex flex-col">
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <Header />
-      </div>
-      <div className="flex flex-1">
-        {/* Sidebar */}
+    <div className="min-h-screen bg-blue-100">
+      {/* Main Layout */}
+      <div className="flex pt-16">
         <Sidebar />
-        {/* Main content */}
-        <main className="flex-1 ml-64 p-4 overflow-y-auto">
+        {/* Main Content */}
+        <main className="flex-1 transition-all duration-300 md:ml-64">
           {children}
         </main>
       </div>

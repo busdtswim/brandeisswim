@@ -165,14 +165,15 @@ const CustomerDashboard = () => {
 
   return (
     <div className="container mx-auto p-4 text-black">
-      <h1 className="text-3xl font-bold mb-6">Welcome, {userData.fullname}!</h1>
+      <h1 className="text-2xl md:text-3xl font-bold mb-6">Welcome, {userData.fullname}!</h1>
       
-      <div className="mb-4">
-        <div className="flex border-b border-gray-200">
+      {/* Responsive Tabs */}
+      <div className="mb-4 overflow-x-auto">
+        <div className="flex flex-nowrap border-b border-gray-200 min-w-full">
           {['profile', 'security', 'swimmers'].map((tab) => (
             <button
               key={tab}
-              className={`py-2 px-4 font-medium ${
+              className={`py-2 px-4 whitespace-nowrap font-medium text-sm md:text-base ${
                 activeTab === tab
                   ? 'border-b-2 border-blue-500 text-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
@@ -185,189 +186,177 @@ const CustomerDashboard = () => {
         </div>
       </div>
       
-      {activeTab === 'profile' && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
-          <form onSubmit={handleProfileUpdate} className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <label htmlFor="email" className="w-24 font-medium">Email:</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-grow border rounded p-2"
-              />
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="w-24 font-medium">Name:</span>
-              <span>{userData.fullname}</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="w-24 font-medium">Phone:</span>
-              <span>{userData.phone_number}</span>
-            </div>
-            <button
-              type="submit"
-              className="mt-6 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-            >
-              Update Profile
-            </button>
-          </form>
-        </div>
-      )}
-      
-      {activeTab === 'security' && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Security Settings</h2>
-          <form onSubmit={handlePasswordUpdate} className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <label htmlFor="newPassword" className="w-32 font-medium">New Password:</label>
-              <input
-                id="newPassword"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="flex-grow border rounded p-2"
-              />
-            </div>
-            <div className="flex items-center space-x-4">
-              <label htmlFor="confirmPassword" className="w-32 font-medium">Confirm Password:</label>
-              <input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="flex-grow border rounded p-2"
-              />
-            </div>
-            <button
-              type="submit"
-              className="mt-6 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-            >
-              Change Password
-            </button>
-          </form>
-        </div>
-      )}
-      {activeTab === 'swimmers' && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Manage Swimmers</h2>
-          
-          {/* Existing Swimmers */}
-          {swimmers.length > 0 && (
-            <div className="mb-8">
-              <h3 className="text-lg font-medium mb-4">Current Swimmers</h3>
-              <div className="space-y-4">
-              {swimmers.map((swimmer) => {
-                // Handle both birthdate and birthday fields for backward compatibility
-                const birthdateStr = swimmer.birthdate || swimmer.birthday;
-                const isValidDate = birthdateStr && !isNaN(new Date(birthdateStr).getTime());
-                const birthdate = isValidDate ? new Date(birthdateStr) : null;
-                
-                // Ensure UTC date to avoid timezone issues
-                if (birthdate) {
-                  birthdate.setMinutes(birthdate.getMinutes() + birthdate.getTimezoneOffset());
-                }
-
-                const birthdayDisplay = birthdate 
-                  ? birthdate.toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric',
-                      timeZone: 'UTC'
-                    })
-                  : 'Not provided';
-                
-                const age = birthdate ? calculateAge(birthdate) : null;
-
-                return (
-                  <div key={swimmer.id} className="border rounded p-4">
-                    <p><strong>Name:</strong> {swimmer.name}</p>
-                    <p>
-                      <strong>Birthday:</strong>{' '}
-                      {birthdayDisplay}
-                      {age !== null && ` (${age} years old)`}
-                    </p>
-                    <p><strong>Gender:</strong> {swimmer.gender}</p>
-                    <p><strong>Proficiency:</strong> {swimmer.proficiency || 'Not specified'}</p>
-                  </div>
-                );
-              })}
-              </div>
-            </div>
-          )}
-
-          {/* Add New Swimmer Form */}
-          <div>
-            <h3 className="text-lg font-medium mb-4">Add New Swimmer</h3>
-            <form onSubmit={handleAddSwimmer} className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <label htmlFor="swimmerName" className="w-24 font-medium">Name:</label>
+      {/* Responsive Content Sections */}
+      <div className="w-full">
+        {activeTab === 'profile' && (
+          <div className="bg-white shadow rounded-lg p-4 md:p-6">
+            <h2 className="text-lg md:text-xl font-semibold mb-4">Profile Information</h2>
+            <form onSubmit={handleProfileUpdate} className="space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
+                <label htmlFor="email" className="w-full md:w-24 font-medium mb-1 md:mb-0">Email:</label>
                 <input
-                  id="swimmerName"
-                  name="name"
-                  value={newSwimmer.name}
-                  onChange={(e) => setNewSwimmer({ ...newSwimmer, name: e.target.value })}
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="flex-grow border rounded p-2"
-                  required
                 />
               </div>
-              <div className="flex items-center space-x-4">
-                <label htmlFor="swimmerBirthday" className="w-24 font-medium">Birthday:</label>
-                <input
-                  id="swimmerBirthday"
-                  name="birthday"
-                  type="date"
-                  value={newSwimmer.birthday}
-                  onChange={(e) => setNewSwimmer({ ...newSwimmer, birthday: e.target.value })}
-                  className="flex-grow border rounded p-2"
-                  required
-                />
+              <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
+                <span className="w-full md:w-24 font-medium">Name:</span>
+                <span>{userData.fullname}</span>
               </div>
-              <div className="flex items-center space-x-4">
-                <label htmlFor="swimmerGender" className="w-24 font-medium">Gender:</label>
-                <select
-                  id="swimmerGender"
-                  name="gender"
-                  value={newSwimmer.gender}
-                  onChange={(e) => setNewSwimmer({ ...newSwimmer, gender: e.target.value })}
-                  className="flex-grow border rounded p-2"
-                  required
-                >
-                  <option value="">Select gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div className="flex items-center space-x-4">
-                <label htmlFor="swimmerProficiency" className="w-24 font-medium">Proficiency:</label>
-                <select
-                  id="swimmerProficiency"
-                  name="proficiency"
-                  value={newSwimmer.proficiency}
-                  onChange={(e) => setNewSwimmer({ ...newSwimmer, proficiency: e.target.value })}
-                  className="flex-grow border rounded p-2"
-                  required
-                >
-                  <option value="">Select proficiency</option>
-                  <option value="no experience">No Experience</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
+              <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
+                <span className="w-full md:w-24 font-medium">Phone:</span>
+                <span>{userData.phone_number}</span>
               </div>
               <button
                 type="submit"
-                className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                className="w-full md:w-auto mt-6 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
               >
-                Add Swimmer
+                Update Profile
               </button>
             </form>
           </div>
-        </div>
-      )}
+        )}
+        
+        {activeTab === 'security' && (
+          <div className="bg-white shadow rounded-lg p-4 md:p-6">
+            <h2 className="text-lg md:text-xl font-semibold mb-4">Security Settings</h2>
+            <form onSubmit={handlePasswordUpdate} className="space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
+                <label htmlFor="newPassword" className="w-full md:w-32 font-medium mb-1 md:mb-0">New Password:</label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="flex-grow border rounded p-2"
+                />
+              </div>
+              <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
+                <label htmlFor="confirmPassword" className="w-full md:w-32 font-medium mb-1 md:mb-0">Confirm Password:</label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="flex-grow border rounded p-2"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full md:w-auto mt-6 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+              >
+                Change Password
+              </button>
+            </form>
+          </div>
+        )}
+        
+        {activeTab === 'swimmers' && (
+          <div className="bg-white shadow rounded-lg p-4 md:p-6">
+            <h2 className="text-lg md:text-xl font-semibold mb-4">Manage Swimmers</h2>
+            
+            {/* Existing Swimmers */}
+            {swimmers.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-medium mb-4">Current Swimmers</h3>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {swimmers.map((swimmer) => (
+                    <div key={swimmer.id} className="border rounded p-4">
+                      <p><strong>Name:</strong> {swimmer.name}</p>
+                      <p><strong>Birthday:</strong> {new Date(swimmer.birthdate).toLocaleDateString()}</p>
+                      <p><strong>Gender:</strong> {swimmer.gender}</p>
+                      <p><strong>Proficiency:</strong> {swimmer.proficiency || 'Not specified'}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Add New Swimmer Form */}
+            <div>
+              <h3 className="text-lg font-medium mb-4">Add New Swimmer</h3>
+              <form onSubmit={handleAddSwimmer} className="space-y-4">
+                {/* Form fields with responsive layout */}
+                <div className="space-y-4">
+                  {/* Name field */}
+                  <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
+                    <label htmlFor="swimmerName" className="w-full md:w-24 font-medium mb-1 md:mb-0">Name:</label>
+                    <input
+                      id="swimmerName"
+                      name="name"
+                      value={newSwimmer.name}
+                      onChange={(e) => setNewSwimmer({ ...newSwimmer, name: e.target.value })}
+                      className="flex-grow border rounded p-2"
+                      required
+                    />
+                  </div>
+                  
+                  {/* Birthday field */}
+                  <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
+                    <label htmlFor="swimmerBirthday" className="w-full md:w-24 font-medium mb-1 md:mb-0">Birthday:</label>
+                    <input
+                      id="swimmerBirthday"
+                      name="birthday"
+                      type="date"
+                      value={newSwimmer.birthday}
+                      onChange={(e) => setNewSwimmer({ ...newSwimmer, birthday: e.target.value })}
+                      className="flex-grow border rounded p-2"
+                      required
+                    />
+                  </div>
+                  
+                  {/* Gender field */}
+                  <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
+                    <label htmlFor="swimmerGender" className="w-full md:w-24 font-medium mb-1 md:mb-0">Gender:</label>
+                    <select
+                      id="swimmerGender"
+                      name="gender"
+                      value={newSwimmer.gender}
+                      onChange={(e) => setNewSwimmer({ ...newSwimmer, gender: e.target.value })}
+                      className="flex-grow border rounded p-2"
+                      required
+                    >
+                      <option value="">Select gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  
+                  {/* Proficiency field */}
+                  <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
+                    <label htmlFor="swimmerProficiency" className="w-full md:w-24 font-medium mb-1 md:mb-0">Proficiency:</label>
+                    <select
+                      id="swimmerProficiency"
+                      name="proficiency"
+                      value={newSwimmer.proficiency}
+                      onChange={(e) => setNewSwimmer({ ...newSwimmer, proficiency: e.target.value })}
+                      className="flex-grow border rounded p-2"
+                      required
+                    >
+                      <option value="">Select proficiency</option>
+                      <option value="no experience">No Experience</option>
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <button
+                  type="submit"
+                  className="w-full md:w-auto bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                >
+                  Add Swimmer
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
