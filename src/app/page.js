@@ -39,7 +39,7 @@ export default async function Home() {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
             />
             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-              <h1 className="text-white text-4xl font-bold text-center">BRANDEIS swimming lessons</h1>
+              <h1 className="text-white text-4xl font-bold text-center">BRANDEIS SWIM LESSONS</h1>
             </div>
           </div>
         </section>

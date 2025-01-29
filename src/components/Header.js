@@ -113,7 +113,7 @@ const Header = () => {
     <header className="bg-[#003478] text-white h-16 flex items-center w-full">
       <div className="flex justify-between items-center w-full">
         <div className="text-white font-bold text-lg md:text-2xl pl-4">
-          Brandeis swimming lessons
+          BRANDEIS SWIM LESSONS
         </div>
         
         {/* Mobile Menu Button */}
