@@ -6,6 +6,7 @@ import * as Yup from 'yup';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { Eye, EyeOff } from 'lucide-react';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email format').required('Email is required'),
@@ -16,6 +17,7 @@ const validationSchema = Yup.object().shape({
 const LoginForm = () => {
   const router = useRouter();
   const [loginError, setLoginError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   const initialValues = {
     email: '',
@@ -86,13 +88,26 @@ const LoginForm = () => {
                 <label htmlFor="password" className="block text-sm font-medium text-[#003478] mb-2">
                   Password
                 </label>
-                <Field
-                  type="password"
-                  id="password"
-                  name="password"
-                  className="shadow-sm rounded-md w-full px-3 py-2 border border-[#003478] focus:outline-none focus:ring-2 focus:ring-cyan-300 text-black placeholder-gray-400"
-                  placeholder="Enter your password"
-                />
+                <div className="relative">
+                  <Field
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    name="password"
+                    className="shadow-sm rounded-md w-full px-3 py-2 border border-[#003478] focus:outline-none focus:ring-2 focus:ring-cyan-300 text-black placeholder-gray-400 pr-10"
+                    placeholder="Enter your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  >
+                    {showPassword ? (
+                      <EyeOff size={20} className="text-[#003478]" />
+                    ) : (
+                      <Eye size={20} className="text-[#003478]" />
+                    )}
+                  </button>
+                </div>
                 <ErrorMessage 
                   name="password" 
                   component="div" 
@@ -107,7 +122,7 @@ const LoginForm = () => {
                   </Link>
                 </div>
               </div>
-
+              
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <Field
