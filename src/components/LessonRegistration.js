@@ -9,10 +9,26 @@ const LessonRegistration = () => {
   const [swimmers, setSwimmers] = useState([]);
   const [selectedSwimmer, setSelectedSwimmer] = useState('');
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [instructors, setInstructors] = useState([]);
+  const [preferredInstructor, setPreferredInstructor] = useState('');
+  const [instructorNotes, setInstructorNotes] = useState('');
 
   useEffect(() => {
     fetchLessons();
+    fetchInstructors();
   }, []);
+
+  const fetchInstructors = async () => {
+    try {
+      const response = await fetch('/api/auth/lessons/instructors');
+      if (response.ok) {
+        const data = await response.json();
+        setInstructors(data);
+      }
+    } catch (error) {
+      console.error('Error fetching instructors:', error);
+    }
+  };
 
   useEffect(() => {
     const currentDate = new Date();
@@ -77,6 +93,8 @@ const LessonRegistration = () => {
         body: JSON.stringify({
           swimmerId: selectedSwimmer,
           lessonId: selectedLesson.id,
+          preferredInstructorId: preferredInstructor || null,
+          instructorNotes: instructorNotes.trim() || null,
         }),
       });
 
@@ -87,6 +105,8 @@ const LessonRegistration = () => {
         ));
         alert('Registration successful!');
         setSelectedLesson(null);
+        setPreferredInstructor('');
+        setInstructorNotes('');
       } else {
         const errorData = await response.json();
         alert(`Registration failed: ${errorData.error}`);
@@ -135,15 +155,16 @@ const LessonRegistration = () => {
       </div>
 
       {selectedLesson && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" id="my-modal">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3 text-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Select Swimmer</h3>
-              <div className="mt-2 px-7 py-3">
+              
+              <div className="mt-4">
                 <select
                   value={selectedSwimmer}
                   onChange={(e) => setSelectedSwimmer(e.target.value)}
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="w-full p-2 border rounded"
                 >
                   {swimmers.map((swimmer) => (
                     <option key={swimmer.id} value={swimmer.id}>
@@ -152,16 +173,52 @@ const LessonRegistration = () => {
                   ))}
                 </select>
               </div>
-              <div className="items-center px-4 py-3">
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Preferred Instructor (Optional)
+                </label>
+                <select
+                  value={preferredInstructor}
+                  onChange={(e) => setPreferredInstructor(e.target.value)}
+                  className="w-full p-2 border rounded mt-1"
+                >
+                  <option value="">No preference</option>
+                  {instructors.map((instructor) => (
+                    <option key={instructor.id} value={instructor.id}>
+                      {instructor.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Notes for Instructor (Optional)
+                </label>
+                <textarea
+                  value={instructorNotes}
+                  onChange={(e) => setInstructorNotes(e.target.value)}
+                  className="w-full p-2 border rounded mt-1"
+                  rows="3"
+                  placeholder="Any special requests or notes..."
+                />
+              </div>
+
+              <div className="mt-6 space-y-2">
                 <button
                   onClick={handleRegister}
-                  className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
                 >
                   Confirm Registration
                 </button>
                 <button
-                  onClick={() => setSelectedLesson(null)}
-                  className="mt-3 px-4 py-2 bg-gray-300 text-black text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  onClick={() => {
+                    setSelectedLesson(null);
+                    setPreferredInstructor('');
+                    setInstructorNotes('');
+                  }}
+                  className="w-full bg-gray-300 text-black p-2 rounded hover:bg-gray-400"
                 >
                   Cancel
                 </button>

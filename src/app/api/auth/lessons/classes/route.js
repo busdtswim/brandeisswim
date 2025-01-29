@@ -6,16 +6,14 @@ import { calculateAge } from '@/utils/dateUtils';
 const prisma = new PrismaClient();
 
 const formatTimeString = (time) => {
-  // Ensure we're working with a Date object
   const date = time instanceof Date ? time : new Date(time);
   
   let hours = date.getHours();
   const minutes = date.getMinutes().toString().padStart(2, '0');
   const period = hours >= 12 ? 'PM' : 'AM';
   
-  // Convert to 12-hour format
   hours = hours % 12;
-  hours = hours ? hours : 12; // Convert 0 to 12
+  hours = hours ? hours : 12;
   
   return `${hours}:${minutes}${period}`;
 };
@@ -27,7 +25,8 @@ export async function GET() {
         swimmer_lessons: {
           include: {
             swimmers: true,
-            instructors: true,
+            instructors_swimmer_lessons_instructor_idToinstructors: true,
+            instructors_swimmer_lessons_preferred_instructor_idToinstructors: true,
           },
         },
       },
@@ -48,12 +47,19 @@ export async function GET() {
         proficiency: sl.swimmers.proficiency,
         gender: sl.swimmers.gender,
         payment_status: sl.payment_status,
-        instructor: sl.instructors ? {
-          id: sl.instructors.id,
-          name: sl.instructors.name,
-          email: sl.instructors.email
+        instructor: sl.instructors_swimmer_lessons_instructor_idToinstructors ? {
+          id: sl.instructors_swimmer_lessons_instructor_idToinstructors.id,
+          name: sl.instructors_swimmer_lessons_instructor_idToinstructors.name,
+          email: sl.instructors_swimmer_lessons_instructor_idToinstructors.email
         } : null,
-        instructor_id: sl.instructor_id
+        preferred_instructor: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors ? {
+          id: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.id,
+          name: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.name,
+          email: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.email
+        } : null,
+        instructor_id: sl.instructor_id,
+        preferred_instructor_id: sl.preferred_instructor_id,
+        instructor_notes: sl.instructor_notes
       })),
     }));
 

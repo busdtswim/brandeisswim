@@ -185,6 +185,7 @@ return (
                   <th className="px-4 py-2 text-left">Swimmer</th>
                   <th className="px-4 py-2 text-left">Age</th>
                   <th className="px-4 py-2 text-left">Proficiency</th>
+                  <th className="px-4 py-2 text-left">Preferred Instructor</th>
                   <th className="px-4 py-2 text-left">Instructor</th>
                   <th className="px-4 py-2 text-center">Payment</th>
                   <th className="px-4 py-2 text-left">Remove Swimmer</th>
@@ -196,6 +197,15 @@ return (
                     <td className="px-4 py-2">{participant.name}</td>
                     <td className="px-4 py-2">{participant.age}</td>
                     <td className="px-4 py-2">{participant.proficiency}</td>
+                    <td className="px-4 py-2">
+                      {participant.preferred_instructor ? (
+                        <span>
+                          {participant.preferred_instructor.name}
+                        </span>
+                      ) : (
+                        <span className="text-gray-500">No preference</span>
+                      )}
+                    </td>
                     <td className="px-4 py-2">
                       <select
                         value={participant.instructor_id || ''}

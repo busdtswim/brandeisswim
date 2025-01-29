@@ -9,29 +9,35 @@ const ViewUserSchedule = () => {
   const [userClasses, setUserClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all'); // 'all', 'upcoming', 'past'
+  const [filter, setFilter] = useState('all');
+
+  const fetchUserClasses = async () => {
+    try {
+      const response = await fetch('/api/auth/customer/schedule');
+      if (!response.ok) {
+        throw new Error('Failed to fetch schedule');
+      }
+      const data = await response.json();
+      setUserClasses(data);
+    } catch (err) {
+      console.error('Error fetching classes:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUserClasses = async () => {
-      try {
-        const response = await fetch('/api/auth/customer/schedule');
-        if (!response.ok) {
-          throw new Error('Failed to fetch schedule');
-        }
-        const data = await response.json();
-        setUserClasses(data);
-      } catch (err) {
-        console.error('Error fetching classes:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (session) {
       fetchUserClasses();
     }
   }, [session]);
+
+  const handleScheduleUpdate = async () => {
+    setLoading(true);
+    await fetchUserClasses();
+    setLoading(false);
+  };
 
   const filteredClasses = userClasses.filter(classData => {
     const currentDate = new Date();
@@ -86,7 +92,11 @@ const ViewUserSchedule = () => {
       ) : (
         <div className="space-y-4">
           {filteredClasses.map(classData => (
-            <UserClassSchedule key={classData.id} classData={classData} />
+            <UserClassSchedule 
+              key={classData.id} 
+              classData={classData} 
+              onUpdate={handleScheduleUpdate} 
+            />
           ))}
         </div>
       )}

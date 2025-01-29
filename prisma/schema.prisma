@@ -20,14 +20,17 @@ model lessons {
 }
 
 model swimmer_lessons {
-  swimmer_id        Int
-  lesson_id         Int
-  registration_date DateTime?    @default(now()) @db.Timestamptz(6)
-  payment_status    Boolean?     @default(false)
-  instructor_id     Int?
-  instructors       instructors? @relation(fields: [instructor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_instructor")
-  lessons           lessons      @relation(fields: [lesson_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_lesson")
-  swimmers          swimmers     @relation(fields: [swimmer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_swimmer")
+  swimmer_id                                                       Int
+  lesson_id                                                        Int
+  registration_date                                                DateTime?    @default(now()) @db.Timestamptz(6)
+  payment_status                                                   Boolean?     @default(false)
+  instructor_id                                                    Int?
+  instructor_notes                                                 String?
+  preferred_instructor_id                                          Int?
+  instructors_swimmer_lessons_instructor_idToinstructors           instructors? @relation("swimmer_lessons_instructor_idToinstructors", fields: [instructor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_assigned_instructor")
+  instructors_swimmer_lessons_preferred_instructor_idToinstructors instructors? @relation("swimmer_lessons_preferred_instructor_idToinstructors", fields: [preferred_instructor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_preferred_instructor")
+  lessons                                                          lessons      @relation(fields: [lesson_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_lesson")
+  swimmers                                                         swimmers     @relation(fields: [swimmer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_swimmer")
 
   @@id([swimmer_id, lesson_id])
 }
@@ -44,10 +47,11 @@ model swimmers {
 }
 
 model instructors {
-  id              Int               @id @default(autoincrement())
-  name            String            @db.VarChar(255)
-  email           String            @unique @db.VarChar(255)
-  swimmer_lessons swimmer_lessons[]
+  id                                                                   Int               @id @default(autoincrement())
+  name                                                                 String            @db.VarChar(255)
+  email                                                                String            @unique @db.VarChar(255)
+  swimmer_lessons_swimmer_lessons_instructor_idToinstructors           swimmer_lessons[] @relation("swimmer_lessons_instructor_idToinstructors")
+  swimmer_lessons_swimmer_lessons_preferred_instructor_idToinstructors swimmer_lessons[] @relation("swimmer_lessons_preferred_instructor_idToinstructors")
 }
 
 model users {

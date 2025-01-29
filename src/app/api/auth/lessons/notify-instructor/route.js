@@ -43,6 +43,7 @@ export async function POST(req) {
         - Age: ${swimmer.age || 'Not specified'}
         - Gender: ${swimmer.gender || 'Not specified'}
         - Proficiency Level: ${swimmer.proficiency || 'Not specified'}
+        ${swimmer.instructor_notes ? `- Special Notes: ${swimmer.instructor_notes}` : ''}
 
         Lesson Schedule:
         - Start Date: ${startDate}
@@ -71,6 +72,7 @@ export async function POST(req) {
               <li><strong>Age:</strong> ${swimmer.age}</li>
               <li><strong>Gender:</strong> ${swimmer.gender}</li>
               <li><strong>Proficiency Level:</strong> ${swimmer.proficiency}</li>
+              ${swimmer.instructor_notes ? `<li style="margin-top: 10px; color: #666;"><strong>Special Notes:</strong> ${swimmer.instructor_notes}</li>` : ''}
             </ul>
           </div>
           

@@ -16,11 +16,12 @@ export async function POST(req) {
       );
     }
 
-    const { swimmerId, lessonId } = body;
+    const { swimmerId, lessonId, preferredInstructorId, instructorNotes } = body;
 
     // Convert IDs to integers
     const swimmerIdInt = parseInt(swimmerId);
     const lessonIdInt = parseInt(lessonId);
+    const preferredInstructorIdInt = preferredInstructorId ? parseInt(preferredInstructorId) : null;
 
     if (isNaN(swimmerIdInt) || isNaN(lessonIdInt)) {
       return NextResponse.json(
@@ -83,13 +84,21 @@ export async function POST(req) {
       );
     }
 
-    // Register the swimmer for the lesson
     const registration = await prisma.swimmer_lessons.create({
       data: {
         swimmer_id: swimmerIdInt,
         lesson_id: lessonIdInt,
+        preferred_instructor_id: preferredInstructorIdInt,
+        instructor_notes: instructorNotes || null
       }
     });
+    
+    if (!registration) {
+      return NextResponse.json(
+        { error: 'Failed to create registration' },
+        { status: 500 }
+      );
+    }
 
     // Fetch the updated lesson
     const updatedLesson = await prisma.lessons.findUnique({
@@ -100,7 +109,9 @@ export async function POST(req) {
         },
         swimmer_lessons: {
           include: {
-            swimmers: true
+            swimmers: true,
+            instructors_swimmer_lessons_instructor_idToinstructors: true,          
+            instructors_swimmer_lessons_preferred_instructor_idToinstructors: true 
           }
         }
       }
@@ -110,7 +121,8 @@ export async function POST(req) {
       ...updatedLesson,
       registered: updatedLesson._count.swimmer_lessons,
       success: true,
-      message: 'Registration successful'
+      message: 'Registration successful',
+      registrationId: registration.id
     });
 
   } catch (error) {
