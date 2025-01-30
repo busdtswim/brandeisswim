@@ -286,7 +286,7 @@ const CreateLessons = () => {
                   {lesson.exception_dates ? DateFormatter.formatExceptionDates(lesson.exception_dates) : 'None'}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  {new Date(lesson.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(lesson.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(lesson.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })} - {new Date(lesson.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   {lesson.max_slots}

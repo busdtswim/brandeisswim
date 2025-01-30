@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { calculateAge } from '@/utils/dateUtils';
 
+export const dynamic = 'force-dynamic';
+
 const prisma = new PrismaClient();
 
 const formatTimeString = (time) => {

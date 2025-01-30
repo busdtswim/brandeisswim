@@ -60,12 +60,12 @@ class TimeFormatter {
     }
   }
 
-  static formatWithTimezone(date, timeZone = 'UTC') {
+  static formatWithTimezone(date, timeZone = 'America/New_York') {
     const localDate = new Date(date);
     return localDate.toLocaleString('en-US', { timeZone });
   }
 
-  static formatToISO(time, timeZone = 'UTC') {
+  static formatToISO(time, timeZone = 'America/New_York') {
     const date = new Date(`1970-01-01T${time}:00`);
     return date.toISOString();
   }
