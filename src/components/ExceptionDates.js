@@ -2,14 +2,19 @@
 'use client';
 
 import React, { useState } from 'react';
+import { DateFormatter } from '@/utils/formatUtils';
 
 const ExceptionDates = ({ exceptions = [], onAdd, onRemove }) => {
   const [newDate, setNewDate] = useState('');
 
   const handleAdd = () => {
-    if (newDate && !exceptions.includes(newDate)) {
-      onAdd(newDate);
-      setNewDate('');
+    if (newDate) {
+      const formattedDate = DateFormatter.adjustDateForTimezone(newDate);
+      
+      if (!exceptions.includes(formattedDate)) {
+        onAdd(formattedDate);
+        setNewDate('');
+      }
     }
   };
 
@@ -39,7 +44,7 @@ const ExceptionDates = ({ exceptions = [], onAdd, onRemove }) => {
             key={date}
             className="bg-gray-100 px-3 py-1 rounded-full flex items-center space-x-2"
           >
-            <span>{new Date(date).toLocaleDateString()}</span>
+            <span>{DateFormatter.formatFullDate(date)}</span>
             <button
               type="button"
               onClick={() => onRemove(date)}

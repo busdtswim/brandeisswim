@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ExceptionDates from './ExceptionDates';
+import { DateFormatter } from '@/utils/formatUtils';
 
 const CreateLessons = () => {
   const [lessons, setLessons] = useState([]);
@@ -87,13 +88,18 @@ const CreateLessons = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const newLesson = {
       ...formData,
+      start_date: DateFormatter.adjustDateForTimezone(formData.start_date),
+      end_date: DateFormatter.adjustDateForTimezone(formData.end_date),
       meeting_days: formData.meeting_days.join(','),
       max_slots: parseInt(formData.max_slots, 10),
-      exception_dates: formData.exception_dates.join(',')
+      exception_dates: formData.exception_dates.length > 0 
+        ? formData.exception_dates.map(date => DateFormatter.adjustDateForTimezone(date)).join(',')
+        : null
     };
-
+  
     try {
       const response = await fetch('/api/auth/admin/create', {
         method: 'POST',
@@ -102,7 +108,7 @@ const CreateLessons = () => {
         },
         body: JSON.stringify(newLesson),
       });
-
+  
       if (response.ok) {
         const createdLesson = await response.json();
         setLessons([...lessons, createdLesson]);
@@ -271,21 +277,16 @@ const CreateLessons = () => {
             {lessons.map((lesson) => (
               <tr key={lesson.id}>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  {new Date(lesson.start_date).toLocaleDateString()} to {new Date(lesson.end_date).toLocaleDateString()}
+                  {DateFormatter.formatFullDate(lesson.start_date)} to {DateFormatter.formatFullDate(lesson.end_date)}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   {lesson.meeting_days}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  {lesson.exception_dates ? 
-                    lesson.exception_dates.split(',').map(date => 
-                      new Date(date).toLocaleDateString()
-                    ).join(', ') 
-                    : 'None'
-                  }
+                  {lesson.exception_dates ? DateFormatter.formatExceptionDates(lesson.exception_dates) : 'None'}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  {new Date(lesson.start_time).toLocaleTimeString()} - {new Date(lesson.end_time).toLocaleTimeString()}
+                  {new Date(lesson.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(lesson.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   {lesson.max_slots}

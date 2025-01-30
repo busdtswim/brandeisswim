@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { hasScheduleConflict } from '@/utils/timeUtils';
-import { formatDate } from '@/utils/formatUtils';
+import { DateFormatter } from '@/utils/formatUtils';
 
 const ClassSchedule = ({ 
   classData, 
@@ -136,7 +136,7 @@ return (
           {classData.meetingDays?.join(', ') || ''} Swim Class
         </h3>
         <p className="text-sm opacity-90 ml-4">
-          {formatDate(classData.startDate)} - {formatDate(classData.endDate)}
+          {DateFormatter.formatFullDate(classData.startDate)} - {DateFormatter.formatFullDate(classData.endDate)}
         </p>
       </div>
       <span className="float-right mt-[-24px]">{isExpanded ? '▲' : '▼'}</span> 
@@ -152,11 +152,7 @@ return (
               <p><strong>Capacity:</strong> {participants?.length || 0}/{classData.capacity}</p>
               {classData.exception_dates && Array.isArray(classData.exception_dates) && classData.exception_dates.length > 0 && (
                 <p className="text-red-600">
-                  <strong>No Classes On:</strong> {
-                    classData.exception_dates.map(date => 
-                      new Date(date).toLocaleDateString()
-                    ).join(', ')
-                  }
+                  <strong>No Classes On:</strong> {DateFormatter.formatExceptionDates(classData.exception_dates)}
                 </p>
               )}
             </div>

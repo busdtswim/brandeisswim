@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../../[...nextauth]/route';
+import { TimeFormatter, DateFormatter } from '@/utils/formatUtils';
 
 const prisma = new PrismaClient();
 
@@ -29,14 +30,17 @@ export async function POST(req) {
     }
 
     const data = await req.json();
+    const timeZone = 'America/New_York'; // Replace with your desired timezone
+
     const lesson = await prisma.lessons.create({
       data: {
-        start_date: new Date(data.start_date),
-        end_date: new Date(data.end_date),
+        start_date: DateFormatter.formatWithTimezone(data.start_date, timeZone),
+        end_date: DateFormatter.formatWithTimezone(data.end_date, timeZone),
         meeting_days: data.meeting_days,
-        start_time: new Date(`1970-01-01T${data.start_time}:00`),
-        end_time: new Date(`1970-01-01T${data.end_time}:00`),
+        start_time: TimeFormatter.formatToISO(data.start_time, timeZone),
+        end_time: TimeFormatter.formatToISO(data.end_time, timeZone),
         max_slots: data.max_slots,
+        exception_dates: data.exception_dates || null
       },
     });
     return NextResponse.json(lesson);
