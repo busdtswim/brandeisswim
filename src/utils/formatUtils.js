@@ -1,59 +1,69 @@
-// src/utils/formatUtils.js
 class DateFormatter {
-  static formatWithTimezone(dateString) {
+  static formatWithTimezone(dateString, timeZone = 'America/New_York') {
     const date = new Date(dateString);
-    // Add timezone offset to keep the date consistent
-    const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-    return new Date(date.getTime() + userTimezoneOffset);
-  }
-
-  static adjustDateForTimezone(dateStr) {
-    const date = new Date(dateStr);
-    const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-    const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
-    return adjustedDate.toISOString().split('T')[0];
-  }
-
-  static formatFullDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    // Use Intl.DateTimeFormat to format the date in the specified time zone
+    const formattedDate = new Intl.DateTimeFormat('en-US', {
+      timeZone,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
-      timeZone: 'UTC' 
-    });
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).format(date);
+
+    // Convert the formatted date back to an ISO string
+    const isoDate = new Date(formattedDate).toISOString();
+    return isoDate;
   }
 
-  static formatExceptionDates(dates) {
+  static adjustDateForTimezone(dateStr, timeZone = 'America/New_York') {
+    const date = new Date(dateStr);
+    const formattedDate = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+
+    const isoDate = new Date(formattedDate).toISOString();
+    return isoDate;
+  }
+
+  static formatFullDate(dateString, timeZone = 'America/New_York') {
+    const date = new Date(dateString);
+    const formattedDate = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+
+    const isoDate = new Date(formattedDate).toISOString();
+    return isoDate;
+  }
+
+  static formatExceptionDates(dates, timeZone = 'America/New_York') {
     if (!dates) return 'None';
     if (typeof dates === 'string') {
       dates = dates.split(',').filter(date => date.trim());
     }
     if (!Array.isArray(dates)) return 'None';
     
-    return dates.map(date => this.formatFullDate(date)).join(', ');
+    return dates.map(date => this.formatFullDate(date, timeZone)).join(', ');
   }
 }
 
 class TimeFormatter {
-  static formatTime(timeString) {
+  static formatTime(timeString, timeZone = 'America/New_York') {
     try {
-      if (timeString instanceof Date) {
-        timeString = timeString.toTimeString().slice(0, 5);
-      }
-      
-      let hours, minutes;
-      if (timeString.includes('T')) {
-        [hours, minutes] = timeString.split('T')[1].split(':');
-      } else {
-        [hours, minutes] = timeString.split(':');
-      }
-      
-      hours = parseInt(hours);
-      const period = hours >= 12 ? 'PM' : 'AM';
-      const hour12 = hours % 12 || 12;
-      
-      return `${hour12}:${minutes}${period}`;
+      const date = new Date(`1970-01-01T${timeString}:00`);
+      return new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }).format(date);
     } catch (error) {
       console.error('Error formatting time:', error);
       return timeString;
@@ -62,7 +72,15 @@ class TimeFormatter {
 
   static formatWithTimezone(date, timeZone = 'America/New_York') {
     const localDate = new Date(date);
-    return localDate.toLocaleString('en-US', { timeZone });
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).format(localDate);
   }
 
   static formatToISO(time, timeZone = 'America/New_York') {
@@ -70,9 +88,9 @@ class TimeFormatter {
     return date.toISOString();
   }
 
-  static parseFromDB(timeString) {
+  static parseFromDB(timeString, timeZone = 'America/New_York') {
     const time = new Date(`1970-01-01T${timeString}`);
-    return this.formatTime(time);
+    return this.formatTime(time, timeZone);
   }
 }
 
