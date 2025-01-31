@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { calculateAge } from '@/utils/dateUtils';
 
 const CustomerDashboard = () => {
   const { data: session } = useSession();
@@ -263,14 +262,19 @@ const CustomerDashboard = () => {
               <div className="mb-8">
                 <h3 className="text-lg font-medium mb-4">Current Swimmers</h3>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {swimmers.map((swimmer) => (
-                    <div key={swimmer.id} className="border rounded p-4">
-                      <p><strong>Name:</strong> {swimmer.name}</p>
-                      <p><strong>Birthday:</strong> {new Date(swimmer.birthdate).toLocaleDateString()}</p>
-                      <p><strong>Gender:</strong> {swimmer.gender}</p>
-                      <p><strong>Proficiency:</strong> {swimmer.proficiency || 'Not specified'}</p>
-                    </div>
-                  ))}
+                  {swimmers.map((swimmer) => {
+                    const birthDate = new Date(swimmer.birthdate);
+                    const birthdateString = `${(birthDate.getUTCMonth() + 1).toString().padStart(2, '0')}/${birthDate.getUTCDate().toString().padStart(2, '0')}/${birthDate.getUTCFullYear()}`;
+
+                    return (
+                      <div key={swimmer.id} className="border rounded p-4">
+                        <p><strong>Name:</strong> {swimmer.name}</p>
+                        <p><strong>Birthday:</strong> {birthdateString}</p>
+                        <p><strong>Gender:</strong> {swimmer.gender}</p>
+                        <p><strong>Proficiency:</strong> {swimmer.proficiency || 'Not specified'}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

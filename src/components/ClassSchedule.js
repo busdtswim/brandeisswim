@@ -136,7 +136,7 @@ return (
           {classData.meetingDays?.join(', ') || ''} Swim Class
         </h3>
         <p className="text-sm opacity-90 ml-4">
-          {DateFormatter.formatFullDate(classData.startDate)} - {DateFormatter.formatFullDate(classData.endDate)}
+          {DateFormatter.formatForDisplay(classData.startDate)} - {DateFormatter.formatForDisplay(classData.endDate)}
         </p>
       </div>
       <span className="float-right mt-[-24px]">{isExpanded ? '▲' : '▼'}</span> 

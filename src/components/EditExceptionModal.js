@@ -1,32 +1,36 @@
 // src/components/EditExceptionsModal.js
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ExceptionDates from './ExceptionDates';
 
 const EditExceptionsModal = ({ isOpen, onClose, lessonId, onUpdate }) => {
   const [exceptions, setExceptions] = useState([]);
 
-  const fetchExceptions = async () => {
+  const fetchExceptions = useCallback(async () => {
+    if (!lessonId) return;
+
     try {
       const response = await fetch(`/api/auth/lessons/exceptions/${lessonId}`);
       if (response.ok) {
         const data = await response.json();
-        setExceptions(data);
+        const sortedExceptions = data.sort((a, b) => new Date(a) - new Date(b));
+        setExceptions(sortedExceptions);
       }
     } catch (error) {
       console.error('Error fetching exceptions:', error);
     }
-  };
+  }, [lessonId]); 
 
   useEffect(() => {
     if (isOpen && lessonId) {
       fetchExceptions();
     }
-  }, [isOpen, lessonId, fetchExceptions]);
+  }, [isOpen, lessonId, fetchExceptions]); 
 
   const handleAddException = (date) => {
-    setExceptions(prev => [...prev, date]);
+    const updatedExceptions = [...exceptions, date].sort((a, b) => new Date(a) - new Date(b));
+    setExceptions(updatedExceptions);
   };
 
   const handleRemoveException = (date) => {
@@ -35,12 +39,14 @@ const EditExceptionsModal = ({ isOpen, onClose, lessonId, onUpdate }) => {
 
   const handleSave = async () => {
     try {
+      const sortedExceptions = [...exceptions].sort((a, b) => new Date(a) - new Date(b));
+      
       const response = await fetch(`/api/auth/lessons/exceptions/${lessonId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ exception_dates: exceptions })
+        body: JSON.stringify({ exception_dates: sortedExceptions })
       });
 
       if (response.ok) {

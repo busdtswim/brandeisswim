@@ -12,8 +12,8 @@ model lessons {
   start_date      DateTime          @db.Date
   end_date        DateTime          @db.Date
   meeting_days    String            @db.VarChar(255)
-  start_time      DateTime          @db.Time(6)
-  end_time        DateTime          @db.Time(6)
+  start_time      DateTime          @db.Timetz(6)
+  end_time        DateTime          @db.Timetz(6)
   max_slots       Int
   exception_dates String?
   swimmer_lessons swimmer_lessons[]

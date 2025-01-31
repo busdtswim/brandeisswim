@@ -88,15 +88,15 @@ const CreateLessons = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const newLesson = {
       ...formData,
-      start_date: DateFormatter.adjustDateForTimezone(formData.start_date),
-      end_date: DateFormatter.adjustDateForTimezone(formData.end_date),
+      start_date: formData.start_date,
+      end_date: formData.end_date,
       meeting_days: formData.meeting_days.join(','),
       max_slots: parseInt(formData.max_slots, 10),
       exception_dates: formData.exception_dates.length > 0 
-        ? formData.exception_dates.map(date => DateFormatter.adjustDateForTimezone(date)).join(',')
+        ? formData.exception_dates.join(',')
         : null
     };
   
@@ -109,23 +109,25 @@ const CreateLessons = () => {
         body: JSON.stringify(newLesson),
       });
   
-      if (response.ok) {
-        const createdLesson = await response.json();
-        setLessons([...lessons, createdLesson]);
-        setFormData({
-          start_date: '',
-          end_date: '',
-          meeting_days: [],
-          start_time: '',
-          end_time: '',
-          max_slots: '',
-          exception_dates: []
-        });
-      } else {
-        console.error('Failed to create lesson');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || 'Failed to create lesson');
       }
+  
+      await fetchLessons();
+      
+      setFormData({
+        start_date: '',
+        end_date: '',
+        meeting_days: [],
+        start_time: '',
+        end_time: '',
+        max_slots: '',
+        exception_dates: []
+      });
     } catch (error) {
       console.error('Error creating lesson:', error);
+      alert(error.message);
     }
   };
 
@@ -277,7 +279,7 @@ const CreateLessons = () => {
             {lessons.map((lesson) => (
               <tr key={lesson.id}>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  {DateFormatter.formatFullDate(lesson.start_date)} to {DateFormatter.formatFullDate(lesson.end_date)}
+                  {lesson.start_date} to {lesson.end_date}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   {lesson.meeting_days}
@@ -286,8 +288,8 @@ const CreateLessons = () => {
                   {lesson.exception_dates ? DateFormatter.formatExceptionDates(lesson.exception_dates) : 'None'}
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  {new Date(lesson.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })} - {new Date(lesson.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
-                </td>
+                  {lesson.start_time} - {lesson.end_time}
+                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   {lesson.max_slots}
                 </td>
