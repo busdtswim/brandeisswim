@@ -127,7 +127,7 @@ const RegistrationForm = () => {
                     <h3 className="text-lg font-semibold mb-2 text-[#003478]">Swimmer {index + 1}</h3>
                     
                     <div className="mb-2">
-                      <label htmlFor={`swimmers.${index}.name`} className="block mb-1 text-[#003478]">Name</label>
+                      <label htmlFor={`swimmers.${index}.name`} className="block mb-1 text-[#003478]">Full Name</label>
                       <Field 
                         name={`swimmers.${index}.name`} 
                         type="text" 

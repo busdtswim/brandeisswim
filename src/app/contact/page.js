@@ -52,7 +52,7 @@ const ContactPage = () => {
                     </div>
                     <div className="ml-4">
                       <h3 className="text-lg font-medium leading-6 text-[#003478]">Contact</h3>
-                      <p className="text-gray-600">Email: Busdtswimlessons@gmail.com</p>
+                      <p className="text-gray-600">Email: busdtswimlessons@brandeis.edu</p>
                     </div>
                   </li>
                 </ul>
