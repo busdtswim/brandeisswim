@@ -1,6 +1,7 @@
 // src/app/layout.js
 import './globals.css';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { Providers } from './providers';
 
 export const metadata = {
@@ -11,16 +12,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-blue-100 flex flex-col overflow-x-hidden">
+      <body className="min-h-screen flex flex-col overflow-x-hidden">
         <Providers>
-          {/* Fixed Header */}
-          <div className="fixed top-0 left-0 right-0 z-50">
-            <Header />
-          </div>
-          {/* Main Content */}
-          <main className="flex-1 pt-16">
+          <Header />
+          <main className="flex-1 mt-16 md:mt-20">
             {children}
           </main>
+          <Footer />
         </Providers>
       </body>
     </html>
