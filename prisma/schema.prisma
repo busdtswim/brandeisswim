@@ -44,6 +44,7 @@ model swimmers {
   gender          String?           @db.Char(255)
   swimmer_lessons swimmer_lessons[]
   users           users?            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  waitlist        waitlist[]
 }
 
 model instructors {
@@ -72,4 +73,18 @@ model site_content {
   is_custom    Boolean?  @default(false)
   order_num    Int?      @default(0)
   last_updated DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model waitlist {
+  id                Int       @id @default(autoincrement())
+  swimmer_id        Int
+  registration_date DateTime? @default(now()) @db.Timestamptz(6)
+  status            String?   @default("active") @db.VarChar(20)
+  position          Int
+  notes             String?
+  swimmers          swimmers  @relation(fields: [swimmer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_swimmer")
+
+  @@index([position], map: "idx_waitlist_position")
+  @@index([status], map: "idx_waitlist_status")
+  @@index([swimmer_id], map: "idx_waitlist_swimmer_id")
 }

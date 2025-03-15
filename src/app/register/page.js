@@ -1,7 +1,6 @@
 // src/app/register/page.js
 
 import React from 'react';
-import Header from '../../components/Header';
 import RegistrationForm from '../../components/RegistrationForm';
 
 export default function RegisterPage() {

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import ExceptionDates from './ExceptionDates';
 import { DateFormatter } from '@/utils/formatUtils';
+import Link from 'next/link';
 
 const CreateLessons = () => {
   const [lessons, setLessons] = useState([]);
@@ -15,11 +16,14 @@ const CreateLessons = () => {
     max_slots: '',
     exception_dates: []
   });
+  const [waitlistExists, setWaitlistExists] = useState(false);
+  const [waitlistMessage, setWaitlistMessage] = useState('');
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   useEffect(() => {
     fetchLessons();
+    checkWaitlistStatus();
   }, []);
 
   const fetchLessons = async () => {
@@ -33,6 +37,42 @@ const CreateLessons = () => {
       }
     } catch (error) {
       console.error('Error fetching lessons:', error);
+    }
+  };
+
+  const checkWaitlistStatus = async () => {
+    try {
+      const response = await fetch('/api/auth/waitlist/status');
+      if (response.ok) {
+        const data = await response.json();
+        setWaitlistExists(data.isActive);
+      }
+    } catch (error) {
+      console.error('Error checking waitlist status:', error);
+    }
+  };
+
+  const handleCreateWaitlist = async () => {
+    try {
+      const response = await fetch('/api/auth/admin/waitlist', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        setWaitlistExists(true);
+        setWaitlistMessage('Waitlist created successfully!');
+        
+        // Clear message after 3 seconds
+        setTimeout(() => {
+          setWaitlistMessage('');
+        }, 3000);
+      } else {
+        const error = await response.json();
+        setWaitlistMessage(`Error: ${error.message || 'Failed to create waitlist'}`);
+      }
+    } catch (error) {
+      console.error('Error creating waitlist:', error);
+      setWaitlistMessage('Error: Failed to create waitlist');
     }
   };
 
@@ -133,7 +173,40 @@ const CreateLessons = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 text-black">
-      <h1 className="text-3xl font-bold mb-8">Create Swim Lessons</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Create Swim Lessons</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={handleCreateWaitlist}
+            disabled={waitlistExists}
+            className={`px-4 py-2 rounded ${
+              waitlistExists 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
+          >
+            {waitlistExists ? 'Waitlist Active' : 'Create Waitlist'}
+          </button>
+          {waitlistExists && (
+            <Link 
+              href="/admin/waitlist" 
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              View Waitlist
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {waitlistMessage && (
+        <div className={`mb-4 p-3 rounded ${
+          waitlistMessage.startsWith('Error') 
+            ? 'bg-red-100 text-red-700' 
+            : 'bg-green-100 text-green-700'
+        }`}>
+          {waitlistMessage}
+        </div>
+      )}
 
       {/* Form for creating new lessons */}
       <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
