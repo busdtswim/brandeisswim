@@ -96,7 +96,7 @@ const ContactPage = () => {
                 loading="lazy"
                 allowFullScreen
                 referrerPolicy="no-referrer-when-downgrade"
-                src="https://www.google.com/maps/embed/v1/place?key=AIzaSyDhJXDW3XqcT1PhriIkozYSlR-G_u7ecvs&q=Joseph+M.+Linsey+Sports+Center,Brandeis+University,Waltham+MA"
+                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.GOOGLE_MAPS_API_KEY}&q=Joseph+M.+Linsey+Sports+Center,Brandeis+University,Waltham+MA`}
               />
             </div>
           </div>
