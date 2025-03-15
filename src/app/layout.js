@@ -15,7 +15,7 @@ export default function RootLayout({ children }) {
       <body className="min-h-screen flex flex-col overflow-x-hidden">
         <Providers>
           <Header />
-          <main className="flex-1 mt-16 md:mt-20">
+          <main className="flex-1 mt-16 md:mt-20 text-black">
             {children}
           </main>
           <Footer />

@@ -4,14 +4,13 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 
 const ModernHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -110,7 +109,7 @@ const NavLinks = ({ scrolled, closeMenu, session, status }) => {
             className={pathname === '/register' ? activeLinkClasses : linkClasses}
             onClick={closeMenu}
           >
-            Register
+            Join Us
           </Link>
           <Link 
             href="/login" 
@@ -175,15 +174,6 @@ const MobileNavLinks = ({ closeMenu, session, status, handleLogout }) => {
           onClick={closeMenu}
         >
           Home
-        </Link>
-      </li>
-      <li>
-        <Link 
-          href="/lessons" 
-          className={pathname === '/lessons' ? activeLinkClasses : linkClasses}
-          onClick={closeMenu}
-        >
-          Swim Lessons
         </Link>
       </li>
       <li>

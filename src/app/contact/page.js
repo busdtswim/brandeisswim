@@ -64,41 +64,6 @@ const ContactPage = () => {
                       </a>
                     </div>
                   </div>
-                  
-                  <div className="flex items-start">
-                    <div className="bg-blue-100 rounded-full p-3 mr-4">
-                      <Phone className="text-blue-600" size={24} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-1 text-gray-900">Call Us</h3>
-                      <p className="text-gray-600">(781) 555-1234</p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Monday-Friday: 9:00 AM - 5:00 PM<br />
-                        Saturday: 9:00 AM - 1:00 PM
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Office Hours */}
-                <div className="mt-12">
-                  <h3 className="text-xl font-bold mb-4 text-gray-900">Office Hours</h3>
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-medium text-gray-900">Monday-Friday</h4>
-                        <p className="text-gray-600">9:00 AM - 5:00 PM</p>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">Saturday</h4>
-                        <p className="text-gray-600">9:00 AM - 1:00 PM</p>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">Sunday</h4>
-                        <p className="text-gray-600">Closed</p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
               
@@ -124,10 +89,15 @@ const ContactPage = () => {
               Find Us
             </h2>
             <div className="rounded-xl overflow-hidden shadow-lg h-[400px] relative">
-              {/* Replace this with an actual Google Maps iframe or integration */}
-              <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
-                <p className="text-gray-600">Map placeholder - Add your Google Maps embed here</p>
-              </div>
+              <iframe
+                width="100%"
+                height="400"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                src="https://www.google.com/maps/embed/v1/place?key=AIzaSyDhJXDW3XqcT1PhriIkozYSlR-G_u7ecvs&q=Joseph+M.+Linsey+Sports+Center,Brandeis+University,Waltham+MA"
+              />
             </div>
           </div>
         </div>

@@ -1,10 +1,10 @@
 // src/components/ModernHomepage.js
 'use client';
 
-import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Award, Calendar, Clock, Users } from 'lucide-react';
+import { ArrowRight, Award, Calendar, Users } from 'lucide-react';
+import EditableContent from '@/components/EditableContent';
 
 const ModernHomepage = () => {
   return (
@@ -45,6 +45,147 @@ const ModernHomepage = () => {
                 >
                   Explore Lessons
                 </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Admin-Editable Content Sections */}
+      <EditableContent />
+
+      {/* Program Info Section */}
+        <section className="py-20 px-4 bg-white">
+        <div className="container mx-auto max-w-6xl">
+          <div className="flex flex-col md:flex-row gap-12">
+            {/* Left column with image */}
+            <div className="md:w-2/5 relative h-[400px] md:h-auto rounded-2xl overflow-hidden shadow-xl">
+              <Image 
+                src="/team.jpg" 
+                alt="Brandeis Swim Program" 
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 40vw"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-900/80 to-transparent p-6 text-white">
+                <span className="text-sm font-semibold uppercase tracking-wide">Brandeis University</span>
+                <h3 className="text-xl font-bold">Swimming & Diving Teams</h3>
+              </div>
+            </div>
+            
+            {/* Right column with content */}
+            <div className="md:w-3/5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-1 w-10 bg-blue-600"></div>
+                <h2 className="text-blue-600 font-semibold text-lg">Our Program</h2>
+              </div>
+              <h3 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900">Program Information</h3>
+              
+              <div className="prose prose-lg prose-blue max-w-none">
+                <p className="lead text-xl text-gray-600 mb-6">
+                  Throughout the academic year, the Brandeis University Men's and Women's Swimming and 
+                  Diving teams offer swimming lessons as fundraising to support the team's winter training trip.
+                </p>
+                
+                <p>
+                  Lessons are taught by our experienced student-athletes and are designed to provide 
+                  one-on-one instruction to swimmers of all ages and experience levels. These sessions offer 
+                  the community an opportunity to improve their comfort and confidence in the water while directly 
+                  supporting the team's training and development.
+                </p>
+                
+                <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-r-lg my-8">
+                  <p className="font-medium text-gray-900 mb-1">Lesson Information:</p>
+                  <ul className="space-y-2 text-gray-700">
+                    <li className="flex items-center gap-2">
+                      <span className="inline-block w-2 h-2 bg-blue-600 rounded-full"></span>
+                      Each lesson lasts <strong>30 minutes</strong>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="inline-block w-2 h-2 bg-blue-600 rounded-full"></span>
+                      Cost is <strong>$40 per session</strong>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="inline-block w-2 h-2 bg-blue-600 rounded-full"></span>
+                      <strong>Payment is required upfront</strong> and can be made by cash or check
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* General Information Section */}
+        <section className="py-20 px-4 bg-gray-50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="h-1 w-10 bg-blue-600"></div>
+              <h2 className="text-blue-600 font-semibold text-lg">What to Know</h2>
+              <div className="h-1 w-10 bg-blue-600"></div>
+            </div>
+            <h3 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900">General Information</h3>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Card 1 */}
+            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 className="text-xl font-bold mb-4 text-gray-900">Schedule & Reminders</h4>
+              <p className="text-gray-600">
+                Please note that you will not receive a reminder when lessons are about to begin. Be sure to mark 
+                the lesson dates in your calendar upon receiving your email registration confirmation.
+              </p>
+              <p className="text-gray-600 mt-4">
+                Our schedule follows the Brandeis University Academic Calendar, and lessons will occur even on 
+                recognized holidays and during public and private school vacations.
+              </p>
+            </div>
+            
+            {/* Card 2 */}
+            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <h4 className="text-xl font-bold mb-4 text-gray-900">Safety & Equipment</h4>
+              <ul className="space-y-3 text-gray-600">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold mt-1">•</span>
+                  <span>No special equipment is required, though goggles are highly recommended for all participants.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold mt-1">•</span>
+                  <span>For safety and hygiene reasons, long hair must be tied back.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold mt-1">•</span>
+                  <span>Children who are unwell should remain at home.</span>
+                </li>
+              </ul>
+            </div>
+            
+            {/* Card 3 */}
+            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 className="text-xl font-bold mb-4 text-gray-900">Policies & Payments</h4>
+              <p className="text-gray-600">
+                Please be aware that <strong>we do not offer refunds</strong>, and the availability of make-up 
+                lessons cannot be guaranteed.
+              </p>
+              <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r text-sm text-gray-700">
+                <strong className="text-yellow-800">Important:</strong> All payments must be completed before the first lesson. Any missed payments may result in the release of your reserved time slot.
               </div>
             </div>
           </div>
@@ -227,7 +368,7 @@ const ModernHomepage = () => {
               </div>
               <div className="relative h-64 md:h-full min-h-[300px]">
                 <Image 
-                  src="/placeholder-cta.jpg" 
+                  src="/lessons.jpeg" 
                   alt="Swimming lesson" 
                   fill
                   className="object-cover"

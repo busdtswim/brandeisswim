@@ -49,9 +49,8 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row items-center justify-center bg-gradient-to-br from-blue-100 to-cyan-50">
+    <div className="min-h-screen flex flex-col md:flex-row items-center justify-center">
       <div className="w-full max-w-md md:max-w-4xl flex flex-col md:flex-row shadow-xl rounded-xl overflow-hidden">
-        {/* Left side - Image/Logo for larger screens */}
         <div className="hidden md:block w-1/2 bg-[#003478] relative">
           <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-white">
             <div className="relative h-32 w-48 mb-4">
