@@ -12,7 +12,6 @@ export default function EditableContent() {
         const response = await fetch('/api/content');
         if (response.ok) {
           const data = await response.json();
-          // Get the first section only
           if (data && data.length > 0) {
             setContent(data[0]);
           }

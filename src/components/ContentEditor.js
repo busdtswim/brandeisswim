@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChevronUp, ChevronDown, Plus, X, Save, Trash2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import dynamic from 'next/dynamic';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
@@ -29,7 +30,19 @@ const ContentEditor = () => {
       ['link'],
       ['clean']
     ],
+    clipboard: {
+      matchVisual: false, // Prevents pasting of unsanitized HTML
+    },
   };
+
+  // Define allowed formats
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'color', 'background',
+    'link'
+  ];
 
   useEffect(() => {
     fetchContent();
@@ -75,6 +88,16 @@ const ContentEditor = () => {
     const sectionKey = newSectionKey.toLowerCase().replace(/\s+/g, '_');
     
     try {
+      // Sanitize the empty content as well (just to be safe)
+      const sanitizedContent = DOMPurify.sanitize('', {
+        FORBID_ATTR: ['onloadstart', 'onerror', 'onload', 'onmouseover', 'onclick'], 
+        ALLOWED_TAGS: [
+          'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 
+          'ul', 'ol', 'li', 'a', 'img', 'span', 'blockquote', 
+          'pre', 'code', 'div'
+        ]
+      });
+
       const response = await fetch('/api/auth/admin/content', {
         method: 'POST',
         headers: {
@@ -83,7 +106,7 @@ const ContentEditor = () => {
         body: JSON.stringify({
           section: sectionKey,
           title: newSectionTitle || newSectionKey,
-          content: '',
+          content: sanitizedContent,
           is_custom: true,
           order_num: Object.keys(sections).length
         }),
@@ -133,6 +156,25 @@ const ContentEditor = () => {
     if (!sectionToSwap) return;
   
     try {
+      // Sanitize content before reordering
+      const sanitizedContent1 = DOMPurify.sanitize(sections[sectionKey].content, {
+        FORBID_ATTR: ['onloadstart', 'onerror', 'onload', 'onmouseover', 'onclick'],
+        ALLOWED_TAGS: [
+          'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 
+          'ul', 'ol', 'li', 'a', 'img', 'span', 'blockquote', 
+          'pre', 'code', 'div'
+        ]
+      });
+
+      const sanitizedContent2 = DOMPurify.sanitize(sections[sectionToSwap[0]].content, {
+        FORBID_ATTR: ['onloadstart', 'onerror', 'onload', 'onmouseover', 'onclick'],
+        ALLOWED_TAGS: [
+          'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 
+          'ul', 'ol', 'li', 'a', 'img', 'span', 'blockquote', 
+          'pre', 'code', 'div'
+        ]
+      });
+
       await Promise.all([
         fetch('/api/auth/admin/content', {
           method: 'PUT',
@@ -140,7 +182,7 @@ const ContentEditor = () => {
           body: JSON.stringify({
             section: sectionKey,
             title: sections[sectionKey].title,
-            content: sections[sectionKey].content,
+            content: sanitizedContent1,
             order_num: newOrder
           })
         }),
@@ -150,7 +192,7 @@ const ContentEditor = () => {
           body: JSON.stringify({
             section: sectionToSwap[0],
             title: sections[sectionToSwap[0]].title,
-            content: sections[sectionToSwap[0]].content,
+            content: sanitizedContent2,
             order_num: currentOrder
           })
         })
@@ -211,6 +253,16 @@ const ContentEditor = () => {
 
   const handleSubmit = async (section) => {
     try {
+      // Sanitize content before submission to prevent XSS attacks
+      const sanitizedContent = DOMPurify.sanitize(sections[section].content, {
+        FORBID_ATTR: ['onloadstart', 'onerror', 'onload', 'onmouseover', 'onclick'],
+        ALLOWED_TAGS: [
+          'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 
+          'ul', 'ol', 'li', 'a', 'img', 'span', 'blockquote', 
+          'pre', 'code', 'div'
+        ]
+      });
+
       const response = await fetch('/api/auth/admin/content', {
         method: 'PUT',
         headers: {
@@ -219,7 +271,7 @@ const ContentEditor = () => {
         body: JSON.stringify({
           section,
           title: sections[section].title,
-          content: sections[section].content,
+          content: sanitizedContent, // Use sanitized content
           order_num: sections[section].order_num
         }),
       });
@@ -405,6 +457,7 @@ const ContentEditor = () => {
                 value={section.content}
                 onChange={(content) => handleSectionChange(sectionKey, 'content', content)}
                 modules={modules}
+                formats={formats}
                 className="h-64 mb-12"
               />
             </div>
