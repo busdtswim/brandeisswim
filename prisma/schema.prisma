@@ -56,13 +56,15 @@ model instructors {
 }
 
 model users {
-  id           Int        @id @default(autoincrement())
-  email        String     @unique @db.VarChar(255)
-  password     String     @db.VarChar(255)
-  role         String     @db.VarChar(20)
-  phone_number String?    @db.VarChar(20)
-  fullname     String?    @db.VarChar(255)
-  swimmers     swimmers[]
+  id                 Int        @id @default(autoincrement())
+  email              String     @unique @db.VarChar(255)
+  password           String     @db.VarChar(255)
+  role               String     @db.VarChar(20)
+  phone_number       String?    @db.VarChar(20)
+  fullname           String?    @db.VarChar(255)
+  reset_token        String?    @db.VarChar(255)
+  reset_token_expiry DateTime?  @db.Timestamptz(6)
+  swimmers           swimmers[]
 }
 
 model site_content {
