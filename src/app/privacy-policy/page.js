@@ -90,7 +90,7 @@ export default function PrivacyPolicyPage() {
           </section>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4 text-[#003478]">7. Children's Privacy</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-[#003478]">7. Children&#39;s Privacy</h2>
             <p>
               Our services are intended for families with children taking swimming lessons. 
               We collect information about children only with parental consent and use it 
@@ -102,7 +102,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-2xl font-semibold mb-4 text-[#003478]">8. Changes to This Privacy Policy</h2>
             <p>
               We may update this Privacy Policy from time to time. The updated version will be 
-              indicated by an updated "Last Updated" date.
+              indicated by an updated &#34;Last Updated&#34; date.
             </p>
           </section>
           

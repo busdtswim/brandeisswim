@@ -250,7 +250,7 @@ const LessonRegistration = () => {
             <AlertTriangle className="h-5 w-5 text-orange-400 mr-3 mt-0.5" />
             <div>
               <p className="font-medium text-orange-800">All lessons are currently full.</p>
-              <p className="text-orange-700 mt-1">Please consider joining our waitlist. We'll contact you if a spot becomes available.</p>
+              <p className="text-orange-700 mt-1">Please consider joining our waitlist. We&#39;ll contact you if a spot becomes available.</p>
             </div>
           </div>
         </div>

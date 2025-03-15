@@ -172,7 +172,7 @@ const ViewSchedule = () => {
             >
               <div className={`px-4 py-3 text-white ${isUpcoming(classData) ? 'bg-blue-500' : 'bg-gray-500'}`}>
                 <h2 className="font-bold flex items-center justify-between">
-                  <span>{classData.swimmerName}'s Lesson</span>
+                  <span>{classData.swimmerName}&#39;s Lesson</span>
                   {!isUpcoming(classData) && <span className="text-xs bg-white text-gray-600 px-2 py-1 rounded">Past</span>}
                 </h2>
               </div>
@@ -249,7 +249,7 @@ const ViewSchedule = () => {
             
             <div className="px-6 py-4">
               <p className="text-gray-700 mb-6">
-                Are you sure you want to cancel {selectedClass.swimmerName}'s registration for the lesson on {formatDate(selectedClass.startDate)}?
+                Are you sure you want to cancel {selectedClass.swimmerName}&#39;s registration for the lesson on {formatDate(selectedClass.startDate)}?
               </p>
               <div className="flex justify-end space-x-3">
                 <button

@@ -83,15 +83,15 @@ const ModernHomepage = () => {
               
               <div className="prose prose-lg prose-blue max-w-none">
                 <p className="lead text-xl text-gray-600 mb-6">
-                  Throughout the academic year, the Brandeis University Men's and Women's Swimming and 
-                  Diving teams offer swimming lessons as fundraising to support the team's winter training trip.
+                  Throughout the academic year, the Brandeis University Men&#39;s and Women&#39;s Swimming and 
+                  Diving teams offer swimming lessons as fundraising to support the team&#39;s winter training trip.
                 </p>
                 
                 <p>
                   Lessons are taught by our experienced student-athletes and are designed to provide 
                   one-on-one instruction to swimmers of all ages and experience levels. These sessions offer 
                   the community an opportunity to improve their comfort and confidence in the water while directly 
-                  supporting the team's training and development.
+                  supporting the team&#39;s training and development.
                 </p>
                 
                 <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-r-lg my-8">
@@ -267,7 +267,7 @@ const ModernHomepage = () => {
                 </div>
               </div>
               <blockquote className="text-lg mb-4">
-                "My daughter was terrified of water before starting lessons here. Now she can't wait for her weekly class! The instructors are patient and make learning fun."
+                &#34;My daughter was terrified of water before starting lessons here. Now she can&#39;t wait for her weekly class! The instructors are patient and make learning fun.&#34;
               </blockquote>
               <cite className="font-medium">- Sarah Thompson, Parent</cite>
             </div>
@@ -284,7 +284,7 @@ const ModernHomepage = () => {
                 </div>
               </div>
               <blockquote className="text-lg mb-4">
-                "The swim lessons transformed my child's confidence in the water! We couldn't be happier with the progress they've made."
+                &#34;The swim lessons transformed my child&#39;s confidence in the water! We couldn&#39;t be happier with the progress they&#39;ve made.&#34;
               </blockquote>
               <cite className="font-medium">- Michael Chen, Parent</cite>
             </div>

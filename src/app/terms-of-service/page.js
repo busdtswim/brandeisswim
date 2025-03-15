@@ -14,7 +14,7 @@ export default function TermsOfServicePage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 text-[#003478]">1. Introduction</h2>
             <p>
-              Welcome to Brandeis Swim Lessons. These Terms of Service ("Terms") govern your 
+              Welcome to Brandeis Swim Lessons. These Terms of Service (&#34;Terms&#34;) govern your 
               use of our website and services. By accessing or using our services, you agree 
               to be bound by these Terms.
             </p>
@@ -133,7 +133,7 @@ export default function TermsOfServicePage() {
             <p>
               You agree to indemnify and hold harmless Brandeis Swim Lessons and its affiliates, 
               officers, agents, and employees from any claims, liabilities, damages, losses, costs, 
-              expenses, or fees (including reasonable attorneys' fees) arising from your use of our 
+              expenses, or fees (including reasonable attorneys&#39; fees) arising from your use of our 
               services or violation of these Terms.
             </p>
           </section>
@@ -142,8 +142,8 @@ export default function TermsOfServicePage() {
             <h2 className="text-2xl font-semibold mb-4 text-[#003478]">10. Modifications to Terms</h2>
             <p>
               We reserve the right to modify these Terms at any time. We will provide notice of 
-              significant changes by posting the updated Terms on our website with a new "Last 
-              Updated" date.
+              significant changes by posting the updated Terms on our website with a new &#34;Last 
+              Updated&#34; date.
             </p>
           </section>
           
