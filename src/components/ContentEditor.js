@@ -1,6 +1,6 @@
  'use client';
 
- import React, { useState, useEffect, useCallback } from 'react';
+ import React, { useState, useEffect } from 'react';
 import { 
   ChevronUp, 
   ChevronDown, 
@@ -59,10 +59,10 @@ const ContentEditor = () => {
 
   useEffect(() => {
     fetchContent();
-  }, [fetchContent]);
+  }, []);
 
   // Wrap fetchContent in useCallback
-  const fetchContent = useCallback(async () => {
+  const fetchContent = async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/auth/admin/content');
@@ -89,7 +89,7 @@ const ContentEditor = () => {
     } finally {
       setLoading(false);
     }
-  }, [displayMessage]);
+  };
 
   const displayMessage = (text, type) => {
     setMessage({ text, type });

@@ -35,11 +35,14 @@ const CreateLessons = () => {
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  useEffect(() => {
-    fetchLessons();
-    checkWaitlistStatus();
-  }, [fetchLessons, checkWaitlistStatus]);
+  // Define displayMessage first since it's used in fetchLessons
+  const displayMessage = useCallback((text, type) => {
+    setMessage({ text, type });
+    setShowMessage(true);
+    setTimeout(() => setShowMessage(false), 5000);
+  }, []);
 
+  // Now fetchLessons can safely use displayMessage
   const fetchLessons = useCallback(async () => {
     try {
       setLoading(true);
@@ -57,7 +60,7 @@ const CreateLessons = () => {
     } finally {
       setLoading(false);
     }
-  }, [displayMessage]); 
+  }, [displayMessage]);
 
   const checkWaitlistStatus = useCallback(async () => {
     try {
@@ -69,13 +72,7 @@ const CreateLessons = () => {
     } catch (error) {
       console.error('Error checking waitlist status:', error);
     }
-  }, []); 
-
-  const displayMessage = (text, type) => {
-    setMessage({ text, type });
-    setShowMessage(true);
-    setTimeout(() => setShowMessage(false), 5000);
-  };
+  }, []);
 
   const handleCreateWaitlist = async () => {
     try {
@@ -214,6 +211,11 @@ const CreateLessons = () => {
     }
   };
 
+  useEffect(() => {
+    fetchLessons();
+    checkWaitlistStatus();
+  }, [fetchLessons, checkWaitlistStatus]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -221,7 +223,6 @@ const CreateLessons = () => {
       </div>
     );
   }
-
   return (
     <div className="py-6">
       {/* Page Header */}

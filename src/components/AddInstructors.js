@@ -20,9 +20,12 @@ const AddInstructors = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showMessage, setShowMessage] = useState(false);
 
-  useEffect(() => {
-    fetchInstructors();
-  }, [fetchInstructors]);
+  // Define displayMessage before it's used in other functions
+  const displayMessage = useCallback((text, type) => {
+    setMessage({ text, type });
+    setShowMessage(true);
+    setTimeout(() => setShowMessage(false), 5000);
+  }, []);
 
   const fetchInstructors = useCallback(async () => {
     try {
@@ -41,12 +44,6 @@ const AddInstructors = () => {
       setLoading(false);
     }
   }, [displayMessage]);
-
-  const displayMessage = (text, type) => {
-    setMessage({ text, type });
-    setShowMessage(true);
-    setTimeout(() => setShowMessage(false), 5000);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,6 +105,10 @@ const AddInstructors = () => {
       instructor.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  useEffect(() => {
+    fetchInstructors();
+  }, [fetchInstructors]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -118,6 +119,7 @@ const AddInstructors = () => {
 
   return (
     <div className="py-6">
+      {/* Rest of the component remains unchanged */}
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Manage Instructors</h1>
