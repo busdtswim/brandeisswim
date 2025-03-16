@@ -294,7 +294,7 @@ const RegistrationForm = () => {
                             <div className="grid gap-4 md:grid-cols-2">
                               <div>
                                 <label htmlFor={`swimmers.${index}.name`} className="block text-sm font-medium text-gray-700 mb-1">
-                                  Swimmer's Name
+                                  Swimmer&#39;s Name
                                 </label>
                                 <Field 
                                   name={`swimmers.${index}.name`} 
