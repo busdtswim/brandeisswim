@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import ExceptionDates from './ExceptionDates';
 import { DateFormatter } from '@/utils/formatUtils';
@@ -38,15 +38,9 @@ const CreateLessons = () => {
   useEffect(() => {
     fetchLessons();
     checkWaitlistStatus();
-  }, []);
+  }, [fetchLessons, checkWaitlistStatus]);
 
-  const displayMessage = (text, type) => {
-    setMessage({ text, type });
-    setShowMessage(true);
-    setTimeout(() => setShowMessage(false), 5000);
-  };
-
-  const fetchLessons = async () => {
+  const fetchLessons = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/auth/admin/create');
@@ -63,9 +57,9 @@ const CreateLessons = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [displayMessage]); 
 
-  const checkWaitlistStatus = async () => {
+  const checkWaitlistStatus = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/waitlist/status');
       if (response.ok) {
@@ -75,6 +69,12 @@ const CreateLessons = () => {
     } catch (error) {
       console.error('Error checking waitlist status:', error);
     }
+  }, []); 
+
+  const displayMessage = (text, type) => {
+    setMessage({ text, type });
+    setShowMessage(true);
+    setTimeout(() => setShowMessage(false), 5000);
   };
 
   const handleCreateWaitlist = async () => {

@@ -1,6 +1,6 @@
  'use client';
 
-import React, { useState, useEffect } from 'react';
+ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   ChevronUp, 
   ChevronDown, 
@@ -59,15 +59,10 @@ const ContentEditor = () => {
 
   useEffect(() => {
     fetchContent();
-  }, []);
+  }, [fetchContent]);
 
-  const displayMessage = (text, type) => {
-    setMessage({ text, type });
-    setShowMessage(true);
-    setTimeout(() => setShowMessage(false), 5000);
-  };
-
-  const fetchContent = async () => {
+  // Wrap fetchContent in useCallback
+  const fetchContent = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/auth/admin/content');
@@ -94,6 +89,12 @@ const ContentEditor = () => {
     } finally {
       setLoading(false);
     }
+  }, [displayMessage]);
+
+  const displayMessage = (text, type) => {
+    setMessage({ text, type });
+    setShowMessage(true);
+    setTimeout(() => setShowMessage(false), 5000);
   };
 
   const handleAddNewSection = async () => {
@@ -398,7 +399,7 @@ const ContentEditor = () => {
       {Object.entries(sections).length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
           <p className="text-gray-500 text-lg">No content sections found.</p>
-          <p className="text-gray-500 mt-2">Click the "Add New Section" button to create your first section.</p>
+          <p className="text-gray-500 mt-2">Click the &#34;Add New Section&#34; button to create your first section.</p>
         </div>
       ) : (
         <div className="space-y-8">

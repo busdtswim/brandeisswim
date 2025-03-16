@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   UserPlus, 
   Mail, 
@@ -22,9 +22,9 @@ const AddInstructors = () => {
 
   useEffect(() => {
     fetchInstructors();
-  }, []);
+  }, [fetchInstructors]);
 
-  const fetchInstructors = async () => {
+  const fetchInstructors = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/auth/admin/add');
@@ -40,7 +40,7 @@ const AddInstructors = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [displayMessage]);
 
   const displayMessage = (text, type) => {
     setMessage({ text, type });
