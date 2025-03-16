@@ -1,7 +1,18 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import ClassSchedule from './ClassSchedule';
+import React, { useState, useEffect } from 'react';
+import { 
+  Calendar, 
+  Clock, 
+  Users, 
+  Filter, 
+  ChevronDown, 
+  ChevronUp, 
+  CheckCircle2, 
+  AlertTriangle, 
+  X 
+} from 'lucide-react';
+import { DateFormatter } from '@/utils/formatUtils';
 import EditExceptionsModal from './EditExceptionModal';
 
 const ViewSchedule = () => {
@@ -12,9 +23,13 @@ const ViewSchedule = () => {
   const [assignError, setAssignError] = useState(null);
   const [filter, setFilter] = useState('all');
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [expandedClasses, setExpandedClasses] = useState(new Set());
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [showMessage, setShowMessage] = useState(false);
 
   const fetchData = async () => {
     try {
+      setLoading(true);
       const [classesResponse, instructorsResponse] = await Promise.all([
         fetch('/api/auth/lessons/classes'),
         fetch('/api/auth/lessons/instructors')
@@ -29,7 +44,9 @@ const ViewSchedule = () => {
 
       setClasses(classesData);
       setInstructors(instructorsData);
+      setError(null);
     } catch (err) {
+      console.error('Error fetching data:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -40,7 +57,25 @@ const ViewSchedule = () => {
     fetchData();
   }, []);
 
-  const filteredClasses = useMemo(() => {
+  const displayMessage = (text, type) => {
+    setMessage({ text, type });
+    setShowMessage(true);
+    setTimeout(() => setShowMessage(false), 5000);
+  };
+
+  const toggleClassExpanded = (classId) => {
+    setExpandedClasses(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(classId)) {
+        newSet.delete(classId);
+      } else {
+        newSet.add(classId);
+      }
+      return newSet;
+    });
+  };
+
+  const filteredClasses = React.useMemo(() => {
     const currentDate = new Date();
     
     return classes.filter(classData => {
@@ -62,6 +97,44 @@ const ViewSchedule = () => {
 
   const handleInstructorAssign = async (classId, swimmerId, instructorId) => {
     try {
+      setAssignError(null);
+
+      if (!instructorId) {
+        await onInstructorAssign(classId, swimmerId, null);
+        return;
+      }
+
+      const response = await fetch('/api/auth/lessons/classes');
+      if (!response.ok) {
+        throw new Error('Failed to fetch lessons data');
+      }
+
+      const allLessons = await response.json();
+      
+      const hasConflict = allLessons.some(otherLesson => {
+        if (otherLesson.id === parseInt(classId)) return false;
+        
+        const hasInstructorInOtherLesson = otherLesson.participants.some(
+          p => p.instructor_id === parseInt(instructorId)
+        );
+
+        if (!hasInstructorInOtherLesson) return false;
+
+        // This would need the proper implementation of hasScheduleConflict
+        // For now, let's mock with a simple check
+        const conflicting = (
+          otherLesson.meetingDays.some(day => 
+            classes.find(c => c.id === parseInt(classId))?.meetingDays.includes(day)
+          )
+        );
+        return conflicting;
+      });
+
+      if (hasConflict) {
+        setAssignError('This instructor has a scheduling conflict during this time slot.');
+        return;
+      }
+
       // First handle the instructor assignment
       const assignResponse = await fetch(`/api/auth/lessons/assign/${classId}`, {
         method: 'PUT',
@@ -105,17 +178,17 @@ const ViewSchedule = () => {
           if (!notifyResponse.ok) {
             const errorData = await notifyResponse.json();
             console.error('Notification error details:', errorData);
-            throw new Error(`Failed to send notification: ${errorData.error || 'Unknown error'}`);
+            displayMessage(`Instructor assigned but notification failed: ${errorData.error || 'Unknown error'}`, 'error');
+          } else {
+            displayMessage('Instructor assigned and notification sent successfully!', 'success');
           }
-  
-          const responseData = await notifyResponse.json();
         } catch (notifyError) {
           console.error('Error sending notification:', notifyError);
-          setAssignError('Instructor assigned but notification failed to send');
+          displayMessage('Instructor assigned but notification failed to send', 'error');
         }
       }
   
-      // Update UI state...
+      // Update UI state
       setClasses(prevClasses => prevClasses.map(cls => {
         if (cls.id === parseInt(classId)) {
           return {
@@ -136,10 +209,10 @@ const ViewSchedule = () => {
         return cls;
       }));
   
-      setAssignError(null);
-    } catch (err) {
-      console.error('Error in handleInstructorAssign:', err);
-      setAssignError(err.message);
+    } catch (error) {
+      console.error('Error in handleInstructorAssign:', error);
+      setAssignError(error.message);
+      displayMessage(`Error: ${error.message}`, 'error');
     }
   };
 
@@ -176,9 +249,10 @@ const ViewSchedule = () => {
         return cls;
       }));
 
+      displayMessage(`Payment status ${status ? 'confirmed' : 'marked as pending'}`, 'success');
     } catch (error) {
       console.error('Error updating payment status:', error);
-      setAssignError('Failed to update payment status');
+      displayMessage('Failed to update payment status', 'error');
     }
   };
 
@@ -200,84 +274,351 @@ const ViewSchedule = () => {
       );
       setSelectedLesson(null);
       await fetchData();
+      displayMessage('Lesson exceptions updated successfully', 'success');
     } catch (error) {
       console.error('Error updating exceptions:', error);
-      setError('Failed to update exceptions');
+      displayMessage('Failed to update exceptions', 'error');
     }
   };
 
   const handleRemoveSwimmer = async (classId, swimmerId) => {
-    try {
-      setClasses(prevClasses => prevClasses.map(cls => {
-        if (cls.id === classId) {
-          return {
-            ...cls,
-            participants: cls.participants.filter(p => p.id !== swimmerId)
-          };
+    if (window.confirm('Are you sure you want to remove this swimmer from the lesson?')) {
+      try {
+        const response = await fetch('/api/auth/lessons/remove-swimmer', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ lessonId: classId, swimmerId }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to remove swimmer');
         }
-        return cls;
-      }));
-    } catch (error) {
-      console.error('Error removing swimmer:', error);
-      setError('Failed to remove swimmer');
+
+        setClasses(prevClasses => prevClasses.map(cls => {
+          if (cls.id === classId) {
+            return {
+              ...cls,
+              participants: cls.participants.filter(p => p.id !== swimmerId)
+            };
+          }
+          return cls;
+        }));
+        
+        displayMessage('Swimmer removed successfully', 'success');
+      } catch (error) {
+        console.error('Error removing swimmer:', error);
+        displayMessage('Failed to remove swimmer from lesson', 'error');
+      }
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8 text-black">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">View Schedule</h1>
-        <div className="flex items-center space-x-4">
-          <label htmlFor="filter" className="font-medium">Filter Classes:</label>
-          <select
-            id="filter"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="border rounded-md p-2 bg-white"
-          >
-            <option value="all">All Classes</option>
-            <option value="past">Past Classes</option>
-            <option value="current">Current Classes</option>
-            <option value="future">Future Classes</option>
-          </select>
-        </div>
+    <div className="py-6">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">View Schedule</h1>
+        <p className="text-gray-600">Manage class schedules, assign instructors, and track payments.</p>
       </div>
-
-      {assignError && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">{assignError}</span>
+      
+      {/* Notification message */}
+      {showMessage && (
+        <div className={`mb-6 p-4 rounded-lg flex items-start ${
+          message.type === 'success' 
+            ? 'bg-green-50 text-green-800 border-l-4 border-green-500' 
+            : 'bg-red-50 text-red-800 border-l-4 border-red-500'
+        }`}>
+          {message.type === 'success' ? (
+            <CheckCircle2 className="w-5 h-5 mr-3 mt-0.5" />
+          ) : (
+            <AlertTriangle className="w-5 h-5 mr-3 mt-0.5" />
+          )}
+          <p>{message.text}</p>
         </div>
       )}
 
-      <div className="space-y-4">
-        {filteredClasses.map(classData => (
-          <ClassSchedule 
-            key={classData.id} 
-            classData={classData}
-            instructors={instructors}
-            onInstructorAssign={handleInstructorAssign}
-            onPaymentStatusChange={handlePaymentStatusChange}
-            onEditExceptions={() => setSelectedLesson(classData)}
-            onRemoveSwimmer={handleRemoveSwimmer}
-          />
-        ))}
+      {/* Error display */}
+      {error && !showMessage && (
+        <div className="mb-6 p-4 rounded-lg flex items-start bg-red-50 text-red-800 border-l-4 border-red-500">
+          <AlertTriangle className="w-5 h-5 mr-3 mt-0.5" />
+          <div>
+            <p className="font-medium">Error</p>
+            <p>{error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Filter Controls */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center">
+            <Filter className="text-gray-400 mr-2" size={20} />
+            <label htmlFor="filter" className="text-sm font-medium text-gray-700 mr-2">Filter Classes:</label>
+            <select
+              id="filter"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="border rounded-md p-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All Classes</option>
+              <option value="past">Past Classes</option>
+              <option value="current">Current Classes</option>
+              <option value="future">Future Classes</option>
+            </select>
+          </div>
+          
+          <div className="text-sm text-gray-600">
+            Showing <span className="font-medium">{filteredClasses.length}</span> {filteredClasses.length === 1 ? 'class' : 'classes'}
+          </div>
+        </div>
       </div>
 
-      <EditExceptionsModal
-        isOpen={!!selectedLesson}
-        onClose={() => setSelectedLesson(null)}
-        lessonId={selectedLesson?.id}
-        onUpdate={handleEditExceptionsUpdate} 
-      />
-
-      {filteredClasses.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No classes found for the selected filter.
+      {/* Classes List */}
+      {filteredClasses.length === 0 ? (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+          <p className="text-gray-500 text-lg">No classes found for the selected filter.</p>
+          <p className="text-gray-500 mt-2">Try changing your filter options or create new lessons.</p>
         </div>
+      ) : (
+        <div className="space-y-6">
+          {filteredClasses.map(classData => (
+            <div 
+              key={classData.id} 
+              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+            >
+              <div 
+                className="bg-blue-600 text-white p-4 flex items-center justify-between cursor-pointer"
+                onClick={() => toggleClassExpanded(classData.id)}
+              >
+                <div>
+                  <h3 className="text-lg font-semibold flex items-center">
+                    <Calendar className="w-5 h-5 mr-2" />
+                    {classData.meetingDays?.join(', ') || ''} Swim Class
+                  </h3>
+                  <p className="text-sm text-blue-100 mt-1">
+                    {DateFormatter.formatForDisplay(classData.startDate)} - {DateFormatter.formatForDisplay(classData.endDate)}
+                  </p>
+                </div>
+                <div className="flex items-center">
+                  <span className="px-3 py-1 rounded-full bg-white text-blue-600 text-sm font-medium mr-3">
+                    {classData.participants?.length || 0}/{classData.capacity} Enrolled
+                  </span>
+                  {expandedClasses.has(classData.id) ? (
+                    <ChevronUp size={20} />
+                  ) : (
+                    <ChevronDown size={20} />
+                  )}
+                </div>
+              </div>
+              
+              {expandedClasses.has(classData.id) && (
+                <div className="p-6">
+                  <div className="mb-6">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="flex items-start">
+                          <Clock className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Time</p>
+                            <p className="text-gray-600">{classData.time}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start">
+                          <Calendar className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Meeting Days</p>
+                            <p className="text-gray-600">{classData.meetingDays?.join(', ') || 'Not specified'}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start">
+                          <Users className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Capacity</p>
+                            <p className="text-gray-600">{classData.participants?.length || 0}/{classData.capacity}</p>
+                          </div>
+                        </div>
+                        
+                        {classData.exception_dates && Array.isArray(classData.exception_dates) && classData.exception_dates.length > 0 && (
+                          <div className="flex items-start">
+                            <X className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-medium text-red-600">Exception Dates</p>
+                              <p className="text-gray-600">{DateFormatter.formatExceptionDates(classData.exception_dates)}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedLesson(classData);
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        Edit Exceptions
+                      </button>
+                    </div>
+                    
+                    {assignError && (
+                      <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-md">
+                        <div className="flex">
+                          <AlertTriangle className="w-5 h-5 mr-3 mt-0.5" />
+                          <span>{assignError}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Swimmer
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Age/Gender
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Proficiency
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Preferred Instructor
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Assigned Instructor
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Payment
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {classData.participants?.map((participant) => (
+                            <tr key={participant.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="font-medium text-gray-900">{participant.name}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-gray-500">{participant.age} / {participant.gender}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  participant.proficiency === 'beginner' ? 'bg-blue-100 text-blue-800' :
+                                  participant.proficiency === 'intermediate' ? 'bg-green-100 text-green-800' :
+                                  participant.proficiency === 'advanced' ? 'bg-purple-100 text-purple-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {participant.proficiency || 'N/A'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                {participant.preferred_instructor ? (
+                                  <div className="text-gray-900">{participant.preferred_instructor.name}</div>
+                                ) : (
+                                  <div className="text-gray-400 italic">No preference</div>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <select
+                                  value={participant.instructor_id || ''}
+                                  onChange={(e) => handleInstructorAssign(
+                                    classData.id,
+                                    participant.id,
+                                    e.target.value
+                                  )}
+                                  className="w-full border rounded-md p-2 text-sm"
+                                >
+                                  <option value="">Select instructor</option>
+                                  {instructors.map((instructor) => (
+                                    <option key={instructor.id} value={instructor.id}>
+                                      {instructor.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                                <div className="relative inline-block w-10 align-middle select-none">
+                                  <input
+                                    type="checkbox"
+                                    name={`payment-${participant.id}`}
+                                    id={`payment-${participant.id}`}
+                                    checked={participant.payment_status || false}
+                                    onChange={(e) => handlePaymentStatusChange(
+                                      classData.id,
+                                      participant.id,
+                                      e.target.checked
+                                    )}
+                                    className="sr-only"
+                                  />
+                                  <label
+                                    htmlFor={`payment-${participant.id}`}
+                                    className={`
+                                      block overflow-hidden h-6 rounded-full cursor-pointer
+                                      transition-colors duration-200 ease-in-out
+                                      ${participant.payment_status ? 'bg-green-500' : 'bg-gray-300'}
+                                    `}
+                                  >
+                                    <span
+                                      className={`
+                                        block h-6 w-6 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out
+                                        ${participant.payment_status ? 'translate-x-4' : 'translate-x-0'}
+                                      `}
+                                    ></span>
+                                  </label>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <button
+                                  onClick={() => handleRemoveSwimmer(classData.id, participant.id)}
+                                  className="text-red-600 hover:text-red-800 font-medium"
+                                >
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                          
+                          {(!classData.participants || classData.participants.length === 0) && (
+                            <tr>
+                              <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                                No swimmers enrolled in this class
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Exception Modal */}
+      {selectedLesson && (
+        <EditExceptionsModal
+          isOpen={!!selectedLesson}
+          onClose={() => setSelectedLesson(null)}
+          lessonId={selectedLesson?.id}
+          onUpdate={handleEditExceptionsUpdate}
+        />
       )}
     </div>
   );

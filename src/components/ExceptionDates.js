@@ -1,8 +1,8 @@
-// src/components/ExceptionDates.js
 'use client';
 
 import React, { useState } from 'react';
 import { DateTime } from 'luxon';
+import { X, Calendar, Plus, AlertTriangle } from 'lucide-react';
 
 const NY_TIMEZONE = 'America/New_York';
 
@@ -40,57 +40,71 @@ const ExceptionDates = ({ exceptions = [], onAdd, onRemove }) => {
   };
 
   return (
-    <div className="mb-4">
-      <label className="block text-gray-700 text-sm font-bold mb-2">
-        Exception Dates (No Classes)
+    <div className="space-y-3">
+      <label className="block text-sm font-medium text-gray-700">
+        <Calendar className="w-4 h-4 inline mr-1 text-gray-500" /> Exception Dates (No Classes)
       </label>
-      <div className="flex items-center mb-2">
-        <input
-          type="date"
-          value={newDate}
-          onChange={(e) => {
-            console.log('Input value:', e.target.value); // Debug log
-            setNewDate(e.target.value);
-            setError('');
-          }}
-          className={`shadow appearance-none border rounded w-64 py-2 px-3 
-            text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2
-            ${error ? 'border-red-500' : 'border-gray-300'}`}
-        />
+      
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-grow relative">
+          <input
+            type="date"
+            value={newDate}
+            onChange={(e) => {
+              setNewDate(e.target.value);
+              setError('');
+            }}
+            className={`w-full rounded-lg border ${error ? 'border-red-500' : 'border-gray-300'} py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+          />
+        </div>
         <button
           type="button"
           onClick={handleAdd}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 
-            disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={!newDate}
+          className={`
+            flex items-center justify-center rounded-lg py-2 px-4 text-sm font-medium transition-colors
+            ${!newDate 
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+              : 'bg-blue-600 text-white hover:bg-blue-700'}
+          `}
         >
-          Add Exception
+          <Plus className="w-4 h-4 mr-1" /> Add Exception
         </button>
       </div>
+      
       {error && (
-        <p className="text-red-500 text-sm mt-1">{error}</p>
+        <div className="flex items-center text-sm text-red-600">
+          <AlertTriangle className="w-4 h-4 mr-1" />
+          <p>{error}</p>
+        </div>
       )}
-      <div className="flex flex-wrap gap-2 mt-2">
-        {exceptions.map((date) => {
-          const displayDate = DateTime.fromISO(date, { zone: NY_TIMEZONE })
-            .toLocaleString(DateTime.DATE_SHORT);
-          return (
-            <div
-              key={date}
-              className="bg-gray-100 px-3 py-1 rounded-full flex items-center space-x-2"
-            >
-              <span>{displayDate}</span>
-              <button
-                type="button"
-                onClick={() => onRemove(date)}
-                className="text-red-500 hover:text-red-700 font-bold"
-                aria-label="Remove date"
+      
+      {/* Exception date tags */}
+      <div className="flex flex-wrap gap-2 mt-3">
+        {exceptions.length === 0 ? (
+          <p className="text-sm text-gray-500 italic">No exception dates added yet</p>
+        ) : (
+          exceptions.map((date) => {
+            const displayDate = DateTime.fromISO(date, { zone: NY_TIMEZONE })
+              .toLocaleString(DateTime.DATE_SHORT);
+            return (
+              <div
+                key={date}
+                className="flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-full text-sm"
               >
-                ×
-              </button>
-            </div>
-          );
-        })}
+                <span>{displayDate}</span>
+                <button
+                  type="button"
+                  onClick={() => onRemove(date)}
+                  className="text-blue-500 hover:text-blue-700 p-0.5 rounded-full hover:bg-blue-100"
+                  aria-label="Remove date"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

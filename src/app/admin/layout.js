@@ -1,18 +1,22 @@
 // src/app/admin/layout.js
 
 import React from 'react';
-import Sidebar from '@/components/AdminSideBar';
+import AdminSidebar from '@/components/AdminSideBar';
 
 const AdminLayout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-blue-100">
-      {/* Main Layout */}
-      <div className="flex pt-16">
-        <Sidebar />
-        {/* Main Content */}
-        <main className="flex-1 transition-all duration-300 md:ml-64">
-          {children}
-        </main>
+    <div className="min-h-screen bg-gray-50">
+      {/* Main Layout - reduced top padding */}
+      <div className="flex flex-col min-h-screen">
+        <div className="flex flex-1 relative">
+          <AdminSidebar />
+          {/* Main Content */}
+          <main className="flex-1 p-4 md:ml-64 transition-all duration-300">
+            <div className="max-w-7xl mx-auto text-black">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

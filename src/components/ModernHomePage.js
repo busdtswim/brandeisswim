@@ -82,12 +82,12 @@ const ModernHomepage = () => {
               <h3 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900">Program Information</h3>
               
               <div className="prose prose-lg prose-blue max-w-none">
-                <p className="lead text-xl text-gray-600 mb-6">
+                <p className="lead text-lg text-gray-600 mb-6">
                   Throughout the academic year, the Brandeis University Men&#39;s and Women&#39;s Swimming and 
                   Diving teams offer swimming lessons as fundraising to support the team&#39;s winter training trip.
                 </p>
                 
-                <p>
+                <p className="lead text-lg text-gray-600 mb-6">
                   Lessons are taught by our experienced student-athletes and are designed to provide 
                   one-on-one instruction to swimmers of all ages and experience levels. These sessions offer 
                   the community an opportunity to improve their comfort and confidence in the water while directly 
@@ -97,17 +97,17 @@ const ModernHomepage = () => {
                 <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-r-lg my-8">
                   <p className="font-medium text-gray-900 mb-1">Lesson Information:</p>
                   <ul className="space-y-2 text-gray-700">
-                    <li className="flex items-center gap-2">
-                      <span className="inline-block w-2 h-2 bg-blue-600 rounded-full"></span>
-                      Each lesson lasts <strong>30 minutes</strong>
+                    <li className="flex items-baseline gap-2">
+                      <span className="inline-block w-2.5 h-2.5 bg-blue-600 rounded-full flex-shrink-0"></span>
+                      <span>Each lesson lasts 30 minutes</span>
                     </li>
-                    <li className="flex items-center gap-2">
-                      <span className="inline-block w-2 h-2 bg-blue-600 rounded-full"></span>
-                      Cost is <strong>$40 per session</strong>
+                    <li className="flex items-baseline gap-2">
+                      <span className="inline-block w-2.5 h-2.5 bg-blue-600 rounded-full flex-shrink-0"></span>
+                      <span>Cost is $40 per session</span>
                     </li>
-                    <li className="flex items-center gap-2">
-                      <span className="inline-block w-2 h-2 bg-blue-600 rounded-full"></span>
-                      <strong>Payment is required upfront</strong> and can be made by cash or check
+                    <li className="flex items-baseline gap-2">
+                      <span className="inline-block w-2.5 h-2.5 bg-blue-600 rounded-full flex-shrink-0"></span>
+                      <span>Payment is required upfront and can be made by cash or check</span>
                     </li>
                   </ul>
                 </div>
@@ -309,12 +309,6 @@ const ModernHomepage = () => {
                   className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors inline-flex items-center"
                 >
                   Sign Up <ArrowRight size={16} className="ml-2" />
-                </Link>
-                <Link 
-                  href="/about" 
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-6 py-3 rounded-lg transition-colors"
-                >
-                  Learn More
                 </Link>
               </div>
             </div>
