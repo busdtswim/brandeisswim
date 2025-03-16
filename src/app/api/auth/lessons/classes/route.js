@@ -3,22 +3,16 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { calculateAge } from '@/utils/dateUtils';
 
-export const dynamic = 'force-dynamic';
-
 const prisma = new PrismaClient();
 
-const formatTimeString = (time) => {
-  const date = time instanceof Date ? time : new Date(time);
-  
-  let hours = date.getHours();
-  const minutes = date.getMinutes().toString().padStart(2, '0');
+export const dynamic = 'force-dynamic';
+
+function formatTo12Hour(timeStr) {
+  const [hours, minutes] = timeStr.split(':').map(Number);
   const period = hours >= 12 ? 'PM' : 'AM';
-  
-  hours = hours % 12;
-  hours = hours ? hours : 12;
-  
-  return `${hours}:${minutes}${period}`;
-};
+  const displayHours = hours % 12 || 12;
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
 
 export async function GET() {
   try {
@@ -34,36 +28,43 @@ export async function GET() {
       },
     });
 
-    const formattedClasses = classes.map(cls => ({
-      id: cls.id,
-      startDate: cls.start_date.toISOString().split('T')[0],
-      endDate: cls.end_date.toISOString().split('T')[0],
-      time: `${formatTimeString(cls.start_time)} - ${formatTimeString(cls.end_time)}`,
-      meetingDays: cls.meeting_days.split(','),
-      capacity: cls.max_slots,
-      exception_dates: cls.exception_dates ? cls.exception_dates.split(',') : [],
-      participants: cls.swimmer_lessons.map(sl => ({
-        id: sl.swimmers.id,
-        name: sl.swimmers.name,
-        age: calculateAge(sl.swimmers.birthdate),
-        proficiency: sl.swimmers.proficiency,
-        gender: sl.swimmers.gender,
-        payment_status: sl.payment_status,
-        instructor: sl.instructors_swimmer_lessons_instructor_idToinstructors ? {
-          id: sl.instructors_swimmer_lessons_instructor_idToinstructors.id,
-          name: sl.instructors_swimmer_lessons_instructor_idToinstructors.name,
-          email: sl.instructors_swimmer_lessons_instructor_idToinstructors.email
-        } : null,
-        preferred_instructor: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors ? {
-          id: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.id,
-          name: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.name,
-          email: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.email
-        } : null,
-        instructor_id: sl.instructor_id,
-        preferred_instructor_id: sl.preferred_instructor_id,
-        instructor_notes: sl.instructor_notes
-      })),
-    }));
+    const formattedClasses = classes.map(cls => {
+      // Format the time string directly
+      const startTimeFormatted = formatTo12Hour(cls.start_time);
+      const endTimeFormatted = formatTo12Hour(cls.end_time);
+      const timeStr = `${startTimeFormatted} - ${endTimeFormatted}`;
+
+      return {
+        id: cls.id,
+        startDate: cls.start_date, // Use the string date directly
+        endDate: cls.end_date,     // Use the string date directly
+        time: timeStr,
+        meetingDays: cls.meeting_days.split(','),
+        capacity: cls.max_slots,
+        exception_dates: cls.exception_dates ? cls.exception_dates.split(',') : [],
+        participants: cls.swimmer_lessons.map(sl => ({
+          id: sl.swimmers.id,
+          name: sl.swimmers.name,
+          age: calculateAge(sl.swimmers.birthdate),
+          proficiency: sl.swimmers.proficiency,
+          gender: sl.swimmers.gender,
+          payment_status: sl.payment_status,
+          instructor: sl.instructors_swimmer_lessons_instructor_idToinstructors ? {
+            id: sl.instructors_swimmer_lessons_instructor_idToinstructors.id,
+            name: sl.instructors_swimmer_lessons_instructor_idToinstructors.name,
+            email: sl.instructors_swimmer_lessons_instructor_idToinstructors.email
+          } : null,
+          preferred_instructor: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors ? {
+            id: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.id,
+            name: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.name,
+            email: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.email
+          } : null,
+          instructor_id: sl.instructor_id,
+          preferred_instructor_id: sl.preferred_instructor_id,
+          instructor_notes: sl.instructor_notes
+        })),
+      };
+    });
 
     return NextResponse.json(formattedClasses);
   } catch (error) {

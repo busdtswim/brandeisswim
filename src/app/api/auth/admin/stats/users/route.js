@@ -35,11 +35,15 @@ export async function GET() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
+    // Format to MM/DD/YYYY
+    const formattedThirtyDaysAgo = `${(thirtyDaysAgo.getMonth() + 1).toString().padStart(2, '0')}/${thirtyDaysAgo.getDate().toString().padStart(2, '0')}/${thirtyDaysAgo.getFullYear()}`;
+    
+    // Use string comparison for createdAt if it's stored as a string
     const newUsers = await prisma.users.count({
       where: {
         role: 'customer',
         createdAt: {
-          gte: thirtyDaysAgo
+          gte: formattedThirtyDaysAgo
         }
       }
     });

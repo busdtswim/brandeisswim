@@ -179,13 +179,56 @@ const LessonRegistration = () => {
   const allLessonsFull = fullLessonsCount === lessons.length && lessons.length > 0;
 
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    if (typeof dateString === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+      const [month, day, year] = dateString.split('/');
+      return `${getMonthName(parseInt(month))} ${parseInt(day)}, ${year}`;
+    }
+    
+    if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [year, month, day] = dateString.split('-');
+      return `${getMonthName(parseInt(month))} ${parseInt(day)}, ${year}`;
+    }
+    
+    try {
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString('en-US', options);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid Date';
+    }
   };
 
+  const getMonthName = (monthNum) => {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[monthNum - 1] || '';
+  };
+  
+  // Replace the existing formatTime function with this one
   const formatTime = (timeString) => {
-    const options = { hour: '2-digit', minute: '2-digit' };
-    return new Date(timeString).toLocaleTimeString([], options);
+    // If the time is in HH:MM format (24-hour)
+    if (typeof timeString === 'string' && /^\d{1,2}:\d{2}$/.test(timeString)) {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    }
+    
+    // If it's already in 12-hour format with AM/PM
+    if (typeof timeString === 'string' && /\d{1,2}:\d{2}\s?[AP]M/i.test(timeString)) {
+      return timeString;
+    }
+    
+    // Try using Date constructor as fallback
+    try {
+      const options = { hour: '2-digit', minute: '2-digit' };
+      return new Date(timeString).toLocaleTimeString([], options);
+    } catch (error) {
+      console.error('Error formatting time:', error);
+      return 'Invalid Time';
+    }
   };
 
   return (

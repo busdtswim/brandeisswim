@@ -16,6 +16,7 @@ const ModernCustomerDashboard = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   
   // Form states
   const [email, setEmail] = useState('');

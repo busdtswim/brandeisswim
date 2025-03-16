@@ -13,8 +13,9 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get current date
+    // Get current date as a string in MM/DD/YYYY format
     const currentDate = new Date();
+    const formattedCurrentDate = `${(currentDate.getMonth() + 1).toString().padStart(2, '0')}/${currentDate.getDate().toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
 
     // Run all queries in parallel for better performance
     const [
@@ -24,7 +25,7 @@ export async function GET() {
       // Swimmer stats
       swimmerCount,
       
-      // Class stats
+      // Class stats - modified to work with string dates in MM/DD/YYYY format
       activeLessonCount,
       
       // Waitlist stats
@@ -38,11 +39,15 @@ export async function GET() {
       // Swimmer stats
       prisma.swimmers.count(),
       
-      // Active lessons
+      // Active lessons - using string comparison with MM/DD/YYYY format
       prisma.lessons.count({
         where: {
-          start_date: { lte: currentDate },
-          end_date: { gte: currentDate }
+          start_date: {
+            lte: formattedCurrentDate
+          },
+          end_date: {
+            gte: formattedCurrentDate
+          }
         }
       }),
       

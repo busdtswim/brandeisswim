@@ -13,8 +13,9 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get current date
+    // Get current date as a string in MM/DD/YYYY format
     const currentDate = new Date();
+    const formattedCurrentDate = `${(currentDate.getMonth() + 1).toString().padStart(2, '0')}/${currentDate.getDate().toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
     
     // Count total lessons
     const totalLessons = await prisma.lessons.count();
@@ -23,10 +24,10 @@ export async function GET() {
     const activeLessons = await prisma.lessons.count({
       where: {
         start_date: {
-          lte: currentDate,
+          lte: formattedCurrentDate,
         },
         end_date: {
-          gte: currentDate,
+          gte: formattedCurrentDate,
         },
       },
     });
@@ -35,7 +36,7 @@ export async function GET() {
     const futureLessons = await prisma.lessons.count({
       where: {
         start_date: {
-          gt: currentDate,
+          gt: formattedCurrentDate,
         },
       },
     });
@@ -44,7 +45,7 @@ export async function GET() {
     const pastLessons = await prisma.lessons.count({
       where: {
         end_date: {
-          lt: currentDate,
+          lt: formattedCurrentDate,
         },
       },
     });

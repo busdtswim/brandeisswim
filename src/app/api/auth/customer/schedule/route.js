@@ -1,11 +1,18 @@
 // src/app/api/auth/customer/schedule/route.js
-
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 const prisma = new PrismaClient();
+
+// Simple function to format time from 24h to 12h format
+function formatTo12Hour(timeStr) {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
 
 export async function GET() {
   try {
@@ -36,24 +43,30 @@ export async function GET() {
     }
 
     const classes = user.swimmers.flatMap(swimmer => 
-      swimmer.swimmer_lessons.map(sl => ({
-        id: sl.lessons.id,
-        swimmerId: swimmer.id,
-        startDate: sl.lessons.start_date.toISOString().split('T')[0],
-        endDate: sl.lessons.end_date.toISOString().split('T')[0],
-        time: `${sl.lessons.start_time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${sl.lessons.end_time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-        meetingDays: sl.lessons.meeting_days.split(','),
-        swimmerName: swimmer.name,
-        instructor: sl.instructors_swimmer_lessons_instructor_idToinstructors ? {
-          name: sl.instructors_swimmer_lessons_instructor_idToinstructors.name,
-          id: sl.instructors_swimmer_lessons_instructor_idToinstructors.id
-        } : null,
-        preferredInstructor: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors ? {
-          name: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.name,
-          id: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.id
-        } : null,
-        instructorNotes: sl.instructor_notes
-      }))
+      swimmer.swimmer_lessons.map(sl => {
+        // Format the time strings directly
+        const startTimeFormatted = formatTo12Hour(sl.lessons.start_time);
+        const endTimeFormatted = formatTo12Hour(sl.lessons.end_time);
+        
+        return {
+          id: sl.lessons.id,
+          swimmerId: swimmer.id,
+          startDate: sl.lessons.start_date, // Use the string date directly
+          endDate: sl.lessons.end_date,     // Use the string date directly
+          time: `${startTimeFormatted} - ${endTimeFormatted}`,
+          meetingDays: sl.lessons.meeting_days.split(','),
+          swimmerName: swimmer.name,
+          instructor: sl.instructors_swimmer_lessons_instructor_idToinstructors ? {
+            name: sl.instructors_swimmer_lessons_instructor_idToinstructors.name,
+            id: sl.instructors_swimmer_lessons_instructor_idToinstructors.id
+          } : null,
+          preferredInstructor: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors ? {
+            name: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.name,
+            id: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.id
+          } : null,
+          instructorNotes: sl.instructor_notes
+        };
+      })
     );
 
     return NextResponse.json(classes);

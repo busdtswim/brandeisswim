@@ -3,14 +3,40 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../../[...nextauth]/route';
-import { DateTime } from 'luxon';
 
 const prisma = new PrismaClient();
 
 export const dynamic = 'force-dynamic';
 
-const NY_TIMEZONE = 'America/New_York';
-const UTC_TIMEZONE = 'UTC';
+// Simple function to format time from 24h to 12h format
+function formatTo12Hour(timeStr) {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
+
+// Format date to MM/DD/YYYY
+function formatDate(dateStr) {
+  // If it's already in MM/DD/YYYY format, return it
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+    return dateStr;
+  }
+  
+  // If it's in YYYY-MM-DD format, convert it
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [year, month, day] = dateStr.split('-');
+    return `${month}/${day}/${year}`;
+  }
+  
+  // If it's a Date object or another format, convert it
+  const date = new Date(dateStr);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${month}/${day}/${year}`;
+}
 
 export async function POST(req) {
   try {
@@ -20,56 +46,30 @@ export async function POST(req) {
     }
 
     const data = await req.json();
+    const startDate = formatDate(data.start_date);
+    const endDate = formatDate(data.end_date);
+    
+    const startTime = data.start_time; 
+    const endTime = data.end_time;    
 
-    let startDate = DateTime.fromISO(data.start_date, { zone: NY_TIMEZONE });
-    let endDate = DateTime.fromISO(data.end_date, { zone: NY_TIMEZONE });
-
-    if (!startDate.isValid || !endDate.isValid) {
-      startDate = DateTime.fromFormat(data.start_date, 'MM/dd/yyyy', { zone: NY_TIMEZONE });
-      endDate = DateTime.fromFormat(data.end_date, 'MM/dd/yyyy', { zone: NY_TIMEZONE });
-    }
-
-    if (!startDate.isValid || !endDate.isValid) {
-      console.error('Invalid dates:', { start: data.start_date, end: data.end_date });
-      return NextResponse.json({ 
-        error: 'Invalid date format',
-        details: 'Start date and end date must be valid dates'
-      }, { status: 400 });
-    }
-
-    const startTime = DateTime.fromFormat(data.start_time, 'HH:mm', { zone: NY_TIMEZONE });
-    const endTime = DateTime.fromFormat(data.end_time, 'HH:mm', { zone: NY_TIMEZONE });
-
-    if (!startTime.isValid || !endTime.isValid) {
-      console.error('Invalid times:', { start: data.start_time, end: data.end_time });
-      return NextResponse.json({ 
-        error: 'Invalid time format',
-        details: 'Start time and end time must be valid times'
-      }, { status: 400 });
-    }
-
+    // Create the lesson with string dates and times
     const lesson = await prisma.lessons.create({
       data: {
-        start_date: startDate.toUTC().toJSDate(),
-        end_date: endDate.toUTC().toJSDate(),
+        start_date: startDate,
+        end_date: endDate,    
         meeting_days: data.meeting_days,
-        start_time: DateTime.fromFormat(data.start_time, 'HH:mm', { zone: NY_TIMEZONE }).toJSDate(),
-        end_time: DateTime.fromFormat(data.end_time, 'HH:mm', { zone: NY_TIMEZONE }).toJSDate(),
+        start_time: startTime,
+        end_time: endTime, 
         max_slots: parseInt(data.max_slots),
         exception_dates: data.exception_dates || null
       },
     });
 
+    // Format the response
     const formattedLesson = {
       ...lesson,
-      start_date: startDate.toFormat('MM/dd/yyyy'),
-      end_date: endDate.toFormat('MM/dd/yyyy'),
-      start_time: DateTime.fromJSDate(lesson.start_time)
-        .setZone(NY_TIMEZONE)
-        .toFormat('h:mm a'),
-      end_time: DateTime.fromJSDate(lesson.end_time)
-        .setZone(NY_TIMEZONE)
-        .toFormat('h:mm a')
+      start_time: formatTo12Hour(startTime),
+      end_time: formatTo12Hour(endTime)
     };
 
     return NextResponse.json(formattedLesson);
@@ -92,21 +92,10 @@ export async function GET(req) {
     const lessons = await prisma.lessons.findMany();
 
     const formattedLessons = lessons.map(lesson => {
-      const startDate = DateTime.fromJSDate(lesson.start_date)
-        .setZone(UTC_TIMEZONE);
-      const endDate = DateTime.fromJSDate(lesson.end_date)
-        .setZone(UTC_TIMEZONE);
-      const startTime = DateTime.fromJSDate(lesson.start_time)
-        .setZone(NY_TIMEZONE);
-      const endTime = DateTime.fromJSDate(lesson.end_time)
-        .setZone(NY_TIMEZONE);
-
       return {
         ...lesson,
-        start_date: startDate.toFormat('MM/dd/yyyy'),
-        end_date: endDate.toFormat('MM/dd/yyyy'),
-        start_time: startTime.toFormat('h:mm a'),
-        end_time: endTime.toFormat('h:mm a')
+        start_time: formatTo12Hour(lesson.start_time),
+        end_time: formatTo12Hour(lesson.end_time)
       };
     });
 

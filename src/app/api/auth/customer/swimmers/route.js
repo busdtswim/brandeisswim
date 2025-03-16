@@ -7,6 +7,29 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 const prisma = new PrismaClient();
 
+function formatDate(date) {
+  // If it's already a string in MM/DD/YYYY format, return it
+  if (typeof date === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
+    return date;
+  }
+  
+  // If it's in YYYY-MM-DD format, convert it
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const [year, month, day] = date.split('-');
+    return `${month}/${day}/${year}`;
+  }
+  
+  // Convert to Date object for other formats
+  const dateObj = new Date(date);
+  
+  // Format to MM/DD/YYYY
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+  const day = dateObj.getDate().toString().padStart(2, '0');
+  const year = dateObj.getFullYear();
+  
+  return `${month}/${day}/${year}`;
+}
+
 export async function GET() {
 
   try {
@@ -63,11 +86,13 @@ export async function POST(request) {
       where: { email: session.user.email }
     });
 
+    const formattedBirthdate = formatDate(data.birthday);
+
     // Create new swimmer with proper data mapping
     const newSwimmer = await prisma.swimmers.create({
       data: {
         name: data.name,
-        birthdate: new Date(data.birthday),
+        birthdate: formattedBirthdate,
         gender: data.gender,
         proficiency: data.proficiency,
         user_id: user.id
