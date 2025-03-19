@@ -39,12 +39,6 @@ const ModernHomepage = () => {
                 >
                   Register Now
                 </Link>
-                <Link 
-                  href="/lessons" 
-                  className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-3 rounded-lg transition-colors"
-                >
-                  Explore Lessons
-                </Link>
               </div>
             </div>
           </div>
@@ -97,18 +91,18 @@ const ModernHomepage = () => {
                 <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-r-lg my-8">
                   <p className="font-medium text-gray-900 mb-1">Lesson Information:</p>
                   <ul className="space-y-2 text-gray-700">
-                    <li className="flex items-baseline gap-2">
-                      <span className="inline-block w-2.5 h-2.5 bg-blue-600 rounded-full flex-shrink-0"></span>
-                      <span>Each lesson lasts 30 minutes</span>
-                    </li>
-                    <li className="flex items-baseline gap-2">
-                      <span className="inline-block w-2.5 h-2.5 bg-blue-600 rounded-full flex-shrink-0"></span>
-                      <span>Cost is $40 per session</span>
-                    </li>
-                    <li className="flex items-baseline gap-2">
-                      <span className="inline-block w-2.5 h-2.5 bg-blue-600 rounded-full flex-shrink-0"></span>
-                      <span>Payment is required upfront and can be made by cash or check</span>
-                    </li>
+                  <li className="flex items-center gap-2">
+                    <span className="inline-block w-1 h-1 bg-blue-600 rounded-full flex-shrink-0"></span>
+                    <span>Duration: lessons run for 30 minutes</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="inline-block w-1 h-1 bg-blue-600 rounded-full flex-shrink-0"></span>
+                    <span>Cost: $40 per session, paid upfront</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="inline-block w-1 h-1 bg-blue-600 rounded-full flex-shrink-0"></span>
+                    <span>Payment should be made via cash or check</span>
+                  </li>
                   </ul>
                 </div>
               </div>
@@ -179,7 +173,7 @@ const ModernHomepage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h4 className="text-xl font-bold mb-4 text-gray-900">Policies & Payments</h4>
+              <h4 className="text-xl font-bold mb-4 text-gray-900">Policies & Payment</h4>
               <p className="text-gray-600">
                 Please be aware that <strong>we do not offer refunds</strong>, and the availability of make-up 
                 lessons cannot be guaranteed.
@@ -197,7 +191,7 @@ const ModernHomepage = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
-              Why Choose Our Swim Program?
+              Why Choose Brandeis?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               We offer professional instruction in a safe, supportive environment designed to help swimmers 
@@ -213,7 +207,7 @@ const ModernHomepage = () => {
               </div>
               <h3 className="text-xl font-bold mb-3 text-gray-900">Expert Instructors</h3>
               <p className="text-gray-600">
-                Our certified instructors bring years of experience and passion to every lesson, ensuring safe and effective learning.
+                Our instructors bring years of experience and passion to every lesson, ensuring safe and effective learning.
               </p>
             </div>
             
@@ -224,7 +218,7 @@ const ModernHomepage = () => {
               </div>
               <h3 className="text-xl font-bold mb-3 text-gray-900">Small Class Sizes</h3>
               <p className="text-gray-600">
-                We maintain small instructor-to-student ratios, ensuring personalized attention and faster progress.
+                We maintain 1 on 1 Instructions, our private lessons ensure personalized attention and faster progress.
               </p>
             </div>
             
@@ -233,9 +227,9 @@ const ModernHomepage = () => {
               <div className="rounded-full bg-blue-100 p-3 w-12 h-12 flex items-center justify-center mb-6">
                 <Calendar className="text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Flexible Scheduling</h3>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Your Own Pace</h3>
               <p className="text-gray-600">
-                Choose from a variety of class times and days to accommodate your busy lifestyle.
+                Sign up for however many sessions you will be able to attend without paying the full cost.
               </p>
             </div>
           </div>
@@ -292,49 +286,6 @@ const ModernHomepage = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 md:py-24 px-4 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900">
-                Transforming Lives Through Swim Education
-              </h2>
-              <p className="text-lg text-gray-600 mb-8">
-                With over a decade of experience, we have taught thousands of students to swim confidently. Our success rate speaks for itself, ensuring safety and skill development for swimmers of all ages.
-              </p>
-              <div className="flex gap-4">
-                <Link 
-                  href="/register" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors inline-flex items-center"
-                >
-                  Sign Up <ArrowRight size={16} className="ml-2" />
-                </Link>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-8">
-              <div className="bg-white p-6 rounded-xl shadow-sm text-center border border-gray-200">
-                <span className="text-5xl font-bold text-blue-600 block mb-2">95%</span>
-                <span className="text-gray-600 font-medium">Success Rate</span>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm text-center border border-gray-200">
-                <span className="text-5xl font-bold text-blue-600 block mb-2">10+</span>
-                <span className="text-gray-600 font-medium">Years Experience</span>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm text-center border border-gray-200">
-                <span className="text-5xl font-bold text-blue-600 block mb-2">1000+</span>
-                <span className="text-gray-600 font-medium">Happy Swimmers</span>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm text-center border border-gray-200">
-                <span className="text-5xl font-bold text-blue-600 block mb-2">20+</span>
-                <span className="text-gray-600 font-medium">Certified Instructors</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-16 md:py-24 px-4">
         <div className="max-w-7xl mx-auto">
@@ -362,7 +313,7 @@ const ModernHomepage = () => {
               </div>
               <div className="relative h-64 md:h-full min-h-[300px]">
                 <Image 
-                  src="/lessons.jpeg" 
+                  src="/pool.jpg" 
                   alt="Swimming lesson" 
                   fill
                   className="object-cover"

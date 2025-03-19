@@ -1,9 +1,14 @@
-// src/app/contact/page.js
 'use client';
 
 import React from 'react';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, MapPin } from 'lucide-react';
 import ContactForm from '@/components/ContactForm';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const ContactPage = () => {
   return (
@@ -103,7 +108,7 @@ const ContactPage = () => {
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* FAQ Section with shadcn/UI Accordion */}
       <section className="py-12 md:py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-12">
@@ -117,44 +122,122 @@ const ContactPage = () => {
           </div>
           
           <div className="max-w-3xl mx-auto">
-            <div className="space-y-6">
-              {/* FAQ Item 1 */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h3 className="text-xl font-bold mb-3 text-gray-900">What ages do you offer lessons for?</h3>
-                <p className="text-gray-600">
-                  We offer swimming lessons for all ages, from toddlers (starting at age 3) to adults. 
-                  Our programs are tailored to meet the needs of different age groups and skill levels.
-                </p>
-              </div>
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              <AccordionItem value="item-2" className="bg-white rounded-lg shadow-sm border border-gray-100">
+                <AccordionTrigger className="px-6 py-4 text-xl font-bold text-gray-900 hover:no-underline">
+                  What age groups and abilities do you cater to?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 pt-2 text-gray-600">
+                  Brandeis Swim team members work with all ages and ability from 1 years of age to adult.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-3" className="bg-white rounded-lg shadow-sm border border-gray-100">
+                <AccordionTrigger className="px-6 py-4 text-xl font-bold text-gray-900 hover:no-underline">
+                  What are the qualifications of your instructors?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 pt-2 text-gray-600">
+                  Our instructors have over 10 years of swimming experience, and most teach at their home pools over the summer and throughout high school. Regardless of experience first-year swimmers are introduced to our &#34;Safety First&#34; method of teaching lessons that includes body awareness, breathing and stroke development.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-4" className="bg-white rounded-lg shadow-sm border border-gray-100">
+                <AccordionTrigger className="px-6 py-4 text-xl font-bold text-gray-900 hover:no-underline">
+                  What is the instructor to student ratio?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 pt-2 text-gray-600">
+                  Our lessons are a 1:1 ratio, occasionally we will partner up a newer instructor with an experienced one to make sure child has fun while also learning. We also try to group friends together as well.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-5" className="bg-white rounded-lg shadow-sm border border-gray-100">
+                <AccordionTrigger className="px-6 py-4 text-xl font-bold text-gray-900 hover:no-underline">
+                  What is the structure of the lesson?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 pt-2 text-gray-600">
+                  <p>Our first lesson is about gaining confidence and getting and understanding of your child&#39;s ability and needs. From there your instructor will develop body position awareness (floating), breathing (comfortability of face in the water), phases of forward movement (freestyle) and then from there all safety and stroke developmental.</p>
+                  <p className="mt-2">The goal for all beginner swimmers is to be comfortable with their face in the water, floating, and able to safely get themselves out of the pool. More experienced swimmers will develop freestyle, higher level safety skills such as treading water and then the remaining swimming strokes. The last few minutes of class will always be saved for fun!</p>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-6" className="bg-white rounded-lg shadow-sm border border-gray-100">
+                <AccordionTrigger className="px-6 py-4 text-xl font-bold text-gray-900 hover:no-underline">
+                  How do you assess and track progress?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 pt-2 text-gray-600">
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li>Our instructors keep notes and will share progress with parents every lesson.</li>
+                    <li>All instructors are provided with guidelines and target areas of improvement that can also be shared with parents upon request.</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
               
-              {/* FAQ Item 2 */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h3 className="text-xl font-bold mb-3 text-gray-900">How long are the swimming lessons?</h3>
-                <p className="text-gray-600">
-                  Our standard lessons are 30 minutes for beginners and 45 minutes for intermediate and 
-                  advanced swimmers. Most lessons run in 8-week sessions, meeting once or twice per week.
-                </p>
-              </div>
+              <AccordionItem value="item-7" className="bg-white rounded-lg shadow-sm border border-gray-100">
+                <AccordionTrigger className="px-6 py-4 text-xl font-bold text-gray-900 hover:no-underline">
+                  What safety measures are in place?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 pt-2 text-gray-600">
+                  Our 1:1 ratio provides our instructors with full attention to your swimmer. We also have the deck monitored to make sure young swimmers are being respectful of the water. We do expect parents to maintain 100% contact with their children while waiting for their lesson to start.
+                </AccordionContent>
+              </AccordionItem>
               
-              {/* FAQ Item 3 */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h3 className="text-xl font-bold mb-3 text-gray-900">What should my child bring to lessons?</h3>
-                <p className="text-gray-600">
-                  Swimmers should bring a swimsuit, towel, and goggles (optional for beginners, 
-                  recommended for intermediate and advanced). Swim caps are recommended but not required.
-                </p>
-              </div>
+              <AccordionItem value="item-8" className="bg-white rounded-lg shadow-sm border border-gray-100">
+                <AccordionTrigger className="px-6 py-4 text-xl font-bold text-gray-900 hover:no-underline">
+                  What should my child bring to swim lessons?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 pt-2 text-gray-600">
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li>Children who are not potty trained should be DOUBLE SWIM DIAPERS. If there is a fecal incident the pool must be shut down for 24 hours which will impact the entire lesson program. Please make sure to have your swimmer use the bathroom beforehand and double up. Non disposable diapers are preferred.</li>
+                    <li>Male, Female and Family Locker rooms are provided.</li>
+                    <li>A towel and a change of clothes. The pool is kept at a competitive swimming temperature of 83 degrees, so it can get chilly for the little ones.</li>
+                    <li>If your child has long hair, please tie up in ponytails or braids, it can be very uncomfortable to have hair in their face while trying to learn to breath.</li>
+                    <li>Goggles and fun toys are welcome however we will work with your child to not have a dependency on goggles as a safety precaution.</li>
+                    <li>We do not teach with floatation devices; the goal is for your child to be able to save themselves in an emergency.</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
               
-              {/* FAQ Item 4 */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <h3 className="text-xl font-bold mb-3 text-gray-900">How do I register for lessons?</h3>
-                <p className="text-gray-600">
-                  Registration can be done online through our website. Simply create an account, 
-                  select your preferred class time, and complete the payment process. 
-                  You can also register in person at our facility.
-                </p>
-              </div>
-            </div>
+              <AccordionItem value="item-9" className="bg-white rounded-lg shadow-sm border border-gray-100">
+                <AccordionTrigger className="px-6 py-4 text-xl font-bold text-gray-900 hover:no-underline">
+                  Are parents allowed to watch lessons?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 pt-2 text-gray-600">
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li>Parents are welcome to sit on the benches provided. Please know that if your young swimmer has any type of nervousness, sometimes it does help for the parent to not be on deck in their view but this will be handled on a case-by-case basis. We also have the stands open for any parents to sit and view.</li>
+                    <li>Parents of children under 3 should expect to get in the water with their child. Developmentally young swimmers often need the security of their parent. As they become more confident the parent may be able to sit on the side. You know your child best.</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-10" className="bg-white rounded-lg shadow-sm border border-gray-100">
+                <AccordionTrigger className="px-6 py-4 text-xl font-bold text-gray-900 hover:no-underline">
+                  What is the policy for missed lessons?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 pt-2 text-gray-600">
+                  We will have one make-up lesson at the end of the session. The instructor and time are not guaranteed and we will discuss towards the end. No refunds are given for any missed lessons. All payments are final.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-11" className="bg-white rounded-lg shadow-sm border border-gray-100">
+                <AccordionTrigger className="px-6 py-4 text-xl font-bold text-gray-900 hover:no-underline">
+                  How do you handle children with special needs?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 pt-2 text-gray-600">
+                  Our instructors have a variety of abilities and skills. If your child has special needs please communicate that before your lesson so we are able to provide the safest and best experience possible. We may not be able to meet all requests but will try.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-12" className="bg-white rounded-lg shadow-sm border border-gray-100">
+                <AccordionTrigger className="px-6 py-4 text-xl font-bold text-gray-900 hover:no-underline">
+                  How can parents support their child&#39;s learning?
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 pt-2 text-gray-600">
+                  <p>Learning how to swim is a life skill that we are proud to provide. Drowning is the number one cause of death for children 1-6. A parent&#39;s role is to always make sure they are watching their child in an aquatic setting. Just because a child has swim lessons does not mean they are water safe; no one is ever water safe not even our elite-level college swimmers. Our goal is to teach parents and swimmers a healthy respect for the water and skills to develop throughout life.</p>
+                  <p className="mt-2">Parents may need to sit on the edge with their swimmer or even be out of view so the young swimmer isn&#39;t distracted but this will be discussed with your instructor and management.</p>
+                  <p className="mt-2">Any parents that also want to learn to swim, please speak to the managers. Our goal is safety for everyone, and we would be happy to provide lessons to the whole family!</p>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
       </section>
