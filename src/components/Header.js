@@ -1,33 +1,17 @@
-// src/components/Header.js
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
-const ModernHeader = () => {
+const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
   const { data: session, status } = useSession();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
@@ -40,33 +24,42 @@ const ModernHeader = () => {
   };
 
   return (
-    <header className={`fixed w-full top-0 z-50 transition-all duration-300 ${
-      scrolled || isMenuOpen ? 'bg-white shadow-md' : 'bg-transparent'
-    }`}>
-      <div className="container mx-auto px-4">
+    <header className="fixed w-full top-0 z-50 bg-white shadow-md">
+      <div className="max-w-full px-3 md:px-5">
         <div className="flex justify-between items-center h-16 md:h-20">
-          {/* Logo */}
-          <Link 
-            href="/"
-            className={`text-2xl font-bold ${scrolled || isMenuOpen ? 'text-blue-600' : 'text-white'}`}
-          >
-            Brandeis Swim
-          </Link>
+          {/* Logo container with proper sizing */}
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center">
+              <div className="relative h-10 w-10 mr-3">
+                <Image 
+                  src="/logo.png" 
+                  alt="logo" 
+                  fill
+                  priority
+                  className="object-contain"
+                  sizes="40px"
+                />
+              </div>
+              <span className="text-2xl font-bold text-blue-600">
+                Brandeis Swim
+              </span>
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <NavLinks scrolled={scrolled} closeMenu={closeMenu} session={session} status={status} />
+          <nav className="hidden md:flex items-center space-x-3">
+            <NavLinks closeMenu={closeMenu} session={session} status={status} />
           </nav>
 
           {/* Mobile Menu Button */}
-          <button 
-            className={`md:hidden p-2 rounded-lg ${
-              scrolled || isMenuOpen ? 'text-blue-600' : 'text-white'
-            }`}
+          <Button 
+            variant="ghost"
+            size="icon"
+            className="md:hidden text-blue-600"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -85,12 +78,10 @@ const ModernHeader = () => {
 };
 
 // Desktop Navigation Links
-const NavLinks = ({ scrolled, closeMenu, session, status }) => {
+const NavLinks = ({ closeMenu, session, status }) => {
   const pathname = usePathname();
-  const linkClasses = `font-medium hover:text-blue-500 transition-colors relative py-2 ${
-    scrolled ? 'text-gray-800' : 'text-white'
-  }`;
-  const activeLinkClasses = `${linkClasses} after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-blue-500`;
+  const linkClasses = "font-medium hover:text-blue-500 transition-colors relative py-2 text-gray-800";
+  const activeLinkClasses = `${linkClasses} text-blue-600 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-blue-500`;
 
   return (
     <>
@@ -111,13 +102,19 @@ const NavLinks = ({ scrolled, closeMenu, session, status }) => {
           >
             Join Us
           </Link>
-          <Link 
-            href="/login" 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-colors"
-            onClick={closeMenu}
+          <Button 
+            asChild
+            variant="default"
+            size="lg"
+            className="ml-2"
           >
-            Login
-          </Link>
+            <Link 
+              href="/login" 
+              onClick={closeMenu}
+            >
+              Login
+            </Link>
+          </Button>
         </>
       ) : status === 'authenticated' && (
         <>
@@ -147,12 +144,14 @@ const NavLinks = ({ scrolled, closeMenu, session, status }) => {
               </Link>
             </> 
           )}
-          <button 
+          <Button 
+            variant="default"
+            size="lg"
+            className="ml-2"
             onClick={() => signOut({ redirect: true, callbackUrl: '/' })}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-colors"
           >
             Logout
-          </button>
+          </Button>
         </>
       )}
     </>
@@ -198,13 +197,19 @@ const MobileNavLinks = ({ closeMenu, session, status, handleLogout }) => {
             </Link>
           </li>
           <li>
-            <Link 
-              href="/login" 
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg inline-block mt-2"
-              onClick={closeMenu}
+            <Button 
+              asChild
+              variant="default"
+              size="lg"
+              className="mt-2"
             >
-              Login
-            </Link>
+              <Link 
+                href="/login" 
+                onClick={closeMenu}
+              >
+                Login
+              </Link>
+            </Button>
           </li>
         </>
       ) : status === 'authenticated' && (
@@ -242,12 +247,14 @@ const MobileNavLinks = ({ closeMenu, session, status, handleLogout }) => {
             </> 
           )}
           <li>
-            <button 
+            <Button 
+              variant="default"
+              size="lg"
+              className="mt-2"
               onClick={handleLogout}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg inline-block mt-2"
             >
               Logout
-            </button>
+            </Button>
           </li>
         </>
       )}
@@ -255,4 +262,4 @@ const MobileNavLinks = ({ closeMenu, session, status, handleLogout }) => {
   );
 };
 
-export default ModernHeader;
+export default Header;
