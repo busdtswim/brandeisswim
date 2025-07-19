@@ -14,15 +14,7 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
-import dynamic from 'next/dynamic';
-
-// Import React-Quill dynamically to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), {
-  ssr: false,
-  loading: () => <div className="h-64 w-full border rounded-md bg-gray-50 flex items-center justify-center">Loading editor...</div>,
-});
-
-import 'react-quill/dist/quill.snow.css';
+import SimpleHtmlEditor from './SimpleHtmlEditor';
 
 const ContentEditor = () => {
   const [sections, setSections] = useState({});
@@ -32,30 +24,6 @@ const ContentEditor = () => {
   const [showNewSectionForm, setShowNewSectionForm] = useState(false);
   const [newSectionKey, setNewSectionKey] = useState('');
   const [newSectionTitle, setNewSectionTitle] = useState('');
-
-  // React-Quill editor options
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'color': [] }, { 'background': [] }],
-      ['link'],
-      ['clean']
-    ],
-    clipboard: {
-      matchVisual: false, // Prevents pasting of unsanitized HTML
-    },
-  };
-
-  // Define allowed formats
-  const formats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet',
-    'color', 'background',
-    'link'
-  ];
 
   useEffect(() => {
     fetchContent();
@@ -471,18 +439,13 @@ const ContentEditor = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Content
                     </label>
-                    <div className="border rounded-lg">
-                      <ReactQuill
-                        theme="snow"
-                        value={section.content}
-                        onChange={(content) => handleSectionChange(sectionKey, 'content', content)}
-                        modules={modules}
-                        formats={formats}
-                        className="rounded-lg"
-                      />
-                    </div>
+                    <SimpleHtmlEditor
+                      value={section.content}
+                      onChange={(content) => handleSectionChange(sectionKey, 'content', content)}
+                      placeholder="Enter your content here..."
+                    />
                     <p className="text-sm text-gray-500 mt-2">
-                      Use the toolbar above to format text, add links, and more.
+                      Click to edit content. Use the toolbar to format text, add links, and more.
                     </p>
                   </div>
   
