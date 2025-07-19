@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -9,24 +9,33 @@ import { signIn } from 'next-auth/react';
 import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
 import Image from 'next/image';
 
+interface LoginFormValues {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+}
+
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email format').required('Email is required'),
   password: Yup.string().required('Password is required'),
   rememberMe: Yup.boolean(),
 });
 
-const LoginForm = () => {
+const LoginForm: React.FC = () => {
   const router = useRouter();
-  const [loginError, setLoginError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   
-  const initialValues = {
+  const initialValues: LoginFormValues = {
     email: '',
     password: '',
     rememberMe: false,
   };
 
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleSubmit = async (
+    values: LoginFormValues, 
+    { setSubmitting }: FormikHelpers<LoginFormValues>
+  ): Promise<void> => {
     try {
       setLoginError('');
       const result = await signIn('credentials', {
@@ -200,7 +209,7 @@ const LoginForm = () => {
                 href="/register" 
                 className="text-[#003478] hover:text-blue-700 font-medium transition-colors"
               >
-                Create an account
+                Sign up here
               </Link>
             </p>
           </div>
@@ -210,4 +219,4 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+export default LoginForm; 

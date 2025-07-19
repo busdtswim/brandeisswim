@@ -1,14 +1,14 @@
-// src/app/api/auth/[...nextauth]/route.js
+// src/lib/auth.ts
 
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import { headers } from 'next/headers';
+import type { NextAuthOptions } from 'next-auth';
 
 const prisma = new PrismaClient();
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -40,7 +40,7 @@ export const authOptions = {
           }
 
           return {
-            id: user.id,
+            id: user.id.toString(),
             email: user.email,
             name: user.fullname,
             role: user.role,
@@ -62,7 +62,7 @@ export const authOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
       }
@@ -76,14 +76,4 @@ export const authOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-};
-
-export const GET = auth;
-export const POST = auth;
-
-// Create GET and POST handlers
-async function auth(request, context) {
-  const headersList = await headers();
-  context.headers = Object.fromEntries(headersList.entries());
-  return NextAuth(authOptions)(request, context);
-}
+}; 

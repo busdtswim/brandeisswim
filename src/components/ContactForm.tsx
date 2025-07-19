@@ -1,23 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { Send, CheckCircle, AlertCircle } from 'lucide-react';
+import type { ContactFormData } from '@/types';
 
-const ContactForm = () => {
-  const [formData, setFormData] = useState({
+interface FormStatus {
+  submitted: boolean;
+  success: boolean;
+  message: string;
+}
+
+const ContactForm: React.FC = () => {
+  const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
     subject: '',
     message: ''
   });
-  const [status, setStatus] = useState({
+  const [status, setStatus] = useState<FormStatus>({
     submitted: false,
     success: false,
     message: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -25,7 +32,7 @@ const ContactForm = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -53,7 +60,7 @@ const ContactForm = () => {
       setStatus({
         submitted: true,
         success: false,
-        message: error.message || 'An error occurred. Please try again later.'
+        message: error instanceof Error ? error.message : 'An error occurred. Please try again later.'
       });
     } finally {
       setIsSubmitting(false);
@@ -132,7 +139,7 @@ const ContactForm = () => {
           name="message"
           value={formData.message}
           onChange={handleChange}
-          rows="5"
+          rows={5}
           className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           placeholder="Please provide details about your inquiry..."
           required
@@ -163,4 +170,4 @@ const ContactForm = () => {
   );
 };
 
-export default ContactForm;
+export default ContactForm; 

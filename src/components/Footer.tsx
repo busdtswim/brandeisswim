@@ -1,9 +1,9 @@
-// src/components/Footer.js
+// src/components/Footer.tsx
 import React from 'react';
 import Link from 'next/link';
 
-const Footer = () => {
-  const currentYear = new Date().getFullYear();
+const Footer: React.FC = () => {
+  const currentYear: number = new Date().getFullYear();
   
   return (
     <footer className="bg-[#111827] text-white py-16">
@@ -204,4 +204,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default Footer; 

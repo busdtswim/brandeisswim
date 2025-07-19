@@ -1,12 +1,24 @@
-// src/utils/timezoneUtils.js
+// src/utils/timezoneUtils.ts
+
+interface TimeData {
+  start_time: string | Date;
+  end_time: string | Date;
+}
+
+interface FormattedTimeData {
+  originalStartTime: string | Date;
+  originalEndTime: string | Date;
+  formattedStartTime: string;
+  formattedEndTime: string;
+}
 
 /**
  * Directly creates a time string from input time for display
  * This avoids timezone conversion issues by just using the exact time string provided
- * @param {string} timeStr - Time string in format "HH:MM" (24-hour)
+ * @param {string | Date} timeStr - Time string in format "HH:MM" (24-hour) or Date object
  * @returns {string} - Formatted time string for display (e.g., "8:00 AM")
  */
-export const formatTimeForDisplay = (timeStr) => {
+export const formatTimeForDisplay = (timeStr: string | Date): string => {
   // If the input is a Date object, extract hours and minutes
   if (timeStr instanceof Date) {
     const hours = timeStr.getHours();
@@ -46,10 +58,10 @@ export const formatTimeForDisplay = (timeStr) => {
 /**
  * Stores the exact time string provided by admin when creating a lesson
  * This avoids timezone conversion by just storing the string representation
- * @param {Object} data - Data object with time information
- * @returns {Object} - Object with formatted times
+ * @param {TimeData} data - Data object with time information
+ * @returns {FormattedTimeData} - Object with formatted times
  */
-export const storeExactTimes = (data) => {
+export const storeExactTimes = (data: TimeData): FormattedTimeData => {
   // Just extract and save the original time strings
   const startTime = data.start_time;
   const endTime = data.end_time;
@@ -60,4 +72,4 @@ export const storeExactTimes = (data) => {
     formattedStartTime: formatTimeForDisplay(startTime),
     formattedEndTime: formatTimeForDisplay(endTime)
   };
-};
+}; 

@@ -1,10 +1,16 @@
-// src/utils/timeUtils.js
+// src/utils/timeUtils.ts
 import { DateTime } from 'luxon'; // Add this import
+import type { Lesson } from '@/types';
 
 const NY_TIMEZONE = 'America/New_York';
 
 // Check if two time ranges overlap
-export const isTimeOverlap = (time1Start, time1End, time2Start, time2End) => {
+export const isTimeOverlap = (
+  time1Start: string | Date, 
+  time1End: string | Date, 
+  time2Start: string | Date, 
+  time2End: string | Date
+): boolean => {
   // Parse times in Eastern Time
   const t1s = typeof time1Start === 'string' 
     ? DateTime.fromFormat(time1Start, 'HH:mm', { zone: NY_TIMEZONE }) 
@@ -26,7 +32,7 @@ export const isTimeOverlap = (time1Start, time1End, time2Start, time2End) => {
 };
   
 // Check if two sets of days overlap
-export const isDaysOverlap = (days1, days2) => {
+export const isDaysOverlap = (days1: string | string[], days2: string | string[]): boolean => {
   const daysArray1 = typeof days1 === 'string' ? days1.split(',').map(d => d.trim()) : days1;
   const daysArray2 = typeof days2 === 'string' ? days2.split(',').map(d => d.trim()) : days2;
   
@@ -34,7 +40,7 @@ export const isDaysOverlap = (days1, days2) => {
 };
   
 // Check for schedule conflicts
-export const hasScheduleConflict = (lesson1, lesson2) => {
+export const hasScheduleConflict = (lesson1: any, lesson2: any): boolean => {
   // Ensure we're working with DateTime objects in correct timezone
   const lesson1Start = DateTime.fromJSDate(new Date(lesson1.start_date), { zone: NY_TIMEZONE });
   const lesson1End = DateTime.fromJSDate(new Date(lesson1.end_date), { zone: NY_TIMEZONE });
@@ -56,7 +62,7 @@ export const hasScheduleConflict = (lesson1, lesson2) => {
     
     if (isDaysOverlap(days1, days2)) {
       // Get time strings in consistent format
-      let l1StartTime, l1EndTime, l2StartTime, l2EndTime;
+      let l1StartTime: DateTime, l1EndTime: DateTime, l2StartTime: DateTime, l2EndTime: DateTime;
       
       if (lesson1.start_time instanceof Date) {
         l1StartTime = DateTime.fromJSDate(lesson1.start_time, { zone: NY_TIMEZONE });
@@ -95,4 +101,4 @@ export const hasScheduleConflict = (lesson1, lesson2) => {
     }
   }
   return false;
-};
+}; 

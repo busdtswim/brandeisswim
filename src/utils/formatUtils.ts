@@ -1,19 +1,19 @@
-// src/utils/formatUtils.js
+// src/utils/formatUtils.ts
 import { DateTime } from 'luxon'; // Add this import
 
 const NY_TIMEZONE = 'America/New_York';
 
 class DateFormatter {
-  static formatForDisplay(dateStr) {
+  static formatForDisplay(dateStr: string | Date | null | undefined): string {
     try {
       if (!dateStr) return '';
 
       // First try to parse as ISO
-      let dt = DateTime.fromISO(dateStr, { zone: NY_TIMEZONE });
+      let dt = DateTime.fromISO(dateStr as string, { zone: NY_TIMEZONE });
       
       // If that didn't work, try MM/dd/yyyy format
       if (!dt.isValid) {
-        dt = DateTime.fromFormat(dateStr, 'MM/dd/yyyy', { zone: NY_TIMEZONE });
+        dt = DateTime.fromFormat(dateStr as string, 'MM/dd/yyyy', { zone: NY_TIMEZONE });
       }
 
       // If it's already a Date object converted to string, try parsing as native date
@@ -21,14 +21,14 @@ class DateFormatter {
         dt = DateTime.fromJSDate(new Date(dateStr), { zone: NY_TIMEZONE });
       }
 
-      return dt.isValid ? dt.toFormat('MM/dd/yyyy') : dateStr;
+      return dt.isValid ? dt.toFormat('MM/dd/yyyy') : (dateStr as string);
     } catch (error) {
       console.error('Error formatting date:', dateStr, error);
-      return dateStr;
+      return dateStr as string;
     }
   }
 
-  static formatExceptionDates(dates) {
+  static formatExceptionDates(dates: string | string[] | null | undefined): string {
     try {
       if (!dates) return '';
       const dateArray = Array.isArray(dates) 
@@ -47,7 +47,7 @@ class DateFormatter {
 }
 
 // A utility to format time with consistent timezone handling
-const formatTimeWithTimezone = (timeObj) => {
+const formatTimeWithTimezone = (timeObj: string | Date | null | undefined): string => {
   if (!timeObj) return '';
   
   try {
@@ -58,7 +58,7 @@ const formatTimeWithTimezone = (timeObj) => {
     }
     
     // If it's an ISO string or similar
-    const dt = DateTime.fromISO(timeObj, { zone: NY_TIMEZONE });
+    const dt = DateTime.fromISO(timeObj as string, { zone: NY_TIMEZONE });
     if (dt.isValid) {
       return dt.toFormat('h:mm a');
     }
@@ -71,4 +71,4 @@ const formatTimeWithTimezone = (timeObj) => {
   }
 };
 
-export { DateFormatter, formatTimeWithTimezone };
+export { DateFormatter, formatTimeWithTimezone }; 

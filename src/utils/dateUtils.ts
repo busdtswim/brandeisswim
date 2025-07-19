@@ -1,12 +1,12 @@
-// Update your dateUtils.js file if needed
+// Update your dateUtils.ts file if needed
 
 // This function calculates age from birthdate
-export const calculateAge = (birthdate) => {
+export const calculateAge = (birthdate: string | Date | null | undefined): number => {
   // If birthdate is null or undefined, return 0 or some default value
   if (!birthdate) return 0;
 
   // Handle string dates in MM/DD/YYYY format
-  let birthdateObj;
+  let birthdateObj: Date;
   if (typeof birthdate === 'string') {
     if (birthdate.includes('/')) {
       // Parse MM/DD/YYYY format
@@ -34,7 +34,7 @@ export const calculateAge = (birthdate) => {
 };
 
 // Format a date to MM/DD/YYYY string
-export const formatToMMDDYYYY = (dateInput) => {
+export const formatToMMDDYYYY = (dateInput: string | Date | null | undefined): string => {
   // If already in MM/DD/YYYY format, return as is
   if (typeof dateInput === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(dateInput)) {
     return dateInput;
@@ -47,10 +47,10 @@ export const formatToMMDDYYYY = (dateInput) => {
   }
 
   // Convert from Date object or other formats
-  const date = new Date(dateInput);
+  const date = new Date(dateInput as string | Date);
   if (isNaN(date.getTime())) {
     // Invalid date, return original input or empty string
-    return dateInput || '';
+    return (dateInput as string) || '';
   }
 
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -60,7 +60,7 @@ export const formatToMMDDYYYY = (dateInput) => {
   return `${month}/${day}/${year}`;
 };
 
-export const parseMMDDYYYY = (dateStr) => {
+export const parseMMDDYYYY = (dateStr: string | null | undefined): Date | null => {
   if (!dateStr || typeof dateStr !== 'string') {
     return null;
   }
@@ -75,4 +75,4 @@ export const parseMMDDYYYY = (dateStr) => {
   
   // Try regular Date parsing as fallback
   return new Date(dateStr);
-};
+}; 

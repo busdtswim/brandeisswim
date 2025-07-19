@@ -5,21 +5,32 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
+import type { Session } from 'next-auth';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 
-const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+interface NavLinksProps {
+  closeMenu: () => void;
+  session: Session | null;
+  status: 'loading' | 'authenticated' | 'unauthenticated';
+}
+
+interface MobileNavLinksProps extends NavLinksProps {
+  handleLogout: () => void;
+}
+
+const Header: React.FC = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     await signOut({ redirect: false });
     router.push('/');
     setIsMenuOpen(false);
   };
 
-  const closeMenu = () => {
+  const closeMenu = (): void => {
     setIsMenuOpen(false);
   };
 
@@ -78,7 +89,7 @@ const Header = () => {
 };
 
 // Desktop Navigation Links
-const NavLinks = ({ closeMenu, session, status }) => {
+const NavLinks: React.FC<NavLinksProps> = ({ closeMenu, session, status }) => {
   const pathname = usePathname();
   const linkClasses = "font-medium hover:text-blue-500 transition-colors relative py-2 text-gray-800";
   const activeLinkClasses = `${linkClasses} text-blue-600 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-blue-500`;
@@ -116,7 +127,7 @@ const NavLinks = ({ closeMenu, session, status }) => {
             </Link>
           </Button>
         </>
-      ) : status === 'authenticated' && (
+      ) : status === 'authenticated' && session && (
         <>
           {session.user.role === 'admin' ? (
             <Link 
@@ -159,7 +170,7 @@ const NavLinks = ({ closeMenu, session, status }) => {
 };
 
 // Mobile Navigation Links 
-const MobileNavLinks = ({ closeMenu, session, status, handleLogout }) => {
+const MobileNavLinks: React.FC<MobileNavLinksProps> = ({ closeMenu, session, status, handleLogout }) => {
   const pathname = usePathname();
   const linkClasses = "text-gray-800 font-medium block py-2";
   const activeLinkClasses = "text-blue-600 font-medium block py-2";
@@ -201,7 +212,7 @@ const MobileNavLinks = ({ closeMenu, session, status, handleLogout }) => {
               asChild
               variant="default"
               size="lg"
-              className="mt-2"
+              className="w-full"
             >
               <Link 
                 href="/login" 
@@ -212,7 +223,7 @@ const MobileNavLinks = ({ closeMenu, session, status, handleLogout }) => {
             </Button>
           </li>
         </>
-      ) : status === 'authenticated' && (
+      ) : status === 'authenticated' && session && (
         <>
           {session.user.role === 'admin' ? (
             <li>
@@ -250,7 +261,7 @@ const MobileNavLinks = ({ closeMenu, session, status, handleLogout }) => {
             <Button 
               variant="default"
               size="lg"
-              className="mt-2"
+              className="w-full"
               onClick={handleLogout}
             >
               Logout
@@ -262,4 +273,4 @@ const MobileNavLinks = ({ closeMenu, session, status, handleLogout }) => {
   );
 };
 
-export default Header;
+export default Header; 

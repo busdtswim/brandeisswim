@@ -1,16 +1,28 @@
-// src/app/api/auth/admin/stats/route.js
+// src/app/api/auth/admin/stats/route.ts
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
+import { createSuccessResponse, createErrorResponse, requireAdmin } from '@/lib/api-utils';
+import type { TypedApiResponse } from '@/lib/api-utils';
+
+interface DashboardStats {
+  totalUsers: number;
+  totalSwimmers: number;
+  activeClasses: number;
+  waitlistEntries: number;
+}
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(): Promise<NextResponse<TypedApiResponse<DashboardStats>>> {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    
+    // Check admin authorization
+    const authError = requireAdmin(session);
+    if (authError) {
+      return createErrorResponse(authError, 401);
     }
 
     // Get current date as a string in MM/DD/YYYY format
@@ -57,19 +69,18 @@ export async function GET() {
       })
     ]);
 
-    return NextResponse.json({
+    const stats: DashboardStats = {
       totalUsers: userStats,
       totalSwimmers: swimmerCount,
       activeClasses: activeLessonCount,
       waitlistEntries: waitlistCount
-    });
+    };
+
+    return createSuccessResponse(stats);
   } catch (error) {
     console.error('Error fetching dashboard statistics:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch dashboard statistics' },
-      { status: 500 }
-    );
+    return createErrorResponse('Failed to fetch dashboard statistics');
   } finally {
     await prisma.$disconnect();
   }
-}
+} 
