@@ -1,11 +1,10 @@
 // src/app/api/auth/lesson-register/slots/route.js
 
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const LessonStore = require('@/lib/stores/LessonStore.js');
+const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
 
 // Format time from 24h to 12h format
 function formatTo12Hour(timeStr) {
@@ -26,36 +25,32 @@ export async function GET() {
 
     // Get current date
     const today = new Date();
+    const todayString = `${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getDate().toString().padStart(2, '0')}/${today.getFullYear()}`;
     
-    // Get all lessons that haven't ended yet
-    const lessons = await prisma.lessons.findMany({
-      where: {
-        // For string date format in MM/DD/YYYY
-        // We convert it to a comparable format for filtering
-        OR: [
-          {
-            end_date: {
-              gte: `${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getDate().toString().padStart(2, '0')}/${today.getFullYear()}`
-            }
-          }
-        ]
-      },
-      include: {
-        swimmer_lessons: true
-      }
+    // Get all lessons
+    const lessons = await LessonStore.findAll();
+
+    // Filter lessons that haven't ended yet
+    const activeLessons = lessons.filter(lesson => {
+      if (!lesson.end_date) return true;
+      return lesson.end_date >= todayString;
     });
 
     // Format the lessons for the frontend
-    const formattedLessons = lessons.map(lesson => ({
-      id: lesson.id,
-      start_date: lesson.start_date,
-      end_date: lesson.end_date,
-      meeting_days: lesson.meeting_days,
-      start_time: lesson.start_time,
-      end_time: lesson.end_time,
-      max_slots: lesson.max_slots,
-      registered: lesson.swimmer_lessons.length,
-      exception_dates: lesson.exception_dates
+    const formattedLessons = await Promise.all(activeLessons.map(async (lesson) => {
+      const registeredCount = await SwimmerLessonStore.countByLessonId(lesson.id);
+      
+      return {
+        id: lesson.id,
+        start_date: lesson.start_date,
+        end_date: lesson.end_date,
+        meeting_days: lesson.meeting_days,
+        start_time: lesson.start_time,
+        end_time: lesson.end_time,
+        max_slots: lesson.max_slots,
+        registered: registeredCount,
+        exception_dates: lesson.exception_dates
+      };
     }));
 
     return NextResponse.json(formattedLessons);

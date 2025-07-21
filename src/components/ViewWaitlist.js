@@ -88,9 +88,9 @@ const ViewWaitlist = () => {
   };
 
   const filteredWaitlist = waitlist.filter(entry => 
-    entry.swimmers.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (entry.swimmers.users?.fullname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (entry.swimmers.users?.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (entry.swimmer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (entry.user_fullname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (entry.user_email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -229,20 +229,20 @@ const ViewWaitlist = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{entry.swimmers.name}</div>
+                      <div className="font-medium text-gray-900">{entry.swimmer_name || 'N/A'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-gray-500">{entry.swimmers.users?.fullname || 'N/A'}</div>
+                      <div className="text-gray-500">{entry.user_fullname || 'N/A'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="space-y-1">
                         <div className="flex items-center text-gray-500">
                           <Mail className="w-4 h-4 mr-1 text-gray-400" />
-                          <span className="truncate max-w-xs">{entry.swimmers.users?.email || 'N/A'}</span>
+                          <span className="truncate max-w-xs">{entry.user_email || 'N/A'}</span>
                         </div>
                         <div className="flex items-center text-gray-500">
                           <Phone className="w-4 h-4 mr-1 text-gray-400" />
-                          <span>{entry.swimmers.users?.phone_number || 'N/A'}</span>
+                          <span>{entry.user_phone_number || 'N/A'}</span>
                         </div>
                       </div>
                     </td>

@@ -1,10 +1,10 @@
 // src/app/api/auth/admin/stats/waitlist/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const WaitlistStore = require('@/lib/stores/WaitlistStore.js');
+const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
+const UserStore = require('@/lib/stores/UserStore.js');
 
 export async function GET() {
   try {
@@ -13,35 +13,34 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Count active waitlist entries
-    const activeWaitlistEntries = await prisma.waitlist.count({
-      where: {
-        status: 'active'
-      }
-    });
+    // Get all waitlist entries
+    const allWaitlistEntries = await WaitlistStore.findAll();
     
-    // Get the most recent waitlist entries
-    const recentWaitlistEntries = await prisma.waitlist.findMany({
-      where: {
-        status: 'active'
-      },
-      include: {
-        swimmers: {
-          include: {
-            users: {
-              select: {
-                fullname: true,
-                email: true
-              }
-            }
-          }
-        }
-      },
-      orderBy: {
-        registration_date: 'desc'
-      },
-      take: 5
-    });
+    // Count active waitlist entries
+    const activeWaitlistEntries = allWaitlistEntries.filter(entry => entry.status === 'active').length;
+    
+    // Get the most recent active waitlist entries
+    const activeEntries = allWaitlistEntries
+      .filter(entry => entry.status === 'active')
+      .sort((a, b) => new Date(b.registration_date) - new Date(a.registration_date))
+      .slice(0, 5);
+
+    // Get detailed information for recent entries
+    const recentWaitlistEntries = await Promise.all(activeEntries.map(async (entry) => {
+      const swimmer = await SwimmerStore.findById(entry.swimmer_id);
+      const user = swimmer ? await UserStore.findById(swimmer.user_id) : null;
+      
+      return {
+        ...entry,
+        swimmers: swimmer ? {
+          ...swimmer,
+          users: user ? {
+            fullname: user.fullname,
+            email: user.email
+          } : null
+        } : null
+      };
+    }));
 
     return NextResponse.json({
       activeWaitlistEntries,
@@ -53,7 +52,5 @@ export async function GET() {
       { error: 'Failed to fetch waitlist statistics' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

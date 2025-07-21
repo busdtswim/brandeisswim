@@ -39,6 +39,7 @@ const ContentEditor = () => {
         if (data && data.length > 0) {
           const sectionsData = data.reduce((acc, item) => {
             acc[item.section] = {
+              id: item.id,
               title: item.title,
               content: item.content,
               is_custom: item.is_custom,
@@ -189,14 +190,9 @@ const ContentEditor = () => {
   };
 
   const handleDeleteSection = async (sectionKey) => {
-    if (!sections[sectionKey].is_custom) {
-      displayMessage('Cannot delete default sections', 'error');
-      return;
-    }
-  
     if (confirm('Are you sure you want to delete this section?')) {
       try {
-        const response = await fetch(`/api/auth/admin/content/${sectionKey}`, {
+        const response = await fetch(`/api/auth/admin/content/${sections[sectionKey].id}`, {
           method: 'DELETE',
         });
   

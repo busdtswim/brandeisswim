@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { User, Key, Users, Check, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const ModernCustomerDashboard = () => {
   const { data: session } = useSession();
@@ -28,6 +29,12 @@ const ModernCustomerDashboard = () => {
     gender: '',
     proficiency: ''
   });
+  const [oldPassword, setOldPassword] = useState('');
+
+  const validatePassword = (pwd) => {
+    // At least 8 chars, one uppercase, one lowercase, one number, one special char
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(pwd);
+  };
 
   // Fetch user data and swimmers on component mount
   useEffect(() => {
@@ -101,28 +108,36 @@ const ModernCustomerDashboard = () => {
   // Handle password update
   const handlePasswordUpdate = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      showErrorMessage('Passwords do not match');
+    if (!oldPassword) {
+      toast.error('Please enter your old password');
       return;
     }
-
+    if (!validatePassword(password)) {
+      toast.error('Password must be at least 8 characters and include uppercase, lowercase, number, and special character.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
     try {
       const res = await fetch('/api/auth/customer/password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ oldPassword, password }),
       });
-
       if (res.ok) {
+        setOldPassword('');
         setPassword('');
         setConfirmPassword('');
-        showSuccessMessage('Password updated successfully');
+        toast.success('Password updated successfully');
       } else {
-        showErrorMessage('Failed to update password');
+        const error = await res.json();
+        toast.error(error.error || 'Failed to update password');
       }
     } catch (error) {
       console.error('Error updating password:', error);
-      showErrorMessage('Failed to update password');
+      toast.error('Failed to update password');
     }
   };
 
@@ -321,6 +336,22 @@ const ModernCustomerDashboard = () => {
             <h2 className="text-xl font-semibold mb-6 text-gray-900">Security Settings</h2>
             <form onSubmit={handlePasswordUpdate} className="space-y-6 max-w-md">
               <div>
+                <label htmlFor="oldPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  Old Password
+                </label>
+                <input
+                  id="oldPassword"
+                  type="password"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  autoComplete="current-password"
+                />
+                <div className="mt-1 text-xs text-blue-600">
+                  <a href="/forgot-password" className="underline hover:text-blue-800">Forgot password?</a>
+                </div>
+              </div>
+              <div>
                 <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
                   New Password
                 </label>
@@ -344,8 +375,10 @@ const ModernCustomerDashboard = () => {
                     )}
                   </button>
                 </div>
+                <div className="mt-1 text-xs text-gray-500">
+                  Password must be at least 8 characters and include uppercase, lowercase, number, and special character.
+                </div>
               </div>
-              
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
                   Confirm Password
@@ -371,7 +404,6 @@ const ModernCustomerDashboard = () => {
                   </button>
                 </div>
               </div>
-              
               <div>
                 <button
                   type="submit"

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { hasScheduleConflict } from '@/utils/timeUtils';
 import { DateFormatter } from '@/utils/formatUtils';
+import { Loader2 } from 'lucide-react';
 
 const ClassSchedule = ({ 
   classData, 
@@ -15,6 +16,7 @@ const ClassSchedule = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [error, setError] = useState('');
   const [participants, setParticipants] = useState(classData.participants);
+  const [assigningInstructor, setAssigningInstructor] = useState(false);
 
   useEffect(() => {
     const updatedClassData = { ...classData };
@@ -39,14 +41,17 @@ const ClassSchedule = ({
   const handleInstructorAssign = async (lessonId, participantId, newInstructorId) => {
     try {
       setError('');
+      setAssigningInstructor(true);
 
       if (!newInstructorId) {
         await onInstructorAssign(lessonId, participantId, null);
+        setAssigningInstructor(false);
         return;
       }
 
       const response = await fetch('/api/auth/lessons/classes');
       if (!response.ok) {
+        setAssigningInstructor(false);
         throw new Error('Failed to fetch lessons data');
       }
 
@@ -66,6 +71,7 @@ const ClassSchedule = ({
 
       if (hasConflict) {
         setError('This instructor has a scheduling conflict during this time slot.');
+        setAssigningInstructor(false);
         return;
       }
 
@@ -78,9 +84,11 @@ const ClassSchedule = ({
             : p
         )
       );
+      setAssigningInstructor(false);
     } catch (error) {
       console.error('Error assigning instructor:', error);
       setError('Failed to assign instructor. Please try again.');
+      setAssigningInstructor(false);
     }
   };
 
@@ -203,25 +211,31 @@ return (
                       )}
                     </td>
                     <td className="px-4 py-2">
-                      <select
-                        value={participant.instructor_id || ''}
-                        onChange={(e) => handleInstructorAssign(
-                          classData.id,
-                          participant.id,
-                          e.target.value
+                      <div className="relative">
+                        <select
+                          value={participant.instructor_id || ''}
+                          onChange={(e) => handleInstructorAssign(
+                            classData.id,
+                            participant.id,
+                            e.target.value
+                          )}
+                          className="w-full border rounded p-1"
+                          disabled={assigningInstructor}
+                        >
+                          <option value="">Select instructor</option>
+                          {instructors.map((instructor) => (
+                            <option 
+                              key={instructor.id} 
+                              value={instructor.id}
+                            >
+                              {instructor.name}
+                            </option>
+                          ))}
+                        </select>
+                        {assigningInstructor && (
+                          <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-blue-500" size={18} />
                         )}
-                        className="w-full border rounded p-1"
-                      >
-                        <option value="">Select instructor</option>
-                        {instructors.map((instructor) => (
-                          <option 
-                            key={instructor.id} 
-                            value={instructor.id}
-                          >
-                            {instructor.name}
-                          </option>
-                        ))}
-                      </select>
+                      </div>
                     </td>
                     <td className="px-4 py-2 text-center">
                       <input

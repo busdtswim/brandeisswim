@@ -1,8 +1,6 @@
 // src/app/api/auth/waitlist/status/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+const WaitlistStore = require('@/lib/stores/WaitlistStore.js');
 
 export async function GET() {
   try {
@@ -13,14 +11,10 @@ export async function GET() {
     
     // For now, we'll just assume the waitlist is active if we have any entries
     // or if we've marked it as active in some other way (like a status flag in another table)
-    const activeEntries = await prisma.waitlist.findFirst({
-      where: {
-        status: 'active'
-      }
-    });
+    const activeEntries = await WaitlistStore.findByStatus('active');
 
     return NextResponse.json({
-      isActive: !!activeEntries || true // Setting to true for demo purposes - replace with your logic
+      isActive: activeEntries.length > 0 || true // Setting to true for demo purposes - replace with your logic
     });
   } catch (error) {
     console.error('Error checking waitlist status:', error);

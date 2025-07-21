@@ -1,13 +1,12 @@
 // src/app/api/auth/lessons/assign/[classId]/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { hasScheduleConflict } from '@/utils/timeUtils';
-
-const prisma = new PrismaClient();
+const LessonStore = require('@/lib/stores/LessonStore.js');
+const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
 
 export async function PUT(request, { params }) {
   try {
-    const classId = params.classId;
+    const { classId } = await params;
     const { swimmerId, instructorId } = await request.json();
 
     if (!classId || !swimmerId) {
@@ -17,46 +16,60 @@ export async function PUT(request, { params }) {
       );
     }
 
+    const classIdInt = parseInt(classId);
+    const swimmerIdInt = parseInt(swimmerId);
+
+    if (isNaN(classIdInt) || isNaN(swimmerIdInt)) {
+      return NextResponse.json(
+        { error: 'Invalid class ID or swimmer ID' }, 
+        { status: 400 }
+      );
+    }
+
     // If removing instructor assignment
     if (!instructorId) {
-      const updatedAssignment = await prisma.swimmer_lessons.update({
-        where: {
-          swimmer_id_lesson_id: {
-            swimmer_id: parseInt(swimmerId),
-            lesson_id: parseInt(classId)
-          }
-        },
-        data: {
-          instructor_id: null
-        }
+      const updatedAssignment = await SwimmerLessonStore.update(swimmerIdInt, classIdInt, {
+        instructor_id: null
       });
+      
+      if (!updatedAssignment) {
+        return NextResponse.json(
+          { error: 'Swimmer not found in this lesson' }, 
+          { status: 404 }
+        );
+      }
+      
       return NextResponse.json(updatedAssignment);
     }
 
+    const instructorIdInt = parseInt(instructorId);
+    if (isNaN(instructorIdInt)) {
+      return NextResponse.json(
+        { error: 'Invalid instructor ID' }, 
+        { status: 400 }
+      );
+    }
+
     // Get the current lesson
-    const currentLesson = await prisma.lessons.findUnique({
-      where: { id: parseInt(classId) }
-    });
+    const currentLesson = await LessonStore.findById(classIdInt);
+    if (!currentLesson) {
+      return NextResponse.json(
+        { error: 'Lesson not found' }, 
+        { status: 404 }
+      );
+    }
 
     // Get instructor's other assignments
-    const instructorSchedule = await prisma.swimmer_lessons.findMany({
-      where: {
-        instructor_id: parseInt(instructorId),
-        NOT: {
-          AND: {
-            swimmer_id: parseInt(swimmerId),
-            lesson_id: parseInt(classId)
-          }
-        }
-      },
-      include: {
-        lessons: true
-      }
-    });
+    const instructorAssignments = await SwimmerLessonStore.findByLessonId(classIdInt);
+    const instructorSchedule = instructorAssignments.filter(assignment => 
+      assignment.instructor_id === instructorIdInt && 
+      assignment.swimmer_id !== swimmerIdInt
+    );
 
     // Check for conflicts
     for (const assignment of instructorSchedule) {
-      if (hasScheduleConflict(currentLesson, assignment.lessons)) {
+      const assignmentLesson = await LessonStore.findById(assignment.lesson_id);
+      if (assignmentLesson && hasScheduleConflict(currentLesson, assignmentLesson)) {
         return NextResponse.json(
           { error: 'Instructor has a scheduling conflict' }, 
           { status: 400 }
@@ -65,26 +78,29 @@ export async function PUT(request, { params }) {
     }
 
     // If no conflicts, update the assignment
-    const updatedAssignment = await prisma.swimmer_lessons.update({
-      where: {
-        swimmer_id_lesson_id: {
-          swimmer_id: parseInt(swimmerId),
-          lesson_id: parseInt(classId)
-        }
-      },
-      data: {
-        instructor_id: parseInt(instructorId)
-      }
+    const updatedAssignment = await SwimmerLessonStore.update(swimmerIdInt, classIdInt, {
+      instructor_id: instructorIdInt
     });
+
+    if (!updatedAssignment) {
+      return NextResponse.json(
+        { error: 'Swimmer not found in this lesson' }, 
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json(updatedAssignment);
   } catch (error) {
     console.error('Error assigning instructor:', error);
+    
+    // Handle validation errors
+    if (error.message.includes('Invalid') || error.message.includes('required')) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    
     return NextResponse.json(
       { error: error.message || 'Failed to assign instructor' }, 
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 
 const UserSchedule = ({ classData, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -49,11 +50,11 @@ const UserSchedule = ({ classData, onUpdate }) => {
         if (onUpdate) onUpdate();
       } else {
         const error = await response.json();
-        alert(error.message || 'Failed to update preferences');
+        toast.error(error.message || 'Failed to update preferences');
       }
     } catch (error) {
       console.error('Error updating preferences:', error);
-      alert('Failed to update preferences');
+      toast.error('Failed to update preferences');
     } finally {
       setIsLoading(false);
     }
@@ -80,11 +81,11 @@ const UserSchedule = ({ classData, onUpdate }) => {
         if (onUpdate) onUpdate();
       } else {
         const error = await response.json();
-        alert(error.message || 'Failed to cancel registration');
+        toast.error(error.message || 'Failed to cancel registration');
       }
     } catch (error) {
       console.error('Error cancelling registration:', error);
-      alert('Failed to cancel registration');
+      toast.error('Failed to cancel registration');
     } finally {
       setIsLoading(false);
     }

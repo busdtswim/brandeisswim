@@ -1,10 +1,8 @@
 // src/app/api/auth/admin/waitlist/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const WaitlistStore = require('@/lib/stores/WaitlistStore.js');
 
 // Get waitlist entries
 export async function GET() {
@@ -14,27 +12,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const waitlistEntries = await prisma.waitlist.findMany({
-      where: {
-        status: 'active'
-      },
-      include: {
-        swimmers: {
-          include: {
-            users: {
-              select: {
-                email: true,
-                fullname: true,
-                phone_number: true
-              }
-            }
-          }
-        }
-      },
-      orderBy: {
-        position: 'asc'
-      }
-    });
+    const waitlistEntries = await WaitlistStore.findByStatus('active');
 
     return NextResponse.json(waitlistEntries);
   } catch (error) {
@@ -52,11 +30,7 @@ export async function POST() {
     }
 
     // Check if waitlist already exists (if there are any active entries)
-    const existingEntries = await prisma.waitlist.findMany({
-      where: {
-        status: 'active'
-      }
-    });
+    const existingEntries = await WaitlistStore.findByStatus('active');
     
     if (existingEntries.length > 0) {
       return NextResponse.json({ message: 'Waitlist already exists' });
@@ -79,18 +53,18 @@ export async function PUT() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const updatedEntries = await prisma.waitlist.updateMany({
-      where: {
-        status: 'active'
-      },
-      data: {
-        status: 'inactive'
-      }
-    });
+    const activeEntries = await WaitlistStore.findByStatus('active');
+    let updatedCount = 0;
+
+    // Update each active entry to inactive
+    for (const entry of activeEntries) {
+      await WaitlistStore.update(entry.id, { status: 'inactive' });
+      updatedCount++;
+    }
 
     return NextResponse.json({ 
       message: 'Waitlist cleared successfully',
-      count: updatedEntries.count
+      count: updatedCount
     });
   } catch (error) {
     console.error('Error clearing waitlist:', error);

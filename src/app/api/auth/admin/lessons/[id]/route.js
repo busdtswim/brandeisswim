@@ -1,10 +1,9 @@
 // src/app/api/auth/admin/lessons/[id]/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const LessonStore = require('@/lib/stores/LessonStore.js');
+const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
 
 export async function DELETE(request, { params }) {
   try {
@@ -13,15 +12,27 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
+    const lessonId = parseInt(id);
     
-    await prisma.swimmer_lessons.deleteMany({
-      where: { lesson_id: parseInt(id) }
-    });
+    if (isNaN(lessonId)) {
+      return NextResponse.json({ error: 'Invalid lesson ID' }, { status: 400 });
+    }
 
-    await prisma.lessons.delete({
-      where: { id: parseInt(id) }
-    });
+    // Check if lesson exists
+    const lesson = await LessonStore.findById(lessonId);
+    if (!lesson) {
+      return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
+    }
+
+    // Delete all swimmer lesson registrations for this lesson
+    const swimmerLessons = await SwimmerLessonStore.findByLessonId(lessonId);
+    for (const swimmerLesson of swimmerLessons) {
+      await SwimmerLessonStore.delete(swimmerLesson.swimmer_id, lessonId);
+    }
+
+    // Delete the lesson
+    await LessonStore.delete(lessonId);
 
     return NextResponse.json({ message: 'Lesson deleted successfully' });
   } catch (error) {

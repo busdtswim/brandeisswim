@@ -1,11 +1,10 @@
 // src/app/api/auth/customer/profile/route.js
 
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const UserStore = require('@/lib/stores/UserStore.js');
+const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
 
 // GET user profile data
 export async function GET() {
@@ -16,20 +15,18 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-      include: {
-        swimmers: true,
-      },
-    });
+    const user = await UserStore.findByEmail(session.user.email);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Get swimmers for this user
+    const swimmers = await SwimmerStore.findByUserId(user.id);
+
     // Remove sensitive data
     const { password, ...userWithoutPassword } = user;
-    return NextResponse.json(userWithoutPassword);
+    return NextResponse.json({ ...userWithoutPassword, swimmers });
   } catch (error) {
     console.error('Error fetching user profile:', error);
     return NextResponse.json(
@@ -48,13 +45,16 @@ export async function PUT(request) {
     }
 
     const data = await request.json();
-    const updatedUser = await prisma.users.update({
-      where: { email: session.user.email },
-      data: {
-        email: data.email,
-        phone_number: data.phoneNumber,
-        fullname: data.fullName,
-      },
+    const user = await UserStore.findByEmail(session.user.email);
+    
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const updatedUser = await UserStore.update(user.id, {
+      email: data.email,
+      phone_number: data.phoneNumber,
+      fullname: data.fullName,
     });
 
     const { password, ...userWithoutPassword } = updatedUser;

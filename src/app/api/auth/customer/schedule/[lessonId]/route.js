@@ -1,11 +1,9 @@
 // src/app/api/auth/customer/schedule/[lessonId]/route.js
 
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
 
 // Update preferences
 export async function PUT(request, { params }) {
@@ -15,21 +13,21 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { lessonId } = params;
+    const { lessonId } = await params;
     const { swimmerId, preferredInstructorId, instructorNotes } = await request.json();
 
-    const updated = await prisma.swimmer_lessons.update({
-      where: {
-        swimmer_id_lesson_id: {
-          swimmer_id: parseInt(swimmerId),
-          lesson_id: parseInt(lessonId)
-        }
-      },
-      data: {
-        preferred_instructor_id: preferredInstructorId ? parseInt(preferredInstructorId) : null,
-        instructor_notes: instructorNotes
-      }
+    if (!lessonId || isNaN(parseInt(lessonId)) || !swimmerId || isNaN(parseInt(swimmerId))) {
+      return NextResponse.json({ error: 'Invalid lesson ID or swimmer ID' }, { status: 400 });
+    }
+
+    const updated = await SwimmerLessonStore.update(parseInt(swimmerId), parseInt(lessonId), {
+      preferred_instructor_id: preferredInstructorId ? parseInt(preferredInstructorId) : null,
+      instructor_notes: instructorNotes
     });
+
+    if (!updated) {
+      return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
+    }
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -46,17 +44,18 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { lessonId } = params;
+    const { lessonId } = await params;
     const { swimmerId } = await request.json();
 
-    await prisma.swimmer_lessons.delete({
-      where: {
-        swimmer_id_lesson_id: {
-          swimmer_id: parseInt(swimmerId),
-          lesson_id: parseInt(lessonId)
-        }
-      }
-    });
+    if (!lessonId || isNaN(parseInt(lessonId)) || !swimmerId || isNaN(parseInt(swimmerId))) {
+      return NextResponse.json({ error: 'Invalid lesson ID or swimmer ID' }, { status: 400 });
+    }
+
+    const deleted = await SwimmerLessonStore.delete(parseInt(swimmerId), parseInt(lessonId));
+
+    if (!deleted) {
+      return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
+    }
 
     return NextResponse.json({ message: 'Registration cancelled successfully' });
   } catch (error) {

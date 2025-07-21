@@ -1,11 +1,10 @@
 // src/app/api/auth/customer/swimmers/route.js
 
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const UserStore = require('@/lib/stores/UserStore.js');
+const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
 
 function formatDate(date) {
   // If it's already a string in MM/DD/YYYY format, return it
@@ -31,7 +30,6 @@ function formatDate(date) {
 }
 
 export async function GET() {
-
   try {
     const session = await getServerSession(authOptions);
     
@@ -39,13 +37,13 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const swimmers = await prisma.swimmers.findMany({
-      where: {
-        users: {
-          email: session.user.email
-        }
-      }
-    });
+    // Get user by email
+    const user = await UserStore.findByEmail(session.user.email);
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const swimmers = await SwimmerStore.findByUserId(user.id);
 
     // Transform the data to ensure consistent field names
     const transformedSwimmers = swimmers.map(swimmer => ({
@@ -62,7 +60,6 @@ export async function GET() {
     );
   }
 }
-
 
 export async function POST(request) {
   try {
@@ -82,26 +79,31 @@ export async function POST(request) {
     }
 
     // Get user ID
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email }
-    });
+    const user = await UserStore.findByEmail(session.user.email);
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
     const formattedBirthdate = formatDate(data.birthday);
 
     // Create new swimmer with proper data mapping
-    const newSwimmer = await prisma.swimmers.create({
-      data: {
-        name: data.name,
-        birthdate: formattedBirthdate,
-        gender: data.gender,
-        proficiency: data.proficiency,
-        user_id: user.id
-      }
+    const newSwimmer = await SwimmerStore.create({
+      name: data.name,
+      birthdate: formattedBirthdate,
+      gender: data.gender,
+      proficiency: data.proficiency,
+      user_id: user.id
     });
 
     return NextResponse.json(newSwimmer, { status: 201 });
   } catch (error) {
     console.error('Error creating swimmer:', error);
+    
+    // Handle validation errors
+    if (error.message.includes('Invalid') || error.message.includes('required')) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    
     return NextResponse.json(
       { error: 'Failed to create swimmer' }, 
       { status: 500 }

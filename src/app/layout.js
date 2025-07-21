@@ -3,6 +3,7 @@ import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Providers } from './providers';
+import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
   title: 'Brandeis Swimming Lessons',
@@ -19,6 +20,9 @@ export default function RootLayout({ children }) {
             {children}
           </main>
           <Footer />
+          <Toaster position="top-right" toastOptions={{
+            style: { fontSize: '1rem', borderRadius: '8px' },
+          }} />
         </Providers>
       </body>
     </html>

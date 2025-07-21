@@ -22,7 +22,8 @@ export const isTimeOverlap = (time1Start, time1End, time2Start, time2End) => {
     ? DateTime.fromFormat(time2End, 'HH:mm', { zone: NY_TIMEZONE })
     : DateTime.fromJSDate(time2End, { zone: NY_TIMEZONE });
 
-  return (t1s < t2e && t1e > t2s);
+  // Exclusive end: no overlap if t1e <= t2s or t2e <= t1s
+  return !(t1e <= t2s || t2e <= t1s);
 };
   
 // Check if two sets of days overlap

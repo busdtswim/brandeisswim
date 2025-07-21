@@ -1,10 +1,8 @@
 // src/app/api/auth/forgot-password/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
-
-const prisma = new PrismaClient();
+const UserStore = require('@/lib/stores/UserStore.js');
 
 export async function POST(req) {
   try {
@@ -15,9 +13,7 @@ export async function POST(req) {
     }
 
     // Find user by email
-    const user = await prisma.users.findUnique({
-      where: { email },
-    });
+    const user = await UserStore.findByEmail(email);
 
     if (!user) {
       // Don't reveal that the user doesn't exist for security reasons
@@ -37,12 +33,9 @@ export async function POST(req) {
     resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1); // Token valid for 1 hour
 
     // Store token in database
-    await prisma.users.update({
-      where: { id: user.id },
-      data: {
-        reset_token: resetTokenHash,
-        reset_token_expiry: resetTokenExpiry,
-      },
+    await UserStore.update(user.id, {
+      reset_token: resetTokenHash,
+      reset_token_expiry: resetTokenExpiry,
     });
 
     // Generate reset URL
@@ -85,7 +78,5 @@ export async function POST(req) {
   } catch (error) {
     console.error('Error in forgot password:', error);
     return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
