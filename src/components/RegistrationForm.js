@@ -83,8 +83,9 @@ const RegistrationForm = () => {
       }
 
       // Ensure session is established before redirecting
+      router.push('/');
+      router.refresh();
       router.push('/customer');
-      window.location.reload(); // Force reload to ensure session is set
     } catch (error) {
       console.error('Registration error:', error);
       setSubmissionError(error.message || 'An error occurred during registration');
