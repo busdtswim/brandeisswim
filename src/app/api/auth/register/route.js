@@ -1,9 +1,8 @@
 // src/app/api/auth/register/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
-
-const prisma = new PrismaClient();
+const UserStore = require('@/lib/stores/UserStore.js');
+const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
 
 function formatDate(date) {
   // If it's already a string in MM/DD/YYYY format, return it
@@ -33,51 +32,40 @@ export async function POST(req) {
     const { email, password, phoneNumber, fullName, swimmers } = await req.json();
 
     // Check if email already exists
-    const existingUser = await prisma.users.findUnique({
-      where: { email }
-    });
+    const existingUser = await UserStore.findByEmail(email);
 
     if (existingUser) {
       return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 });
     }
 
-    // Start a transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Hash the password
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
+    // Hash the password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      // Create the user
-      const user = await tx.users.create({
-        data: {
-          email,
-          password: hashedPassword,
-          role: 'customer',
-          phone_number: phoneNumber,
-          fullname: fullName,
-        }
-      });
-
-      // Create swimmers if provided
-      if (swimmers && swimmers.length > 0) {
-        for (const swimmer of swimmers) {
-          await tx.swimmers.create({
-            data: {
-              name: swimmer.name,
-              birthdate: formatDate(swimmer.birthdate), // Format as string
-              gender: swimmer.gender,
-              proficiency: swimmer.proficiency,
-              user_id: user.id
-            }
-          });
-        }
-      }
-
-      return user;
+    // Create the user
+    const user = await UserStore.create({
+      email,
+      password: hashedPassword,
+      role: 'customer',
+      phone_number: phoneNumber,
+      fullname: fullName,
     });
 
+    // Create swimmers if provided
+    if (swimmers && swimmers.length > 0) {
+      for (const swimmer of swimmers) {
+        await SwimmerStore.create({
+          name: swimmer.name,
+          birthdate: formatDate(swimmer.birthdate), // Format as string
+          gender: swimmer.gender,
+          proficiency: swimmer.proficiency,
+          user_id: user.id
+        });
+      }
+    }
+
     // Remove sensitive data
-    const { password: _, ...userWithoutPassword } = result;
+    const { password: _, ...userWithoutPassword } = user;
 
     return NextResponse.json({
       message: 'User and swimmers created successfully',
@@ -85,8 +73,17 @@ export async function POST(req) {
     }, { status: 201 });
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Handle validation errors
+    if (error.message.includes('Invalid') || error.message.includes('required')) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    
+    // Handle unique constraint violations
+    if (error.message.includes('already exists')) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    
     return NextResponse.json({ error: 'Failed to register user', details: error.message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

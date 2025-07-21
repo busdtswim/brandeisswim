@@ -1,10 +1,11 @@
 // src/app/api/auth/admin/stats/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const UserStore = require('../../../../../lib/stores/UserStore.js');
+const SwimmerStore = require('../../../../../lib/stores/SwimmerStore.js');
+const LessonStore = require('../../../../../lib/stores/LessonStore.js');
+const WaitlistStore = require('../../../../../lib/stores/WaitlistStore.js');
 
 export async function GET() {
   try {
@@ -20,42 +21,44 @@ export async function GET() {
     // Run all queries in parallel for better performance
     const [
       // User stats
-      userStats,
+      allUsers,
       
       // Swimmer stats
-      swimmerCount,
+      allSwimmers,
       
-      // Class stats - modified to work with string dates in MM/DD/YYYY format
-      activeLessonCount,
+      // Class stats
+      allLessons,
       
       // Waitlist stats
-      waitlistCount
+      activeWaitlistEntries
     ] = await Promise.all([
       // User stats
-      prisma.users.count({
-        where: { role: 'customer' }
-      }),
+      UserStore.findAll(),
       
       // Swimmer stats
-      prisma.swimmers.count(),
+      SwimmerStore.findAll(),
       
-      // Active lessons - using string comparison with MM/DD/YYYY format
-      prisma.lessons.count({
-        where: {
-          start_date: {
-            lte: formattedCurrentDate
-          },
-          end_date: {
-            gte: formattedCurrentDate
-          }
-        }
-      }),
+      // All lessons
+      LessonStore.findAll(),
       
       // Active waitlist entries
-      prisma.waitlist.count({
-        where: { status: 'active' }
-      })
+      WaitlistStore.findByStatus('active')
     ]);
+
+    // Calculate user stats
+    const userStats = allUsers.filter(user => user.role === 'customer').length;
+    
+    // Calculate swimmer stats
+    const swimmerCount = allSwimmers.length;
+    
+    // Calculate active lessons - using string comparison with MM/DD/YYYY format
+    const activeLessonCount = allLessons.filter(lesson => {
+      if (!lesson.start_date || !lesson.end_date) return false;
+      return lesson.start_date <= formattedCurrentDate && lesson.end_date >= formattedCurrentDate;
+    }).length;
+    
+    // Calculate waitlist stats
+    const waitlistCount = activeWaitlistEntries.length;
 
     return NextResponse.json({
       totalUsers: userStats,
@@ -69,7 +72,5 @@ export async function GET() {
       { error: 'Failed to fetch dashboard statistics' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

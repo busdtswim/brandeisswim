@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { DateFormatter } from '@/utils/formatUtils';
 import EditExceptionsModal from './EditExceptionModal';
+import { hasScheduleConflict } from '@/utils/timeUtils';
 
 const ViewSchedule = () => {
   const [classes, setClasses] = useState([]);
@@ -98,71 +99,98 @@ const ViewSchedule = () => {
   const handleInstructorAssign = async (classId, swimmerId, instructorId) => {
     try {
       setAssignError(null);
-
       if (!instructorId) {
-        await onInstructorAssign(classId, swimmerId, null);
+        // Unassign instructor
+        const assignResponse = await fetch(`/api/auth/lessons/assign/${classId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ swimmerId: parseInt(swimmerId), instructorId: null }),
+        });
+        if (!assignResponse.ok) {
+          const errorData = await assignResponse.json();
+          throw new Error(errorData.error || 'Failed to unassign instructor');
+        }
+        // Notify instructor of unassignment
+        const classData = classes.find(cls => cls.id === parseInt(classId));
+        const prevInstructor = classData.participants.find(p => p.id === parseInt(swimmerId))?.instructor;
+        if (prevInstructor) {
+          try {
+            await fetch('/api/auth/lessons/notify-instructor-unassign', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                instructor: prevInstructor,
+                lessonDetails: {
+                  startDate: classData.startDate,
+                  endDate: classData.endDate,
+                  meetingDays: classData.meetingDays,
+                  time: classData.time,
+                },
+              }),
+            });
+          } catch (notifyError) {
+            console.error('Error sending unassign notification:', notifyError);
+          }
+        }
+        // Update UI state
+        setClasses(prevClasses => prevClasses.map(cls => {
+          if (cls.id === parseInt(classId)) {
+            return {
+              ...cls,
+              participants: cls.participants.map(p => {
+                if (p.id === parseInt(swimmerId)) {
+                  return { ...p, instructor_id: null, instructor: null };
+                }
+                return p;
+              })
+            };
+          }
+          return cls;
+        }));
         return;
       }
-
       const response = await fetch('/api/auth/lessons/classes');
       if (!response.ok) {
         throw new Error('Failed to fetch lessons data');
       }
-
       const allLessons = await response.json();
-      
+      const currentLesson = allLessons.find(cls => cls.id === parseInt(classId));
       const hasConflict = allLessons.some(otherLesson => {
         if (otherLesson.id === parseInt(classId)) return false;
-        
         const hasInstructorInOtherLesson = otherLesson.participants.some(
           p => p.instructor_id === parseInt(instructorId)
         );
-
         if (!hasInstructorInOtherLesson) return false;
-
-        // This would need the proper implementation of hasScheduleConflict
-        // For now, let's mock with a simple check
-        const conflicting = (
-          otherLesson.meetingDays.some(day => 
-            classes.find(c => c.id === parseInt(classId))?.meetingDays.includes(day)
-          )
-        );
-        return conflicting;
+        // Use hasScheduleConflict for accurate time overlap
+        return hasScheduleConflict(currentLesson, otherLesson);
       });
-
       if (hasConflict) {
         setAssignError('This instructor has a scheduling conflict during this time slot.');
         return;
       }
-
-      // First handle the instructor assignment
+      // Assign instructor
       const assignResponse = await fetch(`/api/auth/lessons/assign/${classId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          swimmerId: parseInt(swimmerId),
-          instructorId: instructorId ? parseInt(instructorId) : null
-        }),
+        body: JSON.stringify({ swimmerId: parseInt(swimmerId), instructorId: parseInt(instructorId) }),
       });
-  
       if (!assignResponse.ok) {
         const errorData = await assignResponse.json();
         throw new Error(errorData.error || 'Failed to assign instructor');
       }
-  
-      if (instructorId) {
-        const classData = classes.find(cls => cls.id === parseInt(classId));
-        const swimmer = classData.participants.find(p => p.id === parseInt(swimmerId));
-        const instructor = instructors.find(i => i.id === parseInt(instructorId));
-  
+      // Notify instructor of assignment
+      const classData = classes.find(cls => cls.id === parseInt(classId));
+      const swimmer = classData.participants.find(p => p.id === parseInt(swimmerId));
+      const instructor = instructors.find(i => i.id === parseInt(instructorId));
+      if (instructor) {
         try {
-          const notifyResponse = await fetch('/api/auth/lessons/notify-instructor', {
+          await fetch('/api/auth/lessons/notify-instructor', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               instructor,
               swimmer,
@@ -174,20 +202,10 @@ const ViewSchedule = () => {
               },
             }),
           });
-  
-          if (!notifyResponse.ok) {
-            const errorData = await notifyResponse.json();
-            console.error('Notification error details:', errorData);
-            displayMessage(`Instructor assigned but notification failed: ${errorData.error || 'Unknown error'}`, 'error');
-          } else {
-            displayMessage('Instructor assigned and notification sent successfully!', 'success');
-          }
         } catch (notifyError) {
           console.error('Error sending notification:', notifyError);
-          displayMessage('Instructor assigned but notification failed to send', 'error');
         }
       }
-  
       // Update UI state
       setClasses(prevClasses => prevClasses.map(cls => {
         if (cls.id === parseInt(classId)) {
@@ -198,7 +216,7 @@ const ViewSchedule = () => {
                 const assignedInstructor = instructors.find(i => i.id === parseInt(instructorId));
                 return {
                   ...p,
-                  instructor_id: instructorId ? parseInt(instructorId) : null,
+                  instructor_id: parseInt(instructorId),
                   instructor: assignedInstructor || null
                 };
               }
@@ -208,7 +226,6 @@ const ViewSchedule = () => {
         }
         return cls;
       }));
-  
     } catch (error) {
       console.error('Error in handleInstructorAssign:', error);
       setAssignError(error.message);

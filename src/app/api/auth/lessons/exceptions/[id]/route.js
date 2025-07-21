@@ -1,10 +1,8 @@
 // src/app/api/auth/lessons/exceptions/[id]/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const LessonStore = require('@/lib/stores/LessonStore.js');
 
 // Update exceptions for a specific lesson
 export async function PUT(request, { params }) {
@@ -14,15 +12,20 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { exception_dates } = await request.json();
 
-    const lesson = await prisma.lessons.update({
-      where: { id: parseInt(id) },
-      data: {
-        exception_dates: Array.isArray(exception_dates) ? exception_dates.join(',') : exception_dates
-      }
+    if (!id || isNaN(parseInt(id))) {
+      return NextResponse.json({ error: 'Invalid lesson ID' }, { status: 400 });
+    }
+
+    const lesson = await LessonStore.update(parseInt(id), {
+      exception_dates: Array.isArray(exception_dates) ? exception_dates.join(',') : exception_dates
     });
+
+    if (!lesson) {
+      return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });
+    }
 
     return NextResponse.json(lesson);
   } catch (error) {
@@ -37,12 +40,13 @@ export async function PUT(request, { params }) {
 // Get exceptions for a specific lesson
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
-    const lesson = await prisma.lessons.findUnique({
-      where: { id: parseInt(id) },
-      select: { exception_dates: true }
-    });
+    if (!id || isNaN(parseInt(id))) {
+      return NextResponse.json({ error: 'Invalid lesson ID' }, { status: 400 });
+    }
+
+    const lesson = await LessonStore.findById(parseInt(id));
 
     if (!lesson) {
       return NextResponse.json({ error: 'Lesson not found' }, { status: 404 });

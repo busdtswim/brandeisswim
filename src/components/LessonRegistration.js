@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Users, XCircle, AlertTriangle, Check } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const LessonRegistration = () => {
   const [lessons, setLessons] = useState([]);
@@ -106,7 +107,7 @@ const LessonRegistration = () => {
 
   const handleJoinWaitlist = async () => {
     if (!selectedSwimmer) {
-      alert('Please select a swimmer');
+      toast.error('Please select a swimmer');
       return;
     }
 
@@ -137,7 +138,7 @@ const LessonRegistration = () => {
 
   const handleRegister = async () => {
     if (!selectedSwimmer || !selectedLesson) {
-      alert('Please select a swimmer');
+      toast.error('Please select a swimmer');
       return;
     }
 
@@ -160,17 +161,17 @@ const LessonRegistration = () => {
         setLessons(lessons.map(lesson => 
           lesson.id === updatedLesson.id ? updatedLesson : lesson
         ));
-        alert('Registration successful!');
+        toast.success('Registration successful!');
         setSelectedLesson(null);
         setPreferredInstructor('');
         setInstructorNotes('');
       } else {
         const errorData = await response.json();
-        alert(`Registration failed: ${errorData.error}`);
+        toast.error(`Registration failed: ${errorData.error}`);
       }
     } catch (error) {
       console.error('Error during registration:', error);
-      alert('An error occurred during registration. Please try again.');
+      toast.error('An error occurred during registration. Please try again.');
     }
   };
 

@@ -1,48 +1,49 @@
 // src/app/api/auth/admin/users/[id]/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+const UserStore = require('@/lib/stores/UserStore.js');
+const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
+const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
 
 export async function DELETE(request, { params }) {
   try {
-    if (!params?.id) {
+    const { id } = await params;
+    
+    if (!id) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    const userId = parseInt(params.id);
+    const userId = parseInt(id);
     
     if (isNaN(userId)) {
       return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
     }
 
-    // Start a transaction to ensure all related data is deleted
-    await prisma.$transaction(async (tx) => {
-      // First delete all swim lesson registrations for all swimmers of this user
-      await tx.swimmer_lessons.deleteMany({
-        where: {
-          swimmers: {
-            user_id: userId
-          }
-        }
-      });
+    // Get all swimmers for this user
+    const swimmers = await SwimmerStore.findByUserId(userId);
+    
+    // Delete all swim lesson registrations for all swimmers of this user
+    for (const swimmer of swimmers) {
+      const swimmerLessons = await SwimmerLessonStore.findBySwimmerId(swimmer.id);
+      for (const swimmerLesson of swimmerLessons) {
+        await SwimmerLessonStore.delete(swimmer.id, swimmerLesson.lesson_id);
+      }
+    }
 
-      // Then delete all swimmers belonging to this user
-      await tx.swimmers.deleteMany({
-        where: { user_id: userId }
-      });
+    // Delete all swimmers belonging to this user
+    for (const swimmer of swimmers) {
+      await SwimmerStore.delete(swimmer.id);
+    }
 
-      // Finally delete the user
-      await tx.users.delete({
-        where: { id: userId }
-      });
-    });
+    // Finally delete the user
+    const deletedUser = await UserStore.delete(userId);
+    
+    if (!deletedUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
     return NextResponse.json({ message: 'User and associated data deleted successfully' });
   } catch (error) {
     console.error('Error deleting user:', error);
     return NextResponse.json({ error: 'Failed to delete user', details: error.message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

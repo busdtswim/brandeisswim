@@ -1,10 +1,9 @@
 // src/app/api/auth/waitlist/join/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const WaitlistStore = require('@/lib/stores/WaitlistStore.js');
+const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
 
 export async function POST(req) {
   try {
@@ -22,21 +21,18 @@ export async function POST(req) {
       );
     }
 
-    // Check if swimmer belongs to the current user
-    const swimmer = await prisma.swimmers.findUnique({
-      where: { 
-        id: parseInt(swimmerId),
-      },
-      include: {
-        users: {
-          select: {
-            email: true
-          }
-        }
-      }
-    });
+    const swimmerIdInt = parseInt(swimmerId);
+    if (isNaN(swimmerIdInt)) {
+      return NextResponse.json(
+        { error: 'Invalid swimmer ID' },
+        { status: 400 }
+      );
+    }
 
-    if (!swimmer || swimmer.users?.email !== session.user.email) {
+    // Check if swimmer belongs to the current user
+    const swimmer = await SwimmerStore.findByIdWithUser(swimmerIdInt);
+
+    if (!swimmer || swimmer.email !== session.user.email) {
       return NextResponse.json(
         { error: 'Swimmer not found or does not belong to this user' },
         { status: 404 }
@@ -44,12 +40,8 @@ export async function POST(req) {
     }
 
     // Check if swimmer is already on the waitlist
-    const existingEntry = await prisma.waitlist.findFirst({
-      where: {
-        swimmer_id: parseInt(swimmerId),
-        status: 'active'
-      }
-    });
+    const existingEntries = await WaitlistStore.findBySwimmerId(swimmerIdInt);
+    const existingEntry = existingEntries.find(entry => entry.status === 'active');
 
     if (existingEntry) {
       return NextResponse.json(
@@ -58,25 +50,10 @@ export async function POST(req) {
       );
     }
 
-    // Get the current highest position number
-    const lastEntry = await prisma.waitlist.findFirst({
-      where: {
-        status: 'active'
-      },
-      orderBy: {
-        position: 'desc'
-      }
-    });
-
-    const nextPosition = lastEntry ? lastEntry.position + 1 : 1;
-
-    // Add swimmer to waitlist
-    const waitlistEntry = await prisma.waitlist.create({
-      data: {
-        swimmer_id: parseInt(swimmerId),
-        position: nextPosition,
-        status: 'active'
-      }
+    // Add swimmer to waitlist (position will be auto-assigned)
+    const waitlistEntry = await WaitlistStore.create({
+      swimmer_id: swimmerIdInt,
+      status: 'active'
     });
 
     return NextResponse.json({
@@ -85,6 +62,12 @@ export async function POST(req) {
     });
   } catch (error) {
     console.error('Error joining waitlist:', error);
+    
+    // Handle validation errors
+    if (error.message.includes('Invalid') || error.message.includes('required')) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    
     return NextResponse.json(
       { error: 'Failed to join waitlist' },
       { status: 500 }

@@ -1,10 +1,8 @@
 // src/app/api/auth/reset-password/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
-
-const prisma = new PrismaClient();
+const UserStore = require('@/lib/stores/UserStore.js');
 
 export async function POST(req) {
   try {
@@ -21,16 +19,9 @@ export async function POST(req) {
       .digest('hex');
 
     // Find user with the hashed token and check if token is still valid
-    const user = await prisma.users.findFirst({
-      where: {
-        reset_token: resetTokenHash,
-        reset_token_expiry: {
-          gt: new Date(),
-        },
-      },
-    });
+    const user = await UserStore.findByResetToken(resetTokenHash);
 
-    if (!user) {
+    if (!user || !user.reset_token_expiry || new Date(user.reset_token_expiry) <= new Date()) {
       return NextResponse.json({ error: 'Invalid or expired reset token' }, { status: 400 });
     }
 
@@ -39,20 +30,15 @@ export async function POST(req) {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Update user's password and clear the reset token fields
-    await prisma.users.update({
-      where: { id: user.id },
-      data: {
-        password: hashedPassword,
-        reset_token: null,
-        reset_token_expiry: null,
-      },
+    await UserStore.update(user.id, {
+      password: hashedPassword,
+      reset_token: null,
+      reset_token_expiry: null,
     });
 
     return NextResponse.json({ message: 'Password reset successful' });
   } catch (error) {
     console.error('Error in reset password:', error);
     return NextResponse.json({ error: 'Failed to reset password' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

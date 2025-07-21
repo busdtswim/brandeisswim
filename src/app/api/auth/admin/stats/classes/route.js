@@ -1,10 +1,9 @@
 // src/app/api/auth/admin/stats/classes/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const LessonStore = require('@/lib/stores/LessonStore.js');
+const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
 
 export async function GET() {
   try {
@@ -17,41 +16,30 @@ export async function GET() {
     const currentDate = new Date();
     const formattedCurrentDate = `${(currentDate.getMonth() + 1).toString().padStart(2, '0')}/${currentDate.getDate().toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
     
+    // Get all lessons
+    const allLessons = await LessonStore.findAll();
+    
     // Count total lessons
-    const totalLessons = await prisma.lessons.count();
+    const totalLessons = allLessons.length;
     
     // Count active lessons (where current date is between start and end date)
-    const activeLessons = await prisma.lessons.count({
-      where: {
-        start_date: {
-          lte: formattedCurrentDate,
-        },
-        end_date: {
-          gte: formattedCurrentDate,
-        },
-      },
-    });
+    const activeLessons = allLessons.filter(lesson => {
+      return lesson.start_date <= formattedCurrentDate && lesson.end_date >= formattedCurrentDate;
+    }).length;
     
     // Count future lessons
-    const futureLessons = await prisma.lessons.count({
-      where: {
-        start_date: {
-          gt: formattedCurrentDate,
-        },
-      },
-    });
+    const futureLessons = allLessons.filter(lesson => {
+      return lesson.start_date > formattedCurrentDate;
+    }).length;
     
     // Count past lessons
-    const pastLessons = await prisma.lessons.count({
-      where: {
-        end_date: {
-          lt: formattedCurrentDate,
-        },
-      },
-    });
+    const pastLessons = allLessons.filter(lesson => {
+      return lesson.end_date < formattedCurrentDate;
+    }).length;
 
     // Count total enrollments across all lessons
-    const totalEnrollments = await prisma.swimmer_lessons.count();
+    const allEnrollments = await SwimmerLessonStore.findAll();
+    const totalEnrollments = allEnrollments.length;
     
     return NextResponse.json({
       totalLessons,
@@ -66,7 +54,5 @@ export async function GET() {
       { error: 'Failed to fetch class statistics' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

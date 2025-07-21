@@ -1,10 +1,10 @@
 // src/app/api/auth/admin/stats/users/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const UserStore = require('@/lib/stores/UserStore.js');
+const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
+const InstructorStore = require('@/lib/stores/InstructorStore.js');
 
 export async function GET() {
   try {
@@ -14,22 +14,18 @@ export async function GET() {
     }
 
     // Count total users and their swimmers
-    const users = await prisma.users.findMany({
-      where: {
-        role: 'customer'
-      },
-      include: {
-        _count: {
-          select: { swimmers: true }
-        }
-      }
-    });
+    const users = await UserStore.findAll();
+    const customerUsers = users.filter(user => user.role === 'customer');
 
-    const totalUsers = users.length;
-    const totalSwimmers = users.reduce((sum, user) => sum + user._count.swimmers, 0);
+    const totalUsers = customerUsers.length;
+    
+    // Count total swimmers
+    const allSwimmers = await SwimmerStore.findAll();
+    const totalSwimmers = allSwimmers.length;
     
     // Count instructors
-    const totalInstructors = await prisma.instructors.count();
+    const allInstructors = await InstructorStore.findAll();
+    const totalInstructors = allInstructors.length;
     
     // Get new users (registered in the last 30 days)
     const thirtyDaysAgo = new Date();
@@ -38,15 +34,21 @@ export async function GET() {
     // Format to MM/DD/YYYY
     const formattedThirtyDaysAgo = `${(thirtyDaysAgo.getMonth() + 1).toString().padStart(2, '0')}/${thirtyDaysAgo.getDate().toString().padStart(2, '0')}/${thirtyDaysAgo.getFullYear()}`;
     
-    // Use string comparison for createdAt if it's stored as a string
-    const newUsers = await prisma.users.count({
-      where: {
-        role: 'customer',
-        createdAt: {
-          gte: formattedThirtyDaysAgo
-        }
+    // Count new users by comparing createdAt dates
+    const newUsers = customerUsers.filter(user => {
+      if (!user.createdAt) return false;
+      
+      // If createdAt is a string in MM/DD/YYYY format, parse it
+      if (typeof user.createdAt === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(user.createdAt)) {
+        const [month, day, year] = user.createdAt.split('/');
+        const userDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        return userDate >= thirtyDaysAgo;
       }
-    });
+      
+      // If createdAt is a Date object or other format
+      const userDate = new Date(user.createdAt);
+      return userDate >= thirtyDaysAgo;
+    }).length;
 
     return NextResponse.json({
       totalUsers,
@@ -60,7 +62,5 @@ export async function GET() {
       { error: 'Failed to fetch user statistics' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

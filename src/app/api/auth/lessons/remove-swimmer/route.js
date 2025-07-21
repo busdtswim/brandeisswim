@@ -1,8 +1,6 @@
 // src/app/api/auth/lessons/remove-swimmer/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
 
 export async function DELETE(request) {
   try {
@@ -15,14 +13,24 @@ export async function DELETE(request) {
       );
     }
 
-    await prisma.swimmer_lessons.delete({
-      where: {
-        swimmer_id_lesson_id: {
-          swimmer_id: parseInt(swimmerId),
-          lesson_id: parseInt(lessonId)
-        }
-      }
-    });
+    const lessonIdInt = parseInt(lessonId);
+    const swimmerIdInt = parseInt(swimmerId);
+
+    if (isNaN(lessonIdInt) || isNaN(swimmerIdInt)) {
+      return NextResponse.json(
+        { error: 'Invalid lesson ID or swimmer ID' },
+        { status: 400 }
+      );
+    }
+
+    const deletedRegistration = await SwimmerLessonStore.delete(swimmerIdInt, lessonIdInt);
+
+    if (!deletedRegistration) {
+      return NextResponse.json(
+        { error: 'Swimmer not found in this lesson' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({ message: 'Swimmer removed successfully' });
   } catch (error) {

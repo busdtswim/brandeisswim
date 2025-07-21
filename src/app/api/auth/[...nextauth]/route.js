@@ -2,11 +2,9 @@
 
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { headers } from 'next/headers';
-
-const prisma = new PrismaClient();
+const UserStore = require('@/lib/stores/UserStore.js');
 
 export const authOptions = {
   providers: [
@@ -22,9 +20,7 @@ export const authOptions = {
         }
 
         try {
-          const user = await prisma.users.findUnique({
-            where: { email: credentials.email },
-          });
+          const user = await UserStore.findByEmail(credentials.email);
 
           if (!user) {
             return null;

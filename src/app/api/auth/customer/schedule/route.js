@@ -1,10 +1,9 @@
 // src/app/api/auth/customer/schedule/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const UserStore = require('@/lib/stores/UserStore.js');
+const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
 
 // Simple function to format time from 24h to 12h format
 function formatTo12Hour(timeStr) {
@@ -21,53 +20,45 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.users.findUnique({
-      where: { email: session.user.email },
-      include: {
-        swimmers: {
-          include: {
-            swimmer_lessons: {
-              include: {
-                lessons: true,
-                instructors_swimmer_lessons_instructor_idToinstructors: true,             
-                instructors_swimmer_lessons_preferred_instructor_idToinstructors: true  
-              }
-            }
-          }
-        }
-      }
-    });
-
+    const user = await UserStore.findByEmail(session.user.email);
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const classes = user.swimmers.flatMap(swimmer => 
-      swimmer.swimmer_lessons.map(sl => {
-        // Format the time strings directly
-        const startTimeFormatted = formatTo12Hour(sl.lessons.start_time);
-        const endTimeFormatted = formatTo12Hour(sl.lessons.end_time);
-        
-        return {
-          id: sl.lessons.id,
-          swimmerId: swimmer.id,
-          startDate: sl.lessons.start_date, // Use the string date directly
-          endDate: sl.lessons.end_date,     // Use the string date directly
-          time: `${startTimeFormatted} - ${endTimeFormatted}`,
-          meetingDays: sl.lessons.meeting_days.split(','),
-          swimmerName: swimmer.name,
-          instructor: sl.instructors_swimmer_lessons_instructor_idToinstructors ? {
-            name: sl.instructors_swimmer_lessons_instructor_idToinstructors.name,
-            id: sl.instructors_swimmer_lessons_instructor_idToinstructors.id
-          } : null,
-          preferredInstructor: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors ? {
-            name: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.name,
-            id: sl.instructors_swimmer_lessons_preferred_instructor_idToinstructors.id
-          } : null,
-          instructorNotes: sl.instructor_notes
-        };
-      })
-    );
+    const swimmers = await SwimmerStore.findByUserId(user.id);
+    
+    const classes = [];
+    
+    for (const swimmer of swimmers) {
+      const swimmerWithLessons = await SwimmerStore.findWithLessons(swimmer.id);
+      
+      for (const lessonData of swimmerWithLessons) {
+        if (lessonData.lesson_id) {
+          // Format the time strings directly
+          const startTimeFormatted = lessonData.start_time ? formatTo12Hour(lessonData.start_time) : '';
+          const endTimeFormatted = lessonData.end_time ? formatTo12Hour(lessonData.end_time) : '';
+          
+          classes.push({
+            id: lessonData.lesson_id,
+            swimmerId: swimmer.id,
+            startDate: lessonData.start_date, // Use the string date directly
+            endDate: lessonData.end_date,     // Use the string date directly
+            time: startTimeFormatted && endTimeFormatted ? `${startTimeFormatted} - ${endTimeFormatted}` : '',
+            meetingDays: lessonData.meeting_days ? lessonData.meeting_days.split(',') : [],
+            swimmerName: swimmer.name,
+            instructor: lessonData.instructor_name ? {
+              name: lessonData.instructor_name,
+              id: lessonData.instructor_id
+            } : null,
+            preferredInstructor: lessonData.preferred_instructor_name ? {
+              name: lessonData.preferred_instructor_name,
+              id: lessonData.preferred_instructor_id
+            } : null,
+            instructorNotes: lessonData.instructor_notes
+          });
+        }
+      }
+    }
 
     return NextResponse.json(classes);
   } catch (error) {

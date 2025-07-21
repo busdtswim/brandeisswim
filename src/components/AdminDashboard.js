@@ -16,6 +16,7 @@ import {
   CalendarPlus,
   UserPlus
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
@@ -158,7 +159,7 @@ const AdminDashboard = () => {
         }));
       } catch (error) {
         console.error('Error deleting swimmer:', error);
-        alert(error.message || 'Failed to delete swimmer. Please try again.');
+        toast.error(error.message || 'Failed to delete swimmer. Please try again.');
       }
     }
   };
@@ -188,7 +189,7 @@ const AdminDashboard = () => {
         }));
       } catch (error) {
         console.error('Error deleting user:', error);
-        alert(error.message || 'Failed to delete user. Please try again.');
+        toast.error(error.message || 'Failed to delete user. Please try again.');
       }
     }
   };

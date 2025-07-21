@@ -1,10 +1,8 @@
 // src/app/api/auth/admin/waitlist/[id]/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const prisma = new PrismaClient();
+const WaitlistStore = require('@/lib/stores/WaitlistStore.js');
 
 export async function PUT(request, { params }) {
   try {
@@ -13,27 +11,22 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
+    const waitlistId = parseInt(id);
+    
+    if (isNaN(waitlistId)) {
+      return NextResponse.json({ error: 'Invalid waitlist ID' }, { status: 400 });
+    }
     
     // Update status to inactive
-    const updatedEntry = await prisma.waitlist.update({
-      where: { id: parseInt(id) },
-      data: { status: 'inactive' }
-    });
+    const updatedEntry = await WaitlistStore.update(waitlistId, { status: 'inactive' });
+
+    if (!updatedEntry) {
+      return NextResponse.json({ error: 'Waitlist entry not found' }, { status: 404 });
+    }
 
     // Reorder remaining waitlist entries
-    const activeEntries = await prisma.waitlist.findMany({
-      where: { status: 'active' },
-      orderBy: { position: 'asc' }
-    });
-
-    // Update positions for all active entries
-    for (let i = 0; i < activeEntries.length; i++) {
-      await prisma.waitlist.update({
-        where: { id: activeEntries[i].id },
-        data: { position: i + 1 }
-      });
-    }
+    await WaitlistStore.reorderPositions();
 
     return NextResponse.json({ 
       message: 'Waitlist entry updated successfully',

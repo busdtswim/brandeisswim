@@ -1,9 +1,7 @@
 // src/app/api/auth/lessons/payment/route.js
 
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
 
 export async function PUT(request) {
     try {
@@ -16,17 +14,23 @@ export async function PUT(request) {
             );
         }
 
-        const updated = await prisma.swimmer_lessons.update({
-            where: {
-                swimmer_id_lesson_id: {
-                    swimmer_id: parseInt(swimmerId),
-                    lesson_id: parseInt(lessonId),
-                },
-            },
-            data: {
-                payment_status: status,
-            },
+        if (isNaN(parseInt(lessonId)) || isNaN(parseInt(swimmerId))) {
+            return NextResponse.json(
+                { error: 'Invalid lesson ID or swimmer ID' }, 
+                { status: 400 }
+            );
+        }
+
+        const updated = await SwimmerLessonStore.update(parseInt(swimmerId), parseInt(lessonId), {
+            payment_status: status,
         });
+
+        if (!updated) {
+            return NextResponse.json(
+                { error: 'Registration not found' }, 
+                { status: 404 }
+            );
+        }
 
         return NextResponse.json(updated);
     } catch (error) {
