@@ -57,9 +57,16 @@ const RegistrationForm = () => {
         body: JSON.stringify(values),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+        // Map specific backend errors to fields
+        if (data.error && data.error.toLowerCase().includes('email')) {
+          setErrors({ email: data.error });
+        } else {
+          setSubmissionError(data.error || 'Registration failed');
+        }
+        return;
       }
 
       // Attempt to log in immediately after registration
@@ -70,11 +77,15 @@ const RegistrationForm = () => {
       });
 
       if (loginResult?.error) {
-        throw new Error(loginResult.error);
+        // Show login error as a general error
+        setSubmissionError(loginResult.error);
+        return;
       }
 
-      // Redirect to home page after successful registration and login
+      // Ensure session is established before redirecting
+      // Optionally, reload after push to ensure session
       router.push('/');
+      // window.location.reload(); // Uncomment if session issues persist
     } catch (error) {
       console.error('Registration error:', error);
       setSubmissionError(error.message || 'An error occurred during registration');
