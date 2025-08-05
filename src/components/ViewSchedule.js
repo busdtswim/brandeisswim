@@ -27,6 +27,7 @@ const ViewSchedule = () => {
   const [expandedClasses, setExpandedClasses] = useState(new Set());
   const [message, setMessage] = useState({ text: '', type: '' });
   const [showMessage, setShowMessage] = useState(false);
+  const [notesModal, setNotesModal] = useState({ open: false, notes: '' });
 
   const fetchData = async () => {
     try {
@@ -193,7 +194,10 @@ const ViewSchedule = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               instructor,
-              swimmer,
+              swimmer: {
+                ...swimmer,
+                instructor_notes: swimmer.instructorNotes || swimmer.instructor_notes || '',
+              },
               lessonDetails: {
                 startDate: classData.startDate,
                 endDate: classData.endDate,
@@ -516,6 +520,9 @@ const ViewSchedule = () => {
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Assigned Instructor
                             </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                              Notes for Instructor
+                            </th>
                             <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Payment
                             </th>
@@ -567,6 +574,18 @@ const ViewSchedule = () => {
                                     </option>
                                   ))}
                                 </select>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center w-24">
+                                {participant.instructorNotes || participant.instructor_notes ? (
+                                  <button
+                                    className="text-blue-600 hover:underline text-sm font-medium"
+                                    onClick={() => setNotesModal({ open: true, notes: participant.instructorNotes || participant.instructor_notes })}
+                                  >
+                                    View Notes
+                                  </button>
+                                ) : (
+                                  <span className="text-gray-400 italic text-sm">None</span>
+                                )}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-center">
                                 <div className="relative inline-block w-10 align-middle select-none">
@@ -636,6 +655,24 @@ const ViewSchedule = () => {
           lessonId={selectedLesson?.id}
           onUpdate={handleEditExceptionsUpdate}
         />
+      )}
+
+      {/* Notes Modal */}
+      {notesModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setNotesModal({ open: false, notes: '' })}
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-lg font-semibold mb-4">Notes for Instructor</h3>
+            <div className="text-gray-700 whitespace-pre-line break-words max-h-60 overflow-y-auto">
+              {notesModal.notes}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
