@@ -90,6 +90,38 @@ const SimpleHtmlEditor = ({
     }
   };
 
+  // Change text size
+  const changeTextSize = (size) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    
+    if (range.collapsed) {
+      // No text selected, insert a span with the size
+      const span = document.createElement('span');
+      span.style.fontSize = size;
+      span.textContent = 'Text';
+      range.insertNode(span);
+      range.setStart(span, 0);
+      range.setEnd(span, 0);
+    } else {
+      // Text is selected, wrap it in a span with the size
+      const span = document.createElement('span');
+      span.style.fontSize = size;
+      const fragment = range.extractContents();
+      span.appendChild(fragment);
+      range.insertNode(span);
+    }
+
+    // Update selection and value
+    selection.removeAllRanges();
+    selection.addRange(range);
+    if (editorRef.current) {
+      setEditValue(editorRef.current.innerHTML);
+    }
+  };
+
   const ToolbarButton = ({ onClick, children, title, active = false }) => (
     <button
       type="button"
@@ -120,7 +152,7 @@ const SimpleHtmlEditor = ({
 
   return (
     <div className={`border rounded-lg ${className}`}>
-      {/* Toolbar - Only basic formatting */}
+      {/* Toolbar - Basic formatting + text size */}
       <div className="border-b bg-gray-50 p-2 flex flex-wrap gap-1">
         <ToolbarButton onClick={() => formatText('bold')} title="Bold">
           <strong>B</strong>
@@ -130,6 +162,21 @@ const SimpleHtmlEditor = ({
         </ToolbarButton>
         <ToolbarButton onClick={() => formatText('underline')} title="Underline">
           <u>U</u>
+        </ToolbarButton>
+        
+        <div className="w-px h-6 bg-gray-300 mx-1"></div>
+        
+        <ToolbarButton onClick={() => changeTextSize('12px')} title="Small Text">
+          <span className="text-xs">S</span>
+        </ToolbarButton>
+        <ToolbarButton onClick={() => changeTextSize('16px')} title="Normal Text">
+          <span className="text-sm">N</span>
+        </ToolbarButton>
+        <ToolbarButton onClick={() => changeTextSize('20px')} title="Large Text">
+          <span className="text-base">L</span>
+        </ToolbarButton>
+        <ToolbarButton onClick={() => changeTextSize('24px')} title="Extra Large Text">
+          <span className="text-lg">XL</span>
         </ToolbarButton>
       </div>
       
