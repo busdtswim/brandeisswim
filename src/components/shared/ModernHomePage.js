@@ -4,7 +4,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Award, Calendar, Users } from 'lucide-react';
-import EditableContent from '@/components/EditableContent';
+import EditableContent from '@/components/admin/EditableContent';
 
 const ModernHomepage = () => {
   return (

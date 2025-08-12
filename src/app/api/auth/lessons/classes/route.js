@@ -1,16 +1,10 @@
 // src/app/api/auth/lessons/classes/route.js
 import { NextResponse } from 'next/server';
-import { calculateAge } from '@/utils/dateUtils';
+import { calculateAge } from '@/lib/utils/dateUtils';
+import { formatTo12Hour } from '@/lib/utils/timezoneUtils';
 const LessonStore = require('@/lib/stores/LessonStore.js');
 
 export const dynamic = 'force-dynamic';
-
-function formatTo12Hour(timeStr) {
-  const [hours, minutes] = timeStr.split(':').map(Number);
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const displayHours = hours % 12 || 12;
-  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-}
 
 export async function GET() {
   try {
@@ -27,9 +21,9 @@ export async function GET() {
         startDate: cls.start_date, // Use the string date directly
         endDate: cls.end_date,     // Use the string date directly
         time: timeStr,
-        meetingDays: cls.meeting_days ? cls.meeting_days.split(',') : [],
+        meetingDays: cls.meeting_days && cls.meeting_days.trim() ? cls.meeting_days.split(',') : [],
         capacity: cls.max_slots,
-        exception_dates: cls.exception_dates ? cls.exception_dates.split(',') : [],
+        exception_dates: cls.exception_dates && cls.exception_dates.trim() ? cls.exception_dates.split(',') : [],
         participants: cls.participants.map(participant => ({
           id: participant.swimmer_id,
           name: participant.name,

@@ -60,19 +60,11 @@ export const formatToMMDDYYYY = (dateInput) => {
   return `${month}/${day}/${year}`;
 };
 
-export const parseMMDDYYYY = (dateStr) => {
-  if (!dateStr || typeof dateStr !== 'string') {
-    return null;
-  }
-
-  const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-  const match = dateStr.match(datePattern);
-  
-  if (match) {
-    const [_, month, day, year] = match;
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  }
-  
-  // Try regular Date parsing as fallback
-  return new Date(dateStr);
-};
+/**
+ * Get current date in MM/DD/YYYY format
+ * @returns {string} Formatted date string
+ */
+export const getCurrentDateString = () => {
+  const today = new Date();
+  return `${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getDate().toString().padStart(2, '0')}/${today.getFullYear()}`;
+}

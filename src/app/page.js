@@ -1,6 +1,6 @@
 // src/app/page.js
 import React from 'react';
-import Homepage from '@/components/ModernHomePage';
+import Homepage from '@/components/shared/ModernHomePage';
 
 export default function Home() {
   return (

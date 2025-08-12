@@ -2,7 +2,7 @@
 
 'use client';
 
-import CreateLessons from '@/components/CreateLessons';
+import CreateLessons from '@/components/admin/CreateLessons';
 
 export default function CreateLessonsPage() {
   return <CreateLessons />;

@@ -46,29 +46,4 @@ class DateFormatter {
   }
 }
 
-// A utility to format time with consistent timezone handling
-const formatTimeWithTimezone = (timeObj) => {
-  if (!timeObj) return '';
-  
-  try {
-    // If it's a JavaScript Date
-    if (timeObj instanceof Date) {
-      return DateTime.fromJSDate(timeObj, { zone: NY_TIMEZONE })
-        .toFormat('h:mm a');
-    }
-    
-    // If it's an ISO string or similar
-    const dt = DateTime.fromISO(timeObj, { zone: NY_TIMEZONE });
-    if (dt.isValid) {
-      return dt.toFormat('h:mm a');
-    }
-    
-    // Fallback for other formats
-    return timeObj.toString();
-  } catch (error) {
-    console.error('Error formatting time:', timeObj, error);
-    return timeObj.toString();
-  }
-};
-
-export { DateFormatter, formatTimeWithTimezone };
+export { DateFormatter };

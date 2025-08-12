@@ -12,9 +12,9 @@ import {
   AlertTriangle, 
   X 
 } from 'lucide-react';
-import { DateFormatter } from '@/utils/formatUtils';
-import EditExceptionsModal from './EditExceptionModal';
-import { hasScheduleConflict } from '@/utils/timeUtils';
+import { DateFormatter } from '@/lib/utils/formatUtils';
+import EditExceptionsModal from '../EditExceptionModal';
+import { hasScheduleConflict } from '@/lib/utils/timeUtils';
 
 const ViewSchedule = () => {
   const [classes, setClasses] = useState([]);

@@ -1,7 +1,7 @@
 // src/app/api/auth/admin/swimmers/route.js
 
 import { NextResponse } from 'next/server';
-import { calculateAge } from '@/utils/dateUtils';
+import { calculateAge } from '@/lib/utils/dateUtils';
 const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
 const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
 

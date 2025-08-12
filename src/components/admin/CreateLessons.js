@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import ExceptionDates from './ExceptionDates';
-import { DateFormatter } from '@/utils/formatUtils';
+import { DateFormatter } from '@/lib/utils/formatUtils';
 import { 
   CalendarPlus, 
   CalendarDays, 

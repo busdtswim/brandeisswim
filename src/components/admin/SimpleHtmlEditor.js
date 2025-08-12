@@ -80,30 +80,11 @@ const SimpleHtmlEditor = ({
     }
   };
 
-  const insertText = (text, tag = '') => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const element = tag ? document.createElement(tag) : document.createTextNode(text);
-      
-      if (tag) {
-        element.textContent = text;
-      }
-      
-      range.deleteContents();
-      range.insertNode(element);
-      range.collapse(false);
-      
-      // The mutation observer will handle the update
-      if (editorRef.current) {
-        setEditValue(editorRef.current.innerHTML);
-      }
-    }
-  };
-
-  const formatText = (command, value) => {
-    document.execCommand(command, false, value);
-    // The mutation observer will handle the update
+  // Simple text formatting using document.execCommand (works reliably for basic formatting)
+  const formatText = (command) => {
+    document.execCommand(command, false, null);
+    
+    // Update the value after formatting
     if (editorRef.current) {
       setEditValue(editorRef.current.innerHTML);
     }
@@ -139,7 +120,7 @@ const SimpleHtmlEditor = ({
 
   return (
     <div className={`border rounded-lg ${className}`}>
-      {/* Toolbar */}
+      {/* Toolbar - Only basic formatting */}
       <div className="border-b bg-gray-50 p-2 flex flex-wrap gap-1">
         <ToolbarButton onClick={() => formatText('bold')} title="Bold">
           <strong>B</strong>
@@ -149,33 +130,6 @@ const SimpleHtmlEditor = ({
         </ToolbarButton>
         <ToolbarButton onClick={() => formatText('underline')} title="Underline">
           <u>U</u>
-        </ToolbarButton>
-        
-        <div className="w-px h-6 bg-gray-300 mx-1"></div>
-        
-        <ToolbarButton onClick={() => formatText('insertUnorderedList')} title="Bullet List">
-          • List
-        </ToolbarButton>
-        <ToolbarButton onClick={() => formatText('insertOrderedList')} title="Numbered List">
-          1. List
-        </ToolbarButton>
-        
-        <div className="w-px h-6 bg-gray-300 mx-1"></div>
-        
-        <ToolbarButton onClick={() => insertText('', 'h1')} title="Heading 1">
-          H1
-        </ToolbarButton>
-        <ToolbarButton onClick={() => insertText('', 'h2')} title="Heading 2">
-          H2
-        </ToolbarButton>
-        <ToolbarButton onClick={() => insertText('', 'h3')} title="Heading 3">
-          H3
-        </ToolbarButton>
-        
-        <div className="w-px h-6 bg-gray-300 mx-1"></div>
-        
-        <ToolbarButton onClick={() => formatText('createLink', prompt('Enter URL:'))} title="Insert Link">
-          🔗
         </ToolbarButton>
       </div>
       

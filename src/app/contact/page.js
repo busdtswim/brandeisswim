@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Mail, MapPin } from 'lucide-react';
-import ContactForm from '@/components/ContactForm';
+import ContactForm from '@/components/forms/ContactForm';
 import {
   Accordion,
   AccordionContent,

@@ -10,7 +10,13 @@ import Image from 'next/image';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
-  password: Yup.string().min(8, 'Password must be at least 8 characters').required('Password is required'),
+  password: Yup.string()
+    .min(8, 'Password must be at least 8 characters')
+    .matches(/^(?=.*[a-z])/, 'Password must contain at least one lowercase letter')
+    .matches(/^(?=.*[A-Z])/, 'Password must contain at least one uppercase letter')
+    .matches(/^(?=.*\d)/, 'Password must contain at least one number')
+    .matches(/^(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])/, 'Password must contain at least one special character')
+    .required('Password is required'),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password'), null], 'Passwords must match')
     .required('Confirm password is required'),
@@ -250,6 +256,33 @@ const RegistrationForm = () => {
                         </button>
                       </div>
                       <ErrorMessage name="password" component="div" className="mt-1 text-sm text-red-600" />
+                      
+                      {/* Password Requirements */}
+                      <div className="mt-2 space-y-1">
+                        <p className="text-xs text-gray-600 font-medium">Password Requirements:</p>
+                        <div className="grid grid-cols-2 gap-1 text-xs">
+                          <div className={`flex items-center ${values.password.length >= 8 ? 'text-green-600' : 'text-gray-400'}`}>
+                            <Check className={`h-3 w-3 mr-1 ${values.password.length >= 8 ? 'text-green-600' : 'text-gray-400'}`} />
+                            At least 8 characters
+                          </div>
+                          <div className={`flex items-center ${/[a-z]/.test(values.password) ? 'text-green-600' : 'text-gray-400'}`}>
+                            <Check className={`h-3 w-3 mr-1 ${/[a-z]/.test(values.password) ? 'text-green-600' : 'text-gray-400'}`} />
+                            One lowercase letter
+                          </div>
+                          <div className={`flex items-center ${/[A-Z]/.test(values.password) ? 'text-green-600' : 'text-gray-400'}`}>
+                            <Check className={`h-3 w-3 mr-1 ${/[A-Z]/.test(values.password) ? 'text-green-600' : 'text-gray-400'}`} />
+                            One uppercase letter
+                          </div>
+                          <div className={`flex items-center ${/\d/.test(values.password) ? 'text-green-600' : 'text-gray-400'}`}>
+                            <Check className={`h-3 w-3 mr-1 ${/\d/.test(values.password) ? 'text-green-600' : 'text-gray-400'}`} />
+                            One number
+                          </div>
+                          <div className={`flex items-center ${/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(values.password) ? 'text-green-600' : 'text-gray-400'}`}>
+                            <Check className={`h-3 w-3 mr-1 ${/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(values.password) ? 'text-green-600' : 'text-gray-400'}`} />
+                            One special character
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     
                     <div>

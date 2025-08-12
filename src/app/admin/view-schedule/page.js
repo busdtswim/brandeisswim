@@ -2,8 +2,8 @@
 
 'use client';
 
-import ViewSchedule from '@/components/ViewSchedule';
+import AdminClassOverview from '@/components/admin/lessons/AdminClassOverview';
 
 export default function ViewSchedulePage() {
-  return <ViewSchedule />;
+  return <AdminClassOverview />;
 }
