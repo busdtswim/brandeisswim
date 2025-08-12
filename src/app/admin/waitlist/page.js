@@ -2,7 +2,7 @@
 
 'use client';
 
-import ViewWaitlist from '@/components/ViewWaitlist';
+import ViewWaitlist from '@/components/admin/ViewWaitlist';
 
 export default function WaitlistPage() {
   return <ViewWaitlist />;

@@ -1,34 +1,29 @@
 // src/app/api/auth/customer/profile/route.js
-
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-const UserStore = require('@/lib/stores/UserStore.js');
-const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
+import { getCustomerProfile, updateCustomerProfile } from '@/lib/handlers/customer/profile';
 
 // GET user profile data
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session) {
+    if (!session || !session.user || !session.user.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await UserStore.findByEmail(session.user.email);
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Get swimmers for this user
-    const swimmers = await SwimmerStore.findByUserId(user.id);
-
-    // Remove sensitive data
-    const { password, ...userWithoutPassword } = user;
-    return NextResponse.json({ ...userWithoutPassword, swimmers });
+    // Get customer profile
+    const result = await getCustomerProfile(session.user.email);
+    
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching user profile:', error);
+    
+    if (error.message.includes('not found')) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+    
     return NextResponse.json(
       { error: 'Failed to fetch user profile' }, 
       { status: 500 }
@@ -40,27 +35,23 @@ export async function GET() {
 export async function PUT(request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session || !session.user || !session.user.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const data = await request.json();
-    const user = await UserStore.findByEmail(session.user.email);
+    const updateData = await request.json();
     
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const updatedUser = await UserStore.update(user.id, {
-      email: data.email,
-      phone_number: data.phoneNumber,
-      fullname: data.fullName,
-    });
-
-    const { password, ...userWithoutPassword } = updatedUser;
-    return NextResponse.json(userWithoutPassword);
+    // Update customer profile
+    const result = await updateCustomerProfile(session.user.email, updateData);
+    
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error updating user profile:', error);
+    
+    if (error.message.includes('not found')) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+    
     return NextResponse.json(
       { error: 'Failed to update profile' }, 
       { status: 500 }

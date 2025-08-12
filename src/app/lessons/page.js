@@ -2,8 +2,7 @@
 'use client';
 
 import React from 'react';
-import LessonRegistration from '@/components/LessonRegistration';
-import Footer from '@/components/Footer';
+import LessonRegistration from '@/components/customer/lessons/LessonRegistration';
 
 const LessonsPage = () => {
   return (

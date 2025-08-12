@@ -4,19 +4,6 @@ import { NextResponse } from "next/server";
 
 export default withAuth(
   function middleware(req) {
-    const token = req.nextauth.token;
-    const path = req.nextUrl.pathname;
-
-    // Protect admin routes
-    if (path.startsWith("/admin") && token?.role !== "admin") {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-
-    // Protect customer routes
-    if (path.startsWith("/customer") && token?.role !== "customer") {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-
     return NextResponse.next();
   },
   {

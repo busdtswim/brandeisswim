@@ -2,7 +2,7 @@
 "use client";
 
 import React, { Suspense } from 'react';
-import ResetPasswordForm from '@/components/ResetPasswordForm';
+import ResetPasswordForm from '@/components/forms/ResetPasswordForm';
 
 // Loading component for Suspense fallback
 const LoadingState = () => (

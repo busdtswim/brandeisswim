@@ -2,8 +2,8 @@
 
 'use client';
 
-import ViewSchedule from '@/components/ViewUserSchedule';
+import CustomerSchedule from '@/components/customer/lessons/CustomerSchedule';
 
 export default function ViewSchedulePage() {
-  return <ViewSchedule />;
+  return <CustomerSchedule />;
 }

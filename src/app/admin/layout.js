@@ -1,7 +1,7 @@
 // src/app/admin/layout.js
 
 import React from 'react';
-import AdminSidebar from '@/components/AdminSideBar';
+import AdminSidebar from '@/components/admin/AdminSideBar';
 
 const AdminLayout = ({ children }) => {
   return (

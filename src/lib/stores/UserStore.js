@@ -36,7 +36,12 @@ const { z } = require('zod');
 // Zod schemas for validation
 const UserCreateSchema = z.object({
   email: z.string().email('Invalid email format'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/^(?=.*[a-z])/, 'Password must contain at least one lowercase letter')
+    .regex(/^(?=.*[A-Z])/, 'Password must contain at least one uppercase letter')
+    .regex(/^(?=.*\d)/, 'Password must contain at least one number')
+    .regex(/^(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])/, 'Password must contain at least one special character'),
   role: z.string().optional().default('customer'),
   phone_number: z.string().optional(),
   fullname: z.string().optional(),
@@ -44,7 +49,13 @@ const UserCreateSchema = z.object({
 
 const UserUpdateSchema = z.object({
   email: z.string().email('Invalid email format').optional(),
-  password: z.string().min(6, 'Password must be at least 6 characters').optional(),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/^(?=.*[a-z])/, 'Password must contain at least one lowercase letter')
+    .regex(/^(?=.*[A-Z])/, 'Password must contain at least one uppercase letter')
+    .regex(/^(?=.*\d)/, 'Password must contain at least one number')
+    .regex(/^(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])/, 'Password must contain at least one special character')
+    .optional(),
   role: z.string().optional(),
   phone_number: z.string().optional(),
   fullname: z.string().optional(),

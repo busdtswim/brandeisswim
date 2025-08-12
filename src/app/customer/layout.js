@@ -1,6 +1,6 @@
 // src/app/customer/layout.js
 import React from 'react';
-import Sidebar from '@/components/CustomerSideBar';
+import Sidebar from '@/components/customer/CustomerSideBar';
 
 const CustomerLayout = ({ children }) => {
   return (

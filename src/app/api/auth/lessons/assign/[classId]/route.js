@@ -1,6 +1,6 @@
 // src/app/api/auth/lessons/assign/[classId]/route.js
 import { NextResponse } from 'next/server';
-import { hasScheduleConflict } from '@/utils/timeUtils';
+import { hasScheduleConflict } from '@/lib/utils/timeUtils';
 const LessonStore = require('@/lib/stores/LessonStore.js');
 const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
 

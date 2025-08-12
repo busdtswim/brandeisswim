@@ -9,7 +9,6 @@ import {
   Save, 
   Trash2, 
   FileText, 
-  Edit3, 
   CheckCircle2, 
   AlertTriangle 
 } from 'lucide-react';
@@ -25,11 +24,6 @@ const ContentEditor = () => {
   const [newSectionKey, setNewSectionKey] = useState('');
   const [newSectionTitle, setNewSectionTitle] = useState('');
 
-  useEffect(() => {
-    fetchContent();
-  }, []);
-
-  // Wrap fetchContent in useCallback
   const fetchContent = async () => {
     try {
       setLoading(true);
@@ -59,6 +53,10 @@ const ContentEditor = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchContent();
+  }, []);
 
   const displayMessage = (text, type) => {
     setMessage({ text, type });
