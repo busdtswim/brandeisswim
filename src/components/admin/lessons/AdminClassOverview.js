@@ -28,6 +28,8 @@ const ViewSchedule = () => {
   const [message, setMessage] = useState({ text: '', type: '' });
   const [showMessage, setShowMessage] = useState(false);
   const [notesModal, setNotesModal] = useState({ open: false, notes: '' });
+  const [contactModal, setContactModal] = useState({ open: false, email: '', phone: '', swimmer: '', parentName: '' });
+  const [isAssigning, setIsAssigning] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -99,6 +101,7 @@ const ViewSchedule = () => {
 
   const handleInstructorAssign = async (classId, swimmerId, instructorId) => {
     try {
+      setIsAssigning(true);
       setAssignError(null);
       if (!instructorId) {
         // Unassign instructor
@@ -234,6 +237,8 @@ const ViewSchedule = () => {
       console.error('Error in handleInstructorAssign:', error);
       setAssignError(error.message);
       displayMessage(`Error: ${error.message}`, 'error');
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -535,7 +540,19 @@ const ViewSchedule = () => {
                           {classData.participants?.map((participant) => (
                             <tr key={participant.id} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="font-medium text-gray-900">{participant.name}</div>
+                                <button
+                                  type="button"
+                                  className="font-medium text-blue-600 hover:underline"
+                                  onClick={() => setContactModal({
+                                    open: true,
+                                    parentName: participant.parent_name || '',
+                                    email: participant.parent_email || '',
+                                    phone: participant.parent_phone_number || '',
+                                    swimmer: participant.name || ''
+                                  })}
+                                >
+                                  {participant.name}
+                                </button>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-gray-500">{participant.age} / {participant.gender}</div>
@@ -671,6 +688,45 @@ const ViewSchedule = () => {
             <div className="text-gray-700 whitespace-pre-line break-words max-h-60 overflow-y-auto">
               {notesModal.notes}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Parent Contact Modal */}
+      {contactModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setContactModal({ open: false, email: '', phone: '', swimmer: '', parentName: '' })}
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-lg font-semibold mb-4">Parent Contact</h3>
+            <div className="space-y-2 text-gray-700">
+              <div>
+                <span className="font-medium">Swimmer:</span> {contactModal.swimmer}
+              </div>
+              <div>
+                <span className="font-medium">Parent:</span> {contactModal.parentName || 'N/A'}
+              </div>
+              <div>
+                <span className="font-medium">Email:</span> {contactModal.email || 'N/A'}
+              </div>
+              <div>
+                <span className="font-medium">Phone:</span> {contactModal.phone || 'N/A'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign/Unassign Loading Modal */}
+      {isAssigning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 flex items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-b-0 border-blue-600 mr-4"></div>
+            <div className="text-gray-700">Updating instructor assignment...</div>
           </div>
         </div>
       )}

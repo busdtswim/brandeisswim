@@ -35,7 +35,10 @@ export async function GET() {
           preferred_instructor: participant.preferred_instructor,
           instructor_id: participant.instructor_id,
           preferred_instructor_id: participant.preferred_instructor_id,
-          instructor_notes: participant.instructor_notes
+          instructor_notes: participant.instructor_notes,
+          parent_name: participant.parent_name || null,
+          parent_email: participant.parent_email || null,
+          parent_phone_number: participant.parent_phone_number || null,
         })),
       };
     });

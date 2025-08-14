@@ -230,11 +230,13 @@ class LessonStore {
         SELECT l.id, l.meeting_days, l.max_slots, l.exception_dates, l.start_time, l.end_time, l.start_date, l.end_date,
                sl.swimmer_id, sl.registration_date, sl.payment_status, sl.instructor_id, sl.instructor_notes, sl.preferred_instructor_id,
                s.name as swimmer_name, s.proficiency, s.gender, s.birthdate,
+               u.fullname as parent_name, u.email as parent_email, u.phone_number as parent_phone_number,
                i1.name as instructor_name, i1.email as instructor_email,
                i2.name as preferred_instructor_name, i2.email as preferred_instructor_email
         FROM lessons l
         LEFT JOIN swimmer_lessons sl ON l.id = sl.lesson_id
         LEFT JOIN swimmers s ON sl.swimmer_id = s.id
+        LEFT JOIN users u ON s.user_id = u.id
         LEFT JOIN instructors i1 ON sl.instructor_id = i1.id
         LEFT JOIN instructors i2 ON sl.preferred_instructor_id = i2.id
         ORDER BY l.id, sl.registration_date
@@ -273,6 +275,9 @@ class LessonStore {
             proficiency: row.proficiency,
             gender: row.gender,
             birthdate: row.birthdate,
+            parent_name: row.parent_name,
+            parent_email: row.parent_email,
+            parent_phone_number: row.parent_phone_number,
             instructor: row.instructor_name ? {
               id: row.instructor_id,
               name: row.instructor_name,
