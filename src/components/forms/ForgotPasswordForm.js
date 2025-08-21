@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import Link from 'next/link';
-import { Mail } from 'lucide-react';
+import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email format').required('Email is required'),
@@ -59,84 +59,88 @@ const ForgotPasswordForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center w-full bg-blue-100">
-      <div className="bg-white shadow-md rounded-lg px-8 py-6 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-6 text-[#003478]">Forgot Password</h1>
-        
-        {status.submitted ? (
-          <div className={`p-4 mb-4 ${status.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'} rounded-md`}>
-            <p>{status.message}</p>
-            {status.success && (
-              <p className="mt-2">
-                Please check your email for further instructions. 
-                The link will expire in 1 hour for security reasons.
-              </p>
+    <div className="w-full">
+      {status.submitted ? (
+        <div className={`p-6 rounded-xl border ${
+          status.success 
+            ? 'bg-green-50 border-green-200 text-green-700' 
+            : 'bg-red-50 border-red-200 text-red-700'
+        }`}>
+          <div className="flex items-center gap-3 mb-4">
+            {status.success ? (
+              <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+            ) : (
+              <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
             )}
-            <div className="mt-4">
-              <Link 
-                href="/login" 
-                className="text-[#003478] hover:underline"
-              >
-                Return to Login
-              </Link>
-            </div>
+            <p className="font-medium">{status.message}</p>
           </div>
-        ) : (
-          <Formik
-            initialValues={initialValues}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
+          
+          {status.success && (
+            <p className="text-sm mb-4">
+              Please check your email for further instructions. 
+              The link will expire in 1 hour for security reasons.
+            </p>
+          )}
+          
+          <Link 
+            href="/login" 
+            className="inline-flex items-center gap-2 text-sm font-medium text-pool-blue hover:text-brandeis-blue transition-colors duration-200"
           >
-            {({ isSubmitting }) => (
-              <Form className="space-y-4">
-                <p className="text-gray-600 mb-4">
-                  Enter your email address and we&#39;ll send you a link to reset your password.
-                </p>
-                
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-[#003478] mb-2">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <Mail size={18} className="text-gray-400" />
-                    </div>
-                    <Field
-                      type="email"
-                      id="email"
-                      name="email"
-                      className="pl-10 shadow-sm rounded-md w-full px-3 py-2 border border-[#003478] focus:outline-none focus:ring-2 focus:ring-cyan-300 text-black placeholder-gray-400"
-                      placeholder="your@email.com"
-                    />
+            Return to Login
+          </Link>
+        </div>
+      ) : (
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ isSubmitting }) => (
+            <Form className="space-y-6">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="w-5 h-5 text-gray-400" />
                   </div>
-                  <ErrorMessage 
-                    name="email" 
-                    component="div" 
-                    className="mt-1 text-sm text-red-600" 
+                  <Field
+                    type="email"
+                    id="email"
+                    name="email"
+                    className="w-full px-4 py-3 md:py-4 pl-11 rounded-xl border border-gray-200 focus:border-pool-blue focus:ring-2 focus:ring-pool-blue/20 transition-all duration-200 text-gray-900 placeholder-gray-500"
+                    placeholder="your@email.com"
                   />
                 </div>
+                <ErrorMessage 
+                  name="email" 
+                  component="div" 
+                  className="mt-1 text-sm text-red-500" 
+                />
+              </div>
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#003478] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Sending...' : 'Send Reset Link'}
-                </button>
-                
-                <div className="text-center mt-4">
-                  <Link
-                    href="/login"
-                    className="text-sm text-[#003478] hover:underline"
-                  >
-                    Back to Login
-                  </Link>
-                </div>
-              </Form>
-            )}
-          </Formik>
-        )}
-      </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-pool-blue hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold px-8 py-3 md:py-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Sending Reset Link...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5" />
+                    <span>Send Reset Link</span>
+                  </>
+                )}
+              </button>
+            </Form>
+          )}
+        </Formik>
+      )}
     </div>
   );
 };

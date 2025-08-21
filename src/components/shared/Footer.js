@@ -1,202 +1,192 @@
 // src/components/Footer.js
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { Mail, MapPin, Instagram, ArrowUpRight, Heart, Shield, Users } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="bg-[#111827] text-white py-16">
-      <div className="container mx-auto px-4">
+    <footer className="relative bg-gradient-to-br from-gray-900 via-brandeis-blue to-gray-900 text-white overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-pool-blue/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-300/5 rounded-full blur-3xl"></div>
+      
+      <div className="relative z-10">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
-          {/* Column 1 - About */}
-          <div>
-            <h3 className="text-xl font-bold mb-6">Brandeis Swim Lessons</h3>
-            <p className="text-gray-400 mb-8 leading-relaxed">
-              Providing professional swim instruction in a safe and supportive environment 
-              for swimmers of all ages and abilities.
-            </p>
-            <div className="flex">
-              <a 
-                href="https://www.instagram.com/brandeisswimanddive" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-gray-400 hover:text-white transition-colors"
-                aria-label="Instagram"
-              >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                </svg>
-              </a>
+        <div className="py-16 md:py-20 lg:py-24 px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+              
+              {/* Column 1 - Brand */}
+              <div className="lg:col-span-2">
+                <div className="flex items-center mb-6">
+                  <div>
+                    <span className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-cyan-300 bg-clip-text text-transparent">
+                      Brandeis Swim
+                    </span>
+                    <p className="text-sm text-white/70 font-medium">Professional Instruction</p>
+                  </div>
+                </div>
+                
+                <p className="text-white/80 mb-8 leading-relaxed text-lg max-w-lg">
+                  Providing professional swim instruction in a safe and supportive environment 
+                  for swimmers of all ages and abilities. Join our community and discover the joy of swimming.
+                </p>
+                
+                {/* Key Features */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                    <div className="w-8 h-8 bg-gradient-to-r from-pool-blue to-cyan-300 rounded-lg flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">Safety First</p>
+                      <p className="text-xs text-white/70">1:1 Instruction</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                    <div className="w-8 h-8 bg-gradient-to-r from-brandeis-blue to-pool-blue rounded-lg flex items-center justify-center">
+                      <Users className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">All Ages</p>
+                      <p className="text-xs text-white/70">1+ years old</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                    <div className="w-8 h-8 bg-gradient-to-r from-cyan-300 to-pool-blue rounded-lg flex items-center justify-center">
+                      <Heart className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">Caring</p>
+                      <p className="text-xs text-white/70">Expert Team</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Social Media */}
+                <div className="flex items-center gap-4">
+                  <span className="text-white/70 font-medium">Follow us:</span>
+                  <a 
+                    href="https://www.instagram.com/brandeisswimanddive" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="w-10 h-10 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center text-white hover:scale-110 transition-all duration-200 hover:shadow-lg group"
+                    aria-label="Follow us on Instagram"
+                  >
+                    <Instagram className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                  </a>
+                </div>
+              </div>
+              
+              {/* Column 2 - Quick Links */}
+              <div>
+                <h3 className="text-xl font-bold mb-6 text-white">Quick Links</h3>
+                <ul className="space-y-4">
+                  {[
+                    { href: '/', label: 'Home' },
+                    { href: '/lessons', label: 'Swim Lessons' },
+                    { href: '/register', label: 'Join Us' },
+                    { href: '/contact', label: 'Contact Us' },
+                    { href: '/login', label: 'Sign In' }
+                  ].map((link) => (
+                    <li key={link.href}>
+                      <Link 
+                        href={link.href} 
+                        className="group flex items-center text-white/80 hover:text-white transition-all duration-200 hover:translate-x-1"
+                      >
+                        <ArrowUpRight className="w-4 h-4 mr-2 text-pool-blue group-hover:text-cyan-300 transition-colors duration-200" />
+                        <span className="font-medium">{link.label}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              {/* Column 3 - Contact Info */}
+              <div>
+                <h3 className="text-xl font-bold mb-6 text-white">Get In Touch</h3>
+                <div className="space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-gradient-to-r from-pool-blue to-brandeis-blue rounded-xl flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-white mb-1">Visit Us</p>
+                      <p className="text-white/80 text-sm leading-relaxed">
+                        Joseph M. Linsey Sports Center<br />
+                        Brandeis University<br />
+                        Waltham, MA 02453
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-gradient-to-r from-brandeis-blue to-pool-blue rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-white mb-1">Email Us</p>
+                      <a 
+                        href="mailto:busdtswimlessons@brandeis.edu" 
+                        className="text-cyan-300 hover:text-white transition-colors duration-200 text-sm font-medium hover:underline"
+                      >
+                        busdtswimlessons@brandeis.edu
+                      </a>
+                      <p className="text-white/60 text-xs mt-1">We respond within 24-48 hours</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          
-          {/* Column 2 - Quick Links */}
-          <div>
-            <h3 className="text-xl font-bold mb-6">Quick Links</h3>
-            <ul className="space-y-5">
-              <li>
-                <Link href="/lessons" className="text-gray-400 hover:text-white transition-colors inline-flex items-center">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="18" 
-                    height="18" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className="mr-2"
-                  >
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                  </svg>
-                  Swim Lessons
-                </Link>
-              </li>
-              <li>
-                <Link href="/register" className="text-gray-400 hover:text-white transition-colors inline-flex items-center">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="18" 
-                    height="18" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className="mr-2"
-                  >
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                  </svg>
-                  Register
-                </Link>
-              </li>
-              <li>
-                <Link href="/login" className="text-gray-400 hover:text-white transition-colors inline-flex items-center">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="18" 
-                    height="18" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className="mr-2"
-                  >
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                  </svg>
-                  Login
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-400 hover:text-white transition-colors inline-flex items-center">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="18" 
-                    height="18" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className="mr-2"
-                  >
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                  </svg>
-                  Contact Us
-                </Link>
-              </li>
-            </ul>
-          </div>
-          
-          {/* Column 3 - Contact */}
-          <div>
-            <h3 className="text-xl font-bold mb-6">Contact Us</h3>
-            <ul className="space-y-5">
-              <li className="flex items-start">
-                <span className="text-blue-500 mr-3 mt-1 flex-shrink-0">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="18" 
-                    height="18" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                  </svg>
-                </span>
-                <span className="text-gray-400">
-                  Joseph M. Linsey Sports Center<br />
-                  Waltham, MA 02453
-                </span>
-              </li>
-              <li className="flex items-center">
-                <span className="text-blue-500 mr-3 flex-shrink-0">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="18" 
-                    height="18" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
-                  </svg>
-                </span>
-                <a href="mailto:busdtswimlessons@brandeis.edu" className="text-gray-400 hover:text-white transition-colors">
-                  busdtswimlessons@brandeis.edu
-                </a>
-              </li>
-            </ul>
           </div>
         </div>
         
         {/* Divider */}
-        <hr className="border-gray-800 mb-8" />
+        <div className="border-t border-white/10"></div>
         
         {/* Bottom Bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-500 text-sm mb-4 md:mb-0">
-            &copy; {currentYear} Brandeis Swimming Lessons. All rights reserved.
-          </p>
-          <div className="flex space-x-6">
-            <Link href="/privacy-policy" className="text-gray-500 hover:text-white text-sm transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="/terms-of-service" className="text-gray-500 hover:text-white text-sm transition-colors">
-              Terms of Service
-            </Link>
+        <div className="py-8 px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+                <p className="text-white/70 text-sm">
+                  &copy; {currentYear} Brandeis Swimming Lessons. All rights reserved.
+                </p>
+                <div className="flex items-center gap-1 text-white/70 text-sm">
+                  <span>Made with</span>
+                  <Heart className="w-4 h-4 text-red-400 fill-current" />
+                  <span>for swimmers</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-6">
+                <Link 
+                  href="/privacy-policy" 
+                  className="text-white/70 hover:text-white text-sm transition-colors duration-200 hover:underline"
+                >
+                  Privacy Policy
+                </Link>
+                <Link 
+                  href="/terms-of-service" 
+                  className="text-white/70 hover:text-white text-sm transition-colors duration-200 hover:underline"
+                >
+                  Terms of Service
+                </Link>
+                <div className="hidden sm:block h-4 w-px bg-white/20"></div>
+                <Link 
+                  href="/contact" 
+                  className="text-sm font-medium text-cyan-300 hover:text-white transition-colors duration-200 flex items-center gap-1"
+                >
+                  <span>Questions?</span>
+                  <ArrowUpRight className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>

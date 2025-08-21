@@ -59,8 +59,8 @@ const UserUpdateSchema = z.object({
   role: z.string().optional(),
   phone_number: z.string().optional(),
   fullname: z.string().optional(),
-  reset_token: z.string().optional(),
-  reset_token_expiry: z.string().optional(),
+  reset_token: z.string().nullable().optional(),
+  reset_token_expiry: z.string().nullable().optional(),
 });
 
 class UserStore {
@@ -258,6 +258,26 @@ class UserStore {
       return result.rows[0] || null;
     } catch (error) {
       throw new Error(`Failed to update reset token: ${error.message}`);
+    }
+  }
+
+  /**
+   * Find user by reset token
+   * @param {string} resetToken
+   * @returns {Promise<User|null>}
+   */
+  static async findByResetToken(resetToken) {
+    try {
+      const query = `
+        SELECT id, email, password, role, phone_number, fullname, reset_token, reset_token_expiry
+        FROM users
+        WHERE reset_token = $1
+      `;
+      
+      const result = await pool.query(query, [resetToken]);
+      return result.rows[0] || null;
+    } catch (error) {
+      throw new Error(`Failed to find user by reset token: ${error.message}`);
     }
   }
 
