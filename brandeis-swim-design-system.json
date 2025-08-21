@@ -1,0 +1,532 @@
+{
+  "brandeis_swim_design_system": {
+    "overview": {
+      "name": "Brandeis Swim Modern Design System",
+      "version": "2.0",
+      "scope": "CUSTOMER-FACING PAGES ONLY - No admin/backend modifications",
+      "mobile_first": true,
+      "description": "Modern, engaging design system for Brandeis Swim Lessons website with emphasis on user experience, mobile responsiveness, and seamless integration with existing CMS functionality",
+      "last_updated": "2024",
+      "framework": "Next.js + Tailwind CSS"
+    },
+
+    "design_principles": {
+      "primary_focus": [
+        "Mobile-first responsive design with touch-friendly interfaces",
+        "Modern, clean aesthetic with purposeful dynamic elements",
+        "Engaging user experience with smooth, performant animations",
+        "Clear information hierarchy and intuitive navigation",
+        "Strategic call-to-action placement for conversion optimization",
+        "WCAG AA accessibility compliance",
+        "Seamless integration with existing EditableContent CMS system"
+      ],
+      "avoid": [
+        "Static, boring layouts that don't engage users",
+        "Poor mobile experience or non-responsive elements",
+        "Overwhelming or distracting animations",
+        "Hard-to-read fonts or poor contrast ratios",
+        "Confusing navigation patterns",
+        "Breaking existing admin functionality",
+        "Ignoring performance implications"
+      ]
+    },
+
+    "color_palette": {
+      "primary": {
+        "brandeis_blue": "#003d7a",
+        "pool_blue": "#0ea5e9",
+        "description": "Main brand colors - use for headers, CTAs, and accent elements",
+        "usage": "brandeis_blue for trust/authority, pool_blue for energy/action"
+      },
+      "secondary": {
+        "cyan_400": "#22d3ee",
+        "blue_500": "#3b82f6",
+        "purple_500": "#a855f7",
+        "description": "Support colors for gradients, highlights, and visual variety"
+      },
+      "neutral": {
+        "gray_50": "#f9fafb",
+        "gray_100": "#f3f4f6",
+        "gray_600": "#4b5563",
+        "gray_900": "#111827",
+        "white": "#ffffff",
+        "description": "Text, background, and subtle accent colors"
+      },
+      "gradients": {
+        "hero_gradient": "linear-gradient(135deg, #0ea5e9 0%, #003d7a 100%)",
+        "text_gradient": "linear-gradient(135deg, #0ea5e9, #003d7a)",
+        "card_gradients": [
+          "from-blue-50 to-cyan-50",
+          "from-cyan-50 to-blue-50",
+          "from-purple-50 to-blue-50",
+          "from-pool-blue/10 to-brandeis-blue/10"
+        ]
+      },
+      "accessibility": {
+        "contrast_ratios": "All combinations tested for WCAG AA compliance",
+        "color_blindness": "Tested with common color vision deficiencies",
+        "fallbacks": "Semantic HTML ensures functionality without color"
+      }
+    },
+
+    "tailwind_integration": {
+      "custom_colors": {
+        "brandeis-blue": "#003d7a",
+        "pool-blue": "#0ea5e9"
+      },
+      "config_location": "tailwind.config.js - add to theme.extend.colors",
+      "css_variables": "Consider adding CSS custom properties for dynamic theming"
+    },
+
+    "typography": {
+      "font_stack": "System fonts for performance: ui-sans-serif, system-ui, sans-serif",
+      "headings": {
+        "h1": "text-4xl md:text-6xl lg:text-7xl font-bold leading-tight",
+        "h2": "text-3xl md:text-4xl lg:text-5xl font-bold leading-tight",
+        "h3": "text-2xl md:text-3xl font-bold leading-snug",
+        "h4": "text-xl md:text-2xl font-bold leading-snug",
+        "mobile_scaling": "More aggressive scaling on mobile for readability"
+      },
+      "body": {
+        "large": "text-xl md:text-2xl leading-relaxed",
+        "medium": "text-lg md:text-xl leading-relaxed",
+        "normal": "text-base md:text-lg leading-normal",
+        "small": "text-sm md:text-base leading-normal",
+        "minimum_mobile": "16px minimum for body text on mobile"
+      },
+      "special_effects": {
+        "gradient_text": "text-transparent bg-clip-text bg-gradient-to-r from-pool-blue to-brandeis-blue",
+        "description": "Use sparingly for emphasis in hero sections",
+        "fallback": "Ensure readable fallback for unsupported browsers"
+      },
+      "accessibility": {
+        "line_height": "Minimum 1.5 for body text, 1.2 for headings",
+        "letter_spacing": "Slight positive tracking for large headings"
+      }
+    },
+
+    "layout_patterns": {
+      "hero_section": {
+        "structure": "Full viewport height with gradient background or image overlay",
+        "content": "Centered content with optional split layout on desktop",
+        "mobile": "Stack vertically with proper spacing, reduce height",
+        "animations": "Staggered fade-in animations for content elements",
+        "elements": [
+          "Large headline with optional gradient text accent",
+          "Compelling subtitle (max 2 lines on mobile)",
+          "Primary and secondary CTA buttons",
+          "Stats/quick facts in cards or inline",
+          "Subtle floating background elements",
+          "Scroll indicator for engagement"
+        ],
+        "mobile_optimizations": [
+          "Reduce hero height to 70vh on mobile",
+          "Stack CTAs vertically with full width",
+          "Ensure text remains readable on all devices"
+        ]
+      },
+      "content_sections": {
+        "spacing": "py-16 md:py-20 lg:py-24 for major sections",
+        "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+        "grid_layouts": [
+          "grid-cols-1 md:grid-cols-2 for two-column content",
+          "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 for feature cards",
+          "grid-cols-1 md:grid-cols-2 xl:grid-cols-4 for stat cards"
+        ],
+        "section_headers": {
+          "structure": "Optional accent line + category + large heading + subtitle",
+          "example": "Small accent + 'Our Program' + 'Excellence Through Experience' + description",
+          "spacing": "mb-12 md:mb-16 for section headers"
+        }
+      },
+      "card_designs": {
+        "hover_effects": "Transform hover:scale-[1.02] hover:shadow-xl transition-all duration-300",
+        "backgrounds": "bg-white with subtle borders or gradient backgrounds",
+        "padding": "p-6 md:p-8 for content cards",
+        "border_radius": "rounded-2xl md:rounded-3xl for modern look",
+        "icons": "w-12 h-12 md:w-16 md:h-16 icons in colored rounded containers",
+        "shadow": "shadow-sm hover:shadow-xl for depth"
+      }
+    },
+
+    "animation_system": {
+      "scroll_animations": {
+        "implementation": "Intersection Observer API for performance",
+        "class": "opacity-0 translate-y-8 transition-all duration-700 ease-out",
+        "active_class": "opacity-100 translate-y-0",
+        "stagger_delay": "100ms between elements for smooth reveal"
+      },
+      "hover_animations": {
+        "cards": "hover:scale-[1.02] hover:-translate-y-2 transition-transform duration-300",
+        "buttons": "hover:scale-105 hover:shadow-lg transition-all duration-200",
+        "icons": "group-hover:translate-x-1 transition-transform duration-200"
+      },
+      "background_elements": {
+        "floating": "Subtle translate animations for decorative elements",
+        "blur_effects": "Large blur circles with slow movement for ambient lighting"
+      },
+      "performance": {
+        "prefer_transforms": "Use transform and opacity for animations",
+        "reduced_motion": "Respect prefers-reduced-motion media query",
+        "gpu_acceleration": "Use transform3d() for GPU acceleration"
+      }
+    },
+
+    "component_library": {
+      "buttons": {
+        "primary_cta": {
+          "classes": "bg-pool-blue hover:bg-blue-600 text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg",
+          "mobile": "w-full sm:w-auto, min-height 44px for touch"
+        },
+        "secondary_cta": {
+          "classes": "bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg transition-all duration-300 transform hover:scale-105 hover:bg-white/20",
+          "mobile": "w-full sm:w-auto, min-height 44px for touch"
+        },
+        "outline_button": {
+          "classes": "border-2 border-pool-blue text-pool-blue hover:bg-pool-blue hover:text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg transition-all duration-300"
+        }
+      },
+      "navigation": {
+        "structure": "Fixed top navigation with backdrop blur",
+        "mobile": "Collapsible hamburger menu with smooth transitions",
+        "brand": "Logo + 'Brandeis Swim' text with proper sizing",
+        "cta": "Register button always visible in navigation",
+        "backdrop": "backdrop-blur-lg bg-white/80"
+      },
+      "cards": {
+        "info_card": {
+          "classes": "bg-white/10 backdrop-blur-lg rounded-2xl md:rounded-3xl p-6 md:p-8 border border-white/20 shadow-lg",
+          "content": "Stats, quick facts, or key information with icons"
+        },
+        "feature_card": {
+          "classes": "bg-gradient-to-br [gradient-colors] p-6 md:p-8 rounded-2xl md:rounded-3xl border border-white/10 shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]",
+          "structure": "Icon container + Title + Description + optional CTA"
+        },
+        "testimonial_card": {
+          "classes": "bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300",
+          "content": "Star rating + Quote + Attribution with photo"
+        }
+      },
+      "forms": {
+        "input_styling": "w-full px-4 py-3 md:py-4 rounded-xl border border-gray-200 focus:border-pool-blue focus:ring-2 focus:ring-pool-blue/20 transition-all duration-200",
+        "label_styling": "block text-sm font-medium text-gray-700 mb-2",
+        "error_styling": "text-red-500 text-sm mt-1",
+        "mobile_considerations": "Minimum 44px height, 16px font size to prevent zoom"
+      }
+    },
+
+    "mobile_optimization": {
+      "breakpoints": {
+        "sm": "640px - Large phones",
+        "md": "768px - Tablets",
+        "lg": "1024px - Small laptops",
+        "xl": "1280px - Large screens",
+        "2xl": "1536px - Extra large screens"
+      },
+      "mobile_specific": {
+        "text_sizing": "Minimum 16px for body text to prevent zoom",
+        "touch_targets": "Minimum 44px x 44px for all interactive elements",
+        "spacing": "Minimum 8px between touch targets",
+        "images": "Responsive with proper aspect ratios and Next.js optimization",
+        "navigation": "Thumb-friendly with easy-to-reach menu button"
+      },
+      "responsive_patterns": {
+        "grids": "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 (progressive enhancement)",
+        "flex": "flex-col sm:flex-row gap-4 (stack on mobile)",
+        "text": "text-2xl md:text-4xl lg:text-5xl (progressive scaling)",
+        "padding": "px-4 sm:px-6 lg:px-8 (responsive spacing)",
+        "margins": "mb-8 md:mb-12 lg:mb-16 (progressive spacing)"
+      },
+      "performance": {
+        "images": "Next.js Image with priority for above-fold content",
+        "fonts": "System fonts for fast loading",
+        "critical_css": "Inline critical path CSS for faster rendering"
+      }
+    },
+
+    "current_pages_to_update": {
+      "customer_facing": {
+        "home": {
+          "path": "/",
+          "component": "src/components/shared/ModernHomePage.js",
+          "status": "Partially modern - needs design system integration",
+          "priority": "High",
+          "updates_needed": ["Color palette integration", "Animation system", "Mobile optimization"]
+        },
+        "lessons": {
+          "path": "/lessons",
+          "component": "src/app/lessons/page.js + LessonRegistration component",
+          "status": "Basic hero - needs complete redesign", 
+          "priority": "High",
+          "updates_needed": ["Modern hero section", "Feature cards", "Testimonials", "Improved registration flow"]
+        },
+        "register": {
+          "path": "/register",
+          "component": "src/app/register/page.js",
+          "status": "Basic form - needs modern styling",
+          "priority": "Medium",
+          "updates_needed": ["Modern form design", "Hero section", "Progress indicators"]
+        },
+        "login": {
+          "path": "/login", 
+          "component": "src/app/login/page.js",
+          "status": "Basic form - needs modern styling",
+          "priority": "Medium",
+          "updates_needed": ["Modern form design", "Better UX"]
+        },
+        "contact": {
+          "path": "/contact",
+          "component": "src/app/contact/page.js",
+          "status": "Needs complete modern design",
+          "priority": "Medium",
+          "updates_needed": ["Hero section", "Contact form", "Location info", "FAQ section"]
+        },
+        "auth_pages": {
+          "paths": ["/forgot-password", "/reset-password"],
+          "status": "Basic forms - need styling consistency",
+          "priority": "Low",
+          "updates_needed": ["Consistent styling with other auth forms"]
+        },
+        "static_pages": {
+          "paths": ["/privacy-policy", "/terms-of-service"],
+          "status": "Need modern layout",
+          "priority": "Low",
+          "updates_needed": ["Modern typography", "Better readability"]
+        }
+      },
+      "protected_customer": {
+        "customer_dashboard": {
+          "path": "/customer/*",
+          "component": "Has sidebar layout with CustomerSideBar",
+          "status": "Functional - optional enhancement",
+          "priority": "Optional",
+          "note": "Maintain existing functionality, optionally apply design system colors"
+        }
+      },
+      "exclude_completely": [
+        "/admin/* - No changes to admin interface per requirements",
+        "/api/* - Backend routes not affected"
+      ]
+    },
+
+    "content_management": {
+      "cms_integration": {
+        "editable_content": {
+          "component": "EditableContent from @/components/admin/EditableContent",
+          "approach": "Wrap in modern design system containers",
+          "styling": "Apply typography and spacing from design system",
+          "compatibility": "Ensure CMS content inherits modern styles"
+        },
+        "admin_functionality": {
+          "preserve": "All existing admin editing capabilities",
+          "enhance": "Only visual presentation of editable areas"
+        }
+      }
+    },
+
+    "implementation_priority": {
+      "phase_1_foundation": {
+        "tasks": [
+          "Add custom colors to tailwind.config.js",
+          "Add custom utilities to globals.css",
+          "Create reusable component classes",
+          "Update ModernHomePage with new design system"
+        ],
+        "estimated_time": "2-3 hours"
+      },
+      "phase_2_core_pages": {
+        "tasks": [
+          "Redesign /lessons page with modern hero and features",
+          "Modernize auth forms (login, register, forgot-password, reset-password)",
+          "Add scroll animations and mobile optimizations"
+        ],
+        "estimated_time": "4-5 hours"
+      },
+      "phase_3_additional_pages": {
+        "tasks": [
+          "Create modern /contact page",
+          "Update static pages (privacy, terms)",
+          "Add any missing components to component library"
+        ],
+        "estimated_time": "2-3 hours"
+      },
+      "phase_4_enhancements": {
+        "tasks": [
+          "Optional customer dashboard styling enhancements",
+          "Performance optimizations",
+          "Accessibility audit and improvements"
+        ],
+        "estimated_time": "2-3 hours"
+      }
+    },
+
+    "accessibility_requirements": {
+      "color_contrast": {
+        "text_on_brandeis_blue": "White text tested for WCAG AA compliance",
+        "pool_blue_backgrounds": "Test with various text colors",
+        "gradient_text": "Provide solid color fallback for accessibility",
+        "testing": "Use tools like WebAIM Contrast Checker"
+      },
+      "focus_management": {
+        "visible_focus": "Custom focus rings using ring-2 ring-pool-blue/50",
+        "skip_links": "Add skip to main content link",
+        "keyboard_navigation": "All interactive elements keyboard accessible",
+        "tab_order": "Logical tab order throughout pages"
+      },
+      "screen_readers": {
+        "alt_text": "Descriptive alt text for all images",
+        "aria_labels": "Proper ARIA labels for complex interactions",
+        "headings": "Proper heading hierarchy (h1 → h2 → h3)",
+        "landmarks": "Use semantic HTML5 landmarks"
+      },
+      "reduced_motion": {
+        "media_query": "@media (prefers-reduced-motion: reduce)",
+        "fallback": "Disable animations for users who prefer reduced motion",
+        "essential_motion": "Keep only essential animations for UX"
+      }
+    },
+
+    "performance_optimizations": {
+      "animation_performance": {
+        "prefer_css_transforms": "Use transform and opacity for smooth animations",
+        "intersection_observer": "Use for scroll-triggered animations",
+        "debounce_scroll": "Debounce scroll events to improve performance",
+        "gpu_acceleration": "Use transform3d() for hardware acceleration"
+      },
+      "loading_strategies": {
+        "hero_images": "Priority loading with Next.js Image component",
+        "below_fold": "Lazy loading with proper placeholders",
+        "critical_css": "Inline critical path CSS for faster rendering",
+        "font_loading": "Use system fonts for immediate rendering"
+      },
+      "code_splitting": {
+        "component_lazy_loading": "Lazy load components below the fold",
+        "route_splitting": "Automatic with Next.js App Router",
+        "chunk_optimization": "Optimize bundle sizes"
+      }
+    },
+
+    "css_utilities": {
+      "custom_classes_for_globals_css": {
+        "glass_effect": ".glass-effect { backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }",
+        "gradient_text": ".gradient-text { background: linear-gradient(135deg, #0ea5e9, #003d7a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent; }",
+        "card_hover": ".card-hover { transition: all 0.3s ease; } .card-hover:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); }",
+        "scroll_reveal": ".scroll-reveal { opacity: 0; transform: translateY(30px); transition: all 0.6s ease-out; } .scroll-reveal.revealed { opacity: 1; transform: translateY(0); }",
+        "floating_animation": "@keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } } .float { animation: float 3s ease-in-out infinite; }"
+      },
+      "responsive_utilities": {
+        "container_queries": "Consider using container queries for component-level responsiveness",
+        "aspect_ratios": "Use aspect-w-16 aspect-h-9 for consistent image ratios",
+        "grid_helpers": "Custom grid utilities for common layouts"
+      }
+    },
+
+    "content_strategy": {
+      "messaging_hierarchy": {
+        "primary": "Dive Into Excellence - Quality instruction meets personalized attention",
+        "secondary": "Safety meets fun - Professional environment with caring instructors", 
+        "tertiary": "All ages welcome - Flexible scheduling for busy families"
+      },
+      "call_to_actions": {
+        "primary": ["Register Now", "Start Your Journey", "Book Your First Lesson"],
+        "secondary": ["Learn More", "Contact Us", "View Programs", "Schedule Tour"],
+        "urgency": ["Limited Spots Available", "Register Today", "Don't Miss Out"]
+      },
+      "social_proof": {
+        "stats": "500+ Happy Swimmers, 15+ Expert Instructors, 10+ Years Experience, 98% Satisfaction Rate",
+        "testimonials": "Focus on transformation, confidence building, and family satisfaction",
+        "certifications": "Highlight instructor certifications and safety records"
+      },
+      "emotional_triggers": {
+        "safety": "Peace of mind for parents",
+        "confidence": "Building water confidence",
+        "community": "Joining a swimming community",
+        "achievement": "Celebrating milestones"
+      }
+    },
+
+    "instructions_for_ai": {
+      "implementation_requirements": [
+        "ALWAYS use mobile-first responsive design approach",
+        "ALWAYS include scroll animations for user engagement",
+        "ALWAYS use the established color palette and typography system",
+        "ALWAYS include proper hover states and smooth transitions",
+        "ALWAYS ensure 44px minimum touch targets on mobile",
+        "ALWAYS include multiple clear CTAs per page",
+        "ALWAYS test accessibility with screen readers in mind",
+        "ALWAYS preserve existing EditableContent CMS functionality",
+        "NEVER modify admin/backend functionality",
+        "NEVER ignore mobile optimization requirements",
+        "NEVER use animations that could cause motion sickness",
+        "NEVER break existing component props or functionality"
+      ],
+      "page_structure_template": [
+        "Start with engaging hero section with clear value proposition",
+        "Add navigation breadcrumbs for internal pages",
+        "Use progressive disclosure for complex information",
+        "Include social proof throughout (testimonials, stats)",
+        "Add FAQ sections where appropriate",
+        "End with compelling CTA section",
+        "Maintain consistent header/footer across all pages"
+      ],
+      "mobile_first_approach": [
+        "Design for 320px width first",
+        "Test all layouts on actual mobile devices",
+        "Ensure readable text without zooming",
+        "Make buttons and links thumb-friendly",
+        "Stack content vertically with proper spacing",
+        "Optimize images for different screen densities",
+        "Use system fonts for fast loading on mobile"
+      ],
+      "component_development": [
+        "Create reusable components following design system",
+        "Use TypeScript for better development experience", 
+        "Include prop validation and default values",
+        "Document component usage and variants",
+        "Test components in isolation",
+        "Ensure components work with existing CMS system"
+      ]
+    },
+
+    "testing_checklist": {
+      "responsive_testing": [
+        "Test on actual mobile devices (iOS Safari, Android Chrome)",
+        "Check tablet layouts (iPad, Android tablets)",
+        "Verify desktop layouts (Chrome, Firefox, Safari, Edge)",
+        "Test landscape and portrait orientations",
+        "Check print styles"
+      ],
+      "accessibility_testing": [
+        "Screen reader testing (NVDA, JAWS, VoiceOver)",
+        "Keyboard navigation testing",
+        "Color contrast verification",
+        "Focus indicator visibility",
+        "Alternative text for images"
+      ],
+      "performance_testing": [
+        "Core Web Vitals (LCP, FID, CLS)",
+        "Mobile PageSpeed scores",
+        "Image optimization verification", 
+        "JavaScript bundle size analysis",
+        "CSS critical path optimization"
+      ]
+    },
+
+    "maintenance_guidelines": {
+      "regular_updates": [
+        "Review and update color palette annually",
+        "Test new browser features and compatibility",
+        "Update dependencies and security patches",
+        "Refresh content and imagery",
+        "Monitor performance metrics"
+      ],
+      "documentation": [
+        "Keep component library documentation updated",
+        "Document any custom CSS utilities",
+        "Maintain accessibility compliance records",
+        "Track performance benchmarks",
+        "Document design decisions and rationale"
+      ]
+    }
+  }
+} 
