@@ -19,7 +19,7 @@ function generateResetToken() {
  * @param {string} userName - User's name
  */
 async function sendResetEmail(email, resetToken, userName) {
-  const transporter = nodemailer.createTransporter({
+  const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.APP_EMAIL,
@@ -83,13 +83,19 @@ async function handleForgotPassword(email) {
     // Generate reset token
     const { token, expiry } = generateResetToken();
 
-    // Update user with reset token
+    // Hash the token before storing in database
+    const resetTokenHash = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    // Update user with hashed reset token
     await UserStore.update(user.id, {
-      reset_token: token,
+      reset_token: resetTokenHash,
       reset_token_expiry: expiry
     });
 
-    // Send reset email
+    // Send reset email (use the original unhashed token for the URL)
     await sendResetEmail(email, token, user.fullname);
 
     return {

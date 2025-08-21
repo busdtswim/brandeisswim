@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Calendar, Clock, User, AlertTriangle, Check, X } from 'lucide-react';
+import { Calendar, Clock, User, AlertTriangle, Check, X, Filter, Search, Users } from 'lucide-react';
 
 const ViewSchedule = () => {
   const { data: session } = useSession();
@@ -53,50 +53,24 @@ const ViewSchedule = () => {
     }, 3000);
   };
 
-  const cancelRegistration = async (classData) => {
-    setSelectedClass(classData);
-    setIsModalOpen(true);
-  };
-
-  const confirmCancellation = async () => {
-    try {
-      const response = await fetch(`/api/auth/customer/schedule/${selectedClass.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          swimmerId: selectedClass.swimmerId,
-        }),
-      });
-
-      if (response.ok) {
-        showSuccessMessage('Registration cancelled successfully');
-        handleScheduleUpdate();
-      } else {
-        const error = await response.json();
-        setError(error.message || 'Failed to cancel registration');
-      }
-    } catch (error) {
-      console.error('Error cancelling registration:', error);
-      setError('Failed to cancel registration');
-    } finally {
-      setIsModalOpen(false);
-    }
-  };
-
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   const isUpcoming = (classData) => {
-    return new Date(classData.endDate) >= new Date();
+    const endDate = new Date(classData.endDate);
+    const currentDate = new Date();
+    return endDate >= currentDate;
   };
 
-  const filteredClasses = userClasses.filter(classData => {
-    const currentDate = new Date();
+  const filteredClasses = userClasses.filter((classData) => {
     const endDate = new Date(classData.endDate);
+    const currentDate = new Date();
     
     if (filter === 'upcoming') {
       return endDate >= currentDate;
@@ -106,10 +80,16 @@ const ViewSchedule = () => {
     return true; 
   });
 
+  const upcomingCount = userClasses.filter(classData => isUpcoming(classData)).length;
+  const pastCount = userClasses.filter(classData => !isUpcoming(classData)).length;
+
   if (loading) {
     return (
-      <div className="py-12 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pool-blue mx-auto mb-4"></div>
+          <p className="text-gray-700 font-medium">Loading your schedule...</p>
+        </div>
       </div>
     );
   }
@@ -118,155 +98,223 @@ const ViewSchedule = () => {
     <div className="py-6">
       {/* Success Message */}
       {showSuccess && (
-        <div className="fixed top-24 right-4 z-50 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md shadow-md flex items-start">
-          <Check className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-          <p>{successMessage}</p>
+        <div className="fixed top-24 right-4 z-50 bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-xl shadow-lg flex items-start">
+          <Check className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" />
+          <p className="font-medium">{successMessage}</p>
         </div>
       )}
       
       {/* Error Message */}
       {error && (
-        <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md text-red-700 flex items-start">
-          <AlertTriangle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="font-medium">Error</p>
-            <p>{error}</p>
+        <div className="mb-8 bg-red-50 border border-red-200 rounded-2xl p-6 text-red-700">
+          <div className="flex items-center gap-3 mb-2">
+            <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Error Loading Schedule</p>
+              <p className="text-sm">{error}</p>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Schedule</h1>
-        <p className="mt-2 text-gray-600">View and manage your swim lesson registrations.</p>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+          My Schedule
+        </h1>
+        <p className="text-lg md:text-xl text-gray-600">View and manage your swim lesson registrations.</p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-pool-blue to-brandeis-blue rounded-xl flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{userClasses.length}</p>
+              <p className="text-sm text-gray-600">Total Classes</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-6 border border-green-100">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl flex items-center justify-center">
+              <Clock className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{upcomingCount}</p>
+              <p className="text-sm text-gray-600">Upcoming</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-100">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+              <Check className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{pastCount}</p>
+              <p className="text-sm text-gray-600">Completed</p>
+            </div>
+          </div>
+        </div>
       </div>
       
       {/* Filter Controls */}
-      <div className="mb-6 flex items-center">
-        <label htmlFor="filter" className="mr-3 text-sm font-medium text-gray-700 ">Filter:</label>
-        <select 
-          id="filter" 
-          value={filter} 
-          onChange={(e) => setFilter(e.target.value)}
-          className="rounded-md border border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-        >
-          <option value="all">All Classes</option>
-          <option value="upcoming">Upcoming Classes</option>
-          <option value="past">Past Classes</option>
-        </select>
+      <div className="mb-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-gray-500" />
+              <label className="text-sm font-medium text-gray-700">Filter by:</label>
+            </div>
+            
+            {/* Filter Buttons - Stack on mobile, flex on larger screens */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              {[
+                { value: 'all', label: 'All Classes', count: userClasses.length },
+                { value: 'upcoming', label: 'Upcoming', count: upcomingCount },
+                { value: 'past', label: 'Past', count: pastCount }
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setFilter(option.value)}
+                  className={`w-full sm:w-auto px-4 py-3 sm:py-2 rounded-xl font-medium text-sm transition-all duration-200 ${
+                    filter === option.value
+                      ? 'bg-gradient-to-r from-pool-blue to-brandeis-blue text-white shadow-lg transform scale-[1.02]'
+                      : 'text-gray-600 hover:text-brandeis-blue hover:bg-gradient-to-r hover:from-pool-blue/10 hover:to-brandeis-blue/10 border border-gray-200'
+                  }`}
+                >
+                  {option.label} ({option.count})
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Classes List */}
       {filteredClasses.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-          <p className="text-gray-500 text-lg">No classes found for your selected filter.</p>
-          <p className="text-gray-500 mt-2">Try changing your filter options or register for new classes.</p>
+        <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl md:rounded-3xl p-8 md:p-12 text-center border border-gray-200">
+          <div className="w-16 h-16 bg-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Calendar className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No classes found</h3>
+          <p className="text-gray-600 mb-6">No classes match your current filter selection.</p>
+          <p className="text-sm text-gray-500">Try changing your filter options or register for new classes.</p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredClasses.map((classData) => (
-            <div 
-              key={`${classData.id}-${classData.swimmerId}`}
-              className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden ${
-                !isUpcoming(classData) ? 'opacity-75' : ''
-              }`}
-            >
-              <div className={`px-4 py-3 text-white ${isUpcoming(classData) ? 'bg-blue-500' : 'bg-gray-500'}`}>
-                <h2 className="font-bold flex items-center justify-between">
-                  <span>{classData.swimmerName}&#39;s Lesson</span>
-                  {!isUpcoming(classData) && <span className="text-xs bg-white text-gray-600 px-2 py-1 rounded">Past</span>}
-                </h2>
-              </div>
-              
-              <div className="p-4 space-y-4">
-                {/* Date Range */}
-                <div className="flex items-start">
-                  <Calendar className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Dates</p>
-                    <p className="text-gray-600">
-                      {formatDate(classData.startDate)} - {formatDate(classData.endDate)}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Time */}
-                <div className="flex items-start">
-                  <Clock className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Time</p>
-                    <p className="text-gray-600">{classData.time}</p>
-                  </div>
-                </div>
-                
-                {/* Days */}
-                <div className="flex items-start">
-                  <Calendar className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Days</p>
-                    <p className="text-gray-600">{classData.meetingDays.join(', ')}</p>
-                  </div>
-                </div>
-                
-                {/* Instructor */}
-                <div className="flex items-start">
-                  <User className="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Instructor</p>
-                    <p className="text-gray-600">
-                      {classData.instructor ? classData.instructor.name : 'Not assigned yet'}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Actions */}
-                {isUpcoming(classData) && (
-                  <button
-                    onClick={() => cancelRegistration(classData)}
-                    className="mt-2 w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md font-medium transition-colors shadow-sm"
-                  >
-                    Cancel Registration
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Confirmation Modal */}
-      {isModalOpen && selectedClass && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden">
-            <div className="bg-red-500 px-6 py-4 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-white">Confirm Cancellation</h3>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="text-white hover:text-gray-200"
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {filteredClasses.map((classData) => {
+            const upcoming = isUpcoming(classData);
+            return (
+              <div 
+                key={`${classData.id}-${classData.swimmerId}`}
+                className={`bg-gradient-to-br from-white to-blue-50/50 rounded-2xl shadow-sm border border-gray-100 overflow-hidden card-hover ${
+                  !upcoming ? 'opacity-80' : ''
+                }`}
               >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="px-6 py-4">
-              <p className="text-gray-700 mb-6">
-                Are you sure you want to cancel {selectedClass.swimmerName}&#39;s registration for the lesson on {formatDate(selectedClass.startDate)}?
-              </p>
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                >
-                  No, Keep Registration
-                </button>
-                <button
-                  onClick={confirmCancellation}
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                >
-                  Yes, Cancel Registration
-                </button>
+                <div className={`px-6 py-4 text-white ${
+                  upcoming 
+                    ? 'bg-gradient-to-r from-pool-blue to-brandeis-blue' 
+                    : 'bg-gradient-to-r from-gray-500 to-gray-600'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-bold text-lg">{classData.swimmerName}&#39;s Lesson</h2>
+                    {!upcoming && (
+                      <span className="text-xs bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/30">
+                        Completed
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="p-6 space-y-4">
+                  {/* Date Range */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-700 mb-1">Lesson Dates</p>
+                      <p className="text-gray-900 font-medium">
+                        {formatDate(classData.startDate)} - {formatDate(classData.endDate)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Time */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Clock className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-700 mb-1">Time</p>
+                      <p className="text-gray-900 font-medium">{classData.time}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Days */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Users className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-700 mb-1">Meeting Days</p>
+                      <div className="flex flex-wrap gap-1">
+                        {classData.meetingDays.map((day, index) => (
+                          <span key={index} className="text-xs font-medium px-2 py-1 bg-gray-100 text-gray-700 rounded-lg">
+                            {day}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Instructor */}
+                  {classData.instructor && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-orange-100 to-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <User className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-700 mb-1">Instructor</p>
+                        <p className="text-gray-900 font-medium">{classData.instructor.name}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Payment Status */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Payment Status</span>
+                      <span className={`text-xs font-medium px-3 py-1.5 rounded-full ${
+                        classData.paymentConfirmed 
+                          ? 'bg-green-100 text-green-800 border border-green-200' 
+                          : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                      }`}>
+                        {classData.paymentConfirmed ? 'Confirmed' : 'Pending'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  {classData.instructorNotes && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Notes</p>
+                      <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-700 max-h-20 overflow-y-auto">
+                        {classData.instructorNotes}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
       )}
     </div>
