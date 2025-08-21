@@ -95,18 +95,6 @@ export default function EditableContent() {
                 prose-code:bg-gray-100 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm"
               dangerouslySetInnerHTML={{ __html: content.content }}
             />
-            
-            {/* Optional CTA Section */}
-            {content.content?.includes('email') && (
-              <div className="mt-8 p-6 bg-gradient-to-br from-pool-blue/5 to-brandeis-blue/5 rounded-2xl border border-pool-blue/10">
-                <div className="flex items-center gap-3 text-brandeis-blue">
-                  <Info className="w-5 h-5" />
-                  <p className="text-sm font-medium">
-                    Have questions? We're here to help with your swimming journey!
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
