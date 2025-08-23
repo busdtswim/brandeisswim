@@ -1,6 +1,6 @@
 // src/app/login/page.js
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -77,7 +77,14 @@ export default function LoginPage() {
               <p className="text-gray-600">Access your swimming lesson account</p>
             </div>
             
-            <LoginForm />
+            <Suspense fallback={
+              <div className="w-full p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pool-blue mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading login form...</p>
+              </div>
+            }>
+              <LoginForm />
+            </Suspense>
             
             {/* Register Link */}
             <div className="mt-8 text-center">
