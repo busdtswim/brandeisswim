@@ -294,13 +294,9 @@ const AdminDashboard = () => {
                   <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">Users & Swimmers Management</h2>
                   <p className="text-sm md:text-base text-gray-600">View, search, and manage user accounts and swimmer information</p>
                 </div>
-                
                 <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                   {/* Search */}
-                  <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
-              </div>
+                <div className="relative">
               <input
                 type="text"
                       placeholder="Search users or swimmers..."
