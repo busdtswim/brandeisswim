@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { User, Key, Users, Check, AlertTriangle, Eye, EyeOff, Plus, Calendar, Shield } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { User, Key, Users, Check, AlertTriangle, Eye, EyeOff, Plus, Calendar, Shield, Trash2, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const ModernCustomerDashboard = () => {
@@ -21,6 +21,8 @@ const ModernCustomerDashboard = () => {
   
   // Form states
   const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [newSwimmer, setNewSwimmer] = useState({
@@ -30,10 +32,41 @@ const ModernCustomerDashboard = () => {
     proficiency: ''
   });
   const [oldPassword, setOldPassword] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [swimmerToDelete, setSwimmerToDelete] = useState(null);
 
   const validatePassword = (pwd) => {
     // At least 8 chars, one uppercase, one lowercase, one number, one special char
     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(pwd);
+  };
+
+  // Handle swimmer deletion
+  const handleDeleteSwimmer = async (swimmerId) => {
+    try {
+      const res = await fetch(`/api/auth/customer/swimmers/${swimmerId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        // Remove the swimmer from the local state
+        setSwimmers(swimmers.filter(swimmer => swimmer.id !== swimmerId));
+        showSuccessMessage(`Swimmer deleted successfully. Removed ${result.deletedLessonRegistrations} lesson registrations and ${result.deletedWaitlistEntries} waitlist entries.`);
+        setSwimmerToDelete(null);
+        setShowDeleteConfirm(false);
+      } else {
+        const error = await res.json();
+        showErrorMessage(error.error || 'Failed to delete swimmer');
+      }
+    } catch (error) {
+      showErrorMessage('Failed to delete swimmer');
+    }
+  };
+
+  // Show delete confirmation modal
+  const confirmDeleteSwimmer = (swimmer) => {
+    setSwimmerToDelete(swimmer);
+    setShowDeleteConfirm(true);
   };
 
   // Fetch user data and swimmers on component mount
@@ -51,6 +84,8 @@ const ModernCustomerDashboard = () => {
           
           setUserData(profileData);
           setEmail(profileData.email || '');
+          setFullName(profileData.fullname || '');
+          setPhoneNumber(profileData.phone_number || '');
           setSwimmers(swimmersData);
           setLoading(false);
         } else {
@@ -88,22 +123,47 @@ const ModernCustomerDashboard = () => {
   // Handle profile update
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!email.trim()) {
+      showErrorMessage('Email is required');
+      return;
+    }
+    if (!fullName.trim()) {
+      showErrorMessage('Full name is required');
+      return;
+    }
+    if (!phoneNumber.trim()) {
+      showErrorMessage('Phone number is required');
+      return;
+    }
+    
     try {
       const res = await fetch('/api/auth/customer/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ 
+          email,
+          fullName,
+          phoneNumber
+        }),
       });
 
       if (res.ok) {
         const updatedProfile = await res.json();
         setUserData(updatedProfile);
-        showSuccessMessage('Profile updated successfully');
+        
+        // Update local state with the new values
+        setEmail(updatedProfile.email);
+        setFullName(updatedProfile.fullname);
+        setPhoneNumber(updatedProfile.phone_number);
+        
+        showSuccessMessage('Profile updated successfully!');
       } else {
-        showErrorMessage('Failed to update profile');
+        const errorData = await res.json();
+        showErrorMessage(errorData.error || 'Failed to update profile');
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
       showErrorMessage('Failed to update profile');
     }
   };
@@ -141,6 +201,30 @@ const ModernCustomerDashboard = () => {
     } catch (error) {
       console.error('Error updating password:', error);
       toast.error('Failed to update password');
+    }
+  };
+
+  // Handle account deletion
+  const handleDeleteAccount = async () => {
+    try {
+      const res = await fetch('/api/auth/customer/delete-account', {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        toast.success(`Account deleted successfully. ${result.deletedSwimmers} swimmers removed.`);
+        
+        // Sign out the user and redirect to home page
+        setTimeout(() => {
+          signOut({ callbackUrl: '/' });
+        }, 2000);
+      } else {
+        const error = await res.json();
+        toast.error(error.error || 'Failed to delete account');
+      }
+    } catch (error) {
+      toast.error('Failed to delete account');
     }
   };
 
@@ -230,6 +314,7 @@ const ModernCustomerDashboard = () => {
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'security', label: 'Security', icon: Key },
     { id: 'swimmers', label: 'Swimmers', icon: Users },
+    { id: 'account', label: 'Account', icon: Trash2 },
   ];
 
   return (
@@ -250,6 +335,55 @@ const ModernCustomerDashboard = () => {
         </div>
       )}
 
+      {/* Delete Swimmer Confirmation Modal */}
+      {showDeleteConfirm && swimmerToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900">Delete Swimmer</h3>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-gray-600 mb-4">
+                Are you sure you want to delete <span className="font-semibold text-gray-900">{swimmerToDelete.name}</span>?
+              </p>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-sm text-red-800">
+                  <strong>Warning:</strong> This action will permanently delete:
+                </p>
+                <ul className="text-sm text-red-700 mt-2 space-y-1 list-disc list-inside">
+                  <li>All lesson registrations for this swimmer</li>
+                  <li>All waitlist entries for this swimmer</li>
+                  <li>All swimmer data and preferences</li>
+                  <li>This action cannot be undone</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setSwimmerToDelete(null);
+                }}
+                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-medium transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteSwimmer(swimmerToDelete.id)}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-medium transition-colors duration-200"
+              >
+                Delete Swimmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
@@ -314,21 +448,30 @@ const ModernCustomerDashboard = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
                     Full Name
                   </label>
-                  <div className="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-200 text-gray-700 bg-gray-50">
-                    {userData.fullname}
-                  </div>
+                  <input
+                    id="fullName"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    readOnly={true}
+                    className="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-500 text-gray-900 bg-gray-200"
+                  />
                 </div>
                 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div>
+                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
                     Phone Number
                   </label>
-                  <div className="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-200 text-gray-700 bg-gray-50">
-                    {userData.phone_number || 'Not provided'}
-                  </div>
+                  <input
+                    id="phoneNumber"
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-200 focus:border-pool-blue focus:ring-2 focus:ring-pool-blue/20 transition-all duration-200 text-gray-900"
+                  />
                 </div>
               </div>
               
@@ -340,6 +483,19 @@ const ModernCustomerDashboard = () => {
                   <Check className="w-5 h-5" />
                   Update Profile
                 </button>
+              </div>
+              
+              {/* Helpful note about email changes */}
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <AlertTriangle className="w-3 h-3 text-blue-600" />
+                  </div>
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-1">Important Note:</p>
+                    <p>If you change your email address, you may need to refresh the page for all changes to take effect properly. If you encounter any issues, simply refresh the page or sign out and sign back in.</p>
+                  </div>
+                </div>
               </div>
             </form>
           </div>
@@ -494,6 +650,16 @@ const ModernCustomerDashboard = () => {
                             </span>
                           </div>
                         </div>
+                        <div className="p-6 pt-0 flex justify-end gap-2">
+                          <button
+                            onClick={() => confirmDeleteSwimmer(swimmer)}
+                            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 hover:bg-red-600"
+                            title="Delete swimmer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="hidden sm:inline">Delete</span>
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -589,6 +755,77 @@ const ModernCustomerDashboard = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+        
+        {activeTab === 'account' && (
+          <div className="p-6 md:p-8">
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Account Management</h2>
+              </div>
+              <p className="text-gray-600">Manage your account settings and data.</p>
+            </div>
+            
+            {/* Account Deletion Section */}
+            <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-2xl md:rounded-3xl p-6 md:p-8 border border-red-200">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl md:text-2xl font-bold text-red-800 mb-2">Delete Account</h3>
+                  <p className="text-red-700 text-sm md:text-base">
+                    This action will permanently delete your account and all associated data including:
+                  </p>
+                  <ul className="text-red-700 text-sm md:text-base mt-2 space-y-1 list-disc list-inside">
+                    <li>Your profile information</li>
+                    <li>All swimmers associated with your account</li>
+                    <li>All lesson registrations and schedules</li>
+                    <li>All waitlist entries</li>
+                    <li>This action cannot be undone</li>
+                  </ul>
+                </div>
+              </div>
+              
+              {!showDeleteConfirm ? (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 md:py-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2"
+                >
+                  <Trash2 className="w-5 h-5" />
+                  Delete My Account
+                </button>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl p-4 border border-red-200">
+                    <p className="text-red-800 font-medium mb-3">
+                      Are you sure you want to delete your account? This action cannot be undone.
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleDeleteAccount}
+                      className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 md:py-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                      Yes, Delete My Account
+                    </button>
+                    
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 md:py-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

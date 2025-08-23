@@ -8,6 +8,8 @@ const { z } = require('zod');
  * @property {string} [role] - User role (default: 'customer')
  * @property {string} [phone_number] - User's phone number
  * @property {string} [fullname] - User's full name
+ * @property {boolean} [must_change_password] - Force password change on next login
+ * @property {string} [one_time_login_token] - Token for one-time login
  */
 
 /**
@@ -19,6 +21,8 @@ const { z } = require('zod');
  * @property {string} [fullname] - User's full name
  * @property {string} [reset_token] - Password reset token
  * @property {string} [reset_token_expiry] - Password reset token expiry
+ * @property {boolean} [must_change_password] - Force password change on next login
+ * @property {string} [one_time_login_token] - Token for one-time login
  */
 
 /**
@@ -31,6 +35,8 @@ const { z } = require('zod');
  * @property {string} [fullname] - User's full name
  * @property {string} [reset_token] - Password reset token
  * @property {string} [reset_token_expiry] - Password reset token expiry
+ * @property {boolean} [must_change_password] - Force password change on next login
+ * @property {string} [one_time_login_token] - Token for one-time login
  */
 
 // Zod schemas for validation
@@ -42,9 +48,11 @@ const UserCreateSchema = z.object({
     .regex(/^(?=.*[A-Z])/, 'Password must contain at least one uppercase letter')
     .regex(/^(?=.*\d)/, 'Password must contain at least one number')
     .regex(/^(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])/, 'Password must contain at least one special character'),
-  role: z.string().optional().default('customer'),
+  role: z.enum(['customer', 'admin', 'instructor']).optional().default('customer'),
   phone_number: z.string().optional(),
   fullname: z.string().optional(),
+  must_change_password: z.boolean().optional().default(false),
+  one_time_login_token: z.string().optional(),
 });
 
 const UserUpdateSchema = z.object({
@@ -56,11 +64,13 @@ const UserUpdateSchema = z.object({
     .regex(/^(?=.*\d)/, 'Password must contain at least one number')
     .regex(/^(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])/, 'Password must contain at least one special character')
     .optional(),
-  role: z.string().optional(),
+  role: z.enum(['customer', 'admin', 'instructor']).optional(),
   phone_number: z.string().optional(),
   fullname: z.string().optional(),
   reset_token: z.string().nullable().optional(),
   reset_token_expiry: z.string().nullable().optional(),
+  must_change_password: z.boolean().optional(),
+  one_time_login_token: z.string().nullable().optional(),
 });
 
 class UserStore {
@@ -75,9 +85,9 @@ class UserStore {
       const validatedData = UserCreateSchema.parse(userData);
       
       const query = `
-        INSERT INTO users (email, password, role, phone_number, fullname)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, email, password, role, phone_number, fullname, reset_token, reset_token_expiry
+        INSERT INTO users (email, password, role, phone_number, fullname, must_change_password, one_time_login_token)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING id, email, password, role, phone_number, fullname, reset_token, reset_token_expiry, must_change_password, one_time_login_token
       `;
       
       const values = [
@@ -85,7 +95,9 @@ class UserStore {
         validatedData.password,
         validatedData.role,
         validatedData.phone_number,
-        validatedData.fullname
+        validatedData.fullname,
+        validatedData.must_change_password,
+        validatedData.one_time_login_token
       ];
       
       const result = await pool.query(query, values);
@@ -106,7 +118,7 @@ class UserStore {
   static async findById(id) {
     try {
       const query = `
-        SELECT id, email, password, role, phone_number, fullname, reset_token, reset_token_expiry
+        SELECT id, email, password, role, phone_number, fullname, reset_token, reset_token_expiry, must_change_password, one_time_login_token
         FROM users
         WHERE id = $1
       `;
@@ -126,7 +138,7 @@ class UserStore {
   static async findByEmail(email) {
     try {
       const query = `
-        SELECT id, email, password, role, phone_number, fullname, reset_token, reset_token_expiry
+        SELECT id, email, password, role, phone_number, fullname, reset_token, reset_token_expiry, must_change_password, one_time_login_token
         FROM users
         WHERE email = $1
       `;
@@ -135,6 +147,26 @@ class UserStore {
       return result.rows[0] || null;
     } catch (error) {
       throw new Error(`Failed to find user by email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Find user by one-time login token
+   * @param {string} token
+   * @returns {Promise<User|null>}
+   */
+  static async findByOneTimeToken(token) {
+    try {
+      const query = `
+        SELECT id, email, password, role, phone_number, fullname, reset_token, reset_token_expiry, must_change_password, one_time_login_token
+        FROM users
+        WHERE one_time_login_token = $1 AND one_time_login_token IS NOT NULL
+      `;
+      
+      const result = await pool.query(query, [token]);
+      return result.rows[0] || null;
+    } catch (error) {
+      throw new Error(`Failed to find user by one-time token: ${error.message}`);
     }
   }
 
@@ -181,6 +213,14 @@ class UserStore {
         setClause.push(`reset_token_expiry = $${paramCount++}`);
         values.push(validatedData.reset_token_expiry);
       }
+      if (validatedData.must_change_password !== undefined) {
+        setClause.push(`must_change_password = $${paramCount++}`);
+        values.push(validatedData.must_change_password);
+      }
+      if (validatedData.one_time_login_token !== undefined) {
+        setClause.push(`one_time_login_token = $${paramCount++}`);
+        values.push(validatedData.one_time_login_token);
+      }
 
       if (setClause.length === 0) {
         throw new Error('No fields to update');
@@ -191,7 +231,7 @@ class UserStore {
         UPDATE users
         SET ${setClause.join(', ')}
         WHERE id = $${paramCount}
-        RETURNING id, email, password, role, phone_number, fullname, reset_token, reset_token_expiry
+        RETURNING id, email, password, role, phone_number, fullname, reset_token, reset_token_expiry, must_change_password, one_time_login_token
       `;
       
       const result = await pool.query(query, values);
@@ -299,6 +339,66 @@ class UserStore {
       return result.rows[0] || null;
     } catch (error) {
       throw new Error(`Failed to clear reset token: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete user and all associated data
+   * @param {number} id
+   * @returns {Promise<{id: number, deletedSwimmers: number}>}
+   */
+  static async deleteUserAndAllData(id) {
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+
+      // 1. Get all swimmers associated with this user
+      const swimmersQuery = 'SELECT id FROM swimmers WHERE user_id = $1';
+      const swimmersResult = await client.query(swimmersQuery, [id]);
+      const swimmers = swimmersResult.rows;
+      
+      // 2. Delete all lesson registrations for these swimmers
+      for (const swimmer of swimmers) {
+        await client.query(
+          'DELETE FROM swimmer_lessons WHERE swimmer_id = $1',
+          [swimmer.id]
+        );
+        
+        await client.query(
+          'DELETE FROM waitlist WHERE swimmer_id = $1',
+          [swimmer.id]
+        );
+      }
+
+      // 3. Delete all swimmers associated with this user
+      await client.query(
+        'DELETE FROM swimmers WHERE user_id = $1',
+        [id]
+      );
+
+      // 4. Finally, delete the user
+      const deletedUser = await client.query(
+        'DELETE FROM users WHERE id = $1 RETURNING id',
+        [id]
+      );
+
+      if (deletedUser.rows.length === 0) {
+        throw new Error('User not found');
+      }
+
+      await client.query('COMMIT');
+
+      return {
+        id: deletedUser.rows[0].id,
+        deletedSwimmers: swimmers.length
+      };
+
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
   }
 }

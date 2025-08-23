@@ -221,6 +221,31 @@ class LessonStore {
   }
 
   /**
+   * Find lessons assigned to a specific instructor
+   * @param {number} instructorId
+   * @returns {Promise<Lesson[]>}
+   */
+  static async findByInstructor(instructorId) {
+    try {
+      const query = `
+        SELECT DISTINCT l.id, l.meeting_days, l.max_slots, l.exception_dates, 
+               l.start_time, l.end_time, l.start_date, l.end_date
+        FROM lessons l
+        INNER JOIN swimmer_lessons sl ON l.id = sl.lesson_id
+        WHERE sl.instructor_id = $1
+        AND l.start_date IS NOT NULL 
+        AND l.end_date IS NOT NULL
+        ORDER BY l.start_date
+      `;
+      
+      const result = await pool.query(query, [instructorId]);
+      return result.rows;
+    } catch (error) {
+      throw new Error(`Failed to find lessons for instructor: ${error.message}`);
+    }
+  }
+
+  /**
    * Find lessons with participants
    * @returns {Promise<LessonWithParticipants[]>}
    */
@@ -228,7 +253,7 @@ class LessonStore {
     try {
       const query = `
         SELECT l.id, l.meeting_days, l.max_slots, l.exception_dates, l.start_time, l.end_time, l.start_date, l.end_date,
-               sl.swimmer_id, sl.registration_date, sl.payment_status, sl.instructor_id, sl.instructor_notes, sl.preferred_instructor_id,
+               sl.swimmer_id, sl.registration_date, sl.payment_status, sl.instructor_id, sl.instructor_notes, sl.preferred_instructor_id, sl.missing_dates,
                s.name as swimmer_name, s.proficiency, s.gender, s.birthdate,
                u.fullname as parent_name, u.email as parent_email, u.phone_number as parent_phone_number,
                i1.name as instructor_name, i1.email as instructor_email,
@@ -271,6 +296,7 @@ class LessonStore {
             instructor_id: row.instructor_id,
             instructor_notes: row.instructor_notes,
             preferred_instructor_id: row.preferred_instructor_id,
+            missing_dates: row.missing_dates,
             name: row.swimmer_name,
             proficiency: row.proficiency,
             gender: row.gender,

@@ -1,6 +1,9 @@
 // src/app/api/auth/admin/add/route.js
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 const InstructorStore = require('@/lib/stores/InstructorStore.js');
+const UserStore = require('@/lib/stores/UserStore.js');
 
 export async function GET() {
   try {
@@ -19,21 +22,42 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Name and email are required' }, { status: 400 });
     }
     const { name, email } = body;
+
+    // Check if user with this email already exists
+    const existingUser = await UserStore.findByEmail(email);
+    if (existingUser) {
+      return NextResponse.json({ message: 'User with this email already exists' }, { status: 409 });
+    }
+
+    // Generate random 10-character password
+    const randomPassword = crypto.randomBytes(5).toString('hex'); // 10 characters
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(randomPassword, saltRounds);
+
+    // Generate one-time login token
+    const oneTimeToken = crypto.randomBytes(32).toString('hex');
+
+    // Create instructor record
     const newInstructor = await InstructorStore.create({ name, email });
-    return NextResponse.json(newInstructor, { status: 201 });
+
+    // Create user account for instructor
+    await UserStore.create({
+      email,
+      password: hashedPassword,
+      role: 'instructor',
+      fullname: name,
+      must_change_password: true,
+      one_time_login_token: oneTimeToken
+    });
+
+    return NextResponse.json({
+      ...newInstructor,
+      userCreated: true
+    }, { status: 201 });
   } catch (error) {
-    console.error('Error creating instructor:', error);
-    
-    // Handle validation errors
-    if (error.message.includes('Invalid') || error.message.includes('required')) {
-      return NextResponse.json({ message: error.message }, { status: 400 });
-    }
-    
-    // Handle unique constraint violations
-    if (error.message.includes('already exists')) {
-      return NextResponse.json({ message: error.message }, { status: 409 });
-    }
-    
-    return NextResponse.json({ message: 'Failed to create instructor' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to create instructor', details: error.message }, 
+      { status: 500 }
+    );
   }
 }

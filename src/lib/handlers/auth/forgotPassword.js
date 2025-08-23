@@ -103,7 +103,6 @@ async function handleForgotPassword(email) {
       message: 'If an account with that email exists, a password reset link has been sent.'
     };
   } catch (error) {
-    console.error('Forgot password error:', error);
     throw new Error('Failed to process password reset request');
   }
 }

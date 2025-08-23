@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Users, XCircle, AlertTriangle, Check, Filter, User, MessageSquare, Plus } from 'lucide-react';
+import { Calendar, Clock, Users, XCircle, AlertTriangle, Check, Filter, User, MessageSquare, Plus, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { generateLessonDates, filterFutureDates } from '@/lib/utils/lessonDateUtils';
+import MultiSelectDropdown from '@/components/ui/MultiSelectDropdown';
 
 const LessonRegistration = () => {
   const [lessons, setLessons] = useState([]);
@@ -14,6 +16,7 @@ const LessonRegistration = () => {
   const [instructors, setInstructors] = useState([]);
   const [preferredInstructor, setPreferredInstructor] = useState('');
   const [instructorNotes, setInstructorNotes] = useState('');
+  const [selectedMissingDates, setSelectedMissingDates] = useState([]);
   const [waitlistActive, setWaitlistActive] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
   const [waitlistMessage, setWaitlistMessage] = useState('');
@@ -103,6 +106,19 @@ const LessonRegistration = () => {
 
   const handleRegisterClick = (lesson) => {
     setSelectedLesson(lesson);
+    setSelectedMissingDates([]); // Reset missing dates selection
+    
+    // Generate lesson dates for missing dates selection
+    if (lesson.meetingDays && lesson.startDate && lesson.endDate) {
+      // Convert dates to MM/DD/YYYY format if they're not already
+      const startDate = formatDateForAPI(lesson.startDate);
+      const endDate = formatDateForAPI(lesson.endDate);
+      const lessonDates = generateLessonDates(lesson.meetingDays, startDate, endDate);
+      // Only show future dates for selection
+      const futureDates = filterFutureDates(lessonDates);
+      // Store the available dates for selection (we'll use this in the UI)
+      lesson.availableLessonDates = futureDates;
+    }
   };
 
   const handleRegister = async () => {
@@ -118,10 +134,11 @@ const LessonRegistration = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          classId: selectedLesson.id,
+          lessonId: selectedLesson.id,
           swimmerId: selectedSwimmer,
           preferredInstructorId: preferredInstructor || null,
           instructorNotes: instructorNotes,
+          missingDates: selectedMissingDates.length > 0 ? selectedMissingDates.join(',') : null,
         }),
       });
 
@@ -235,6 +252,19 @@ const LessonRegistration = () => {
     setSelectedLesson(null);
     setPreferredInstructor('');
     setInstructorNotes('');
+    setSelectedMissingDates([]);
+  };
+
+  const formatDateForAPI = (dateString) => {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
   };
 
   const availableCount = lessons.filter(lesson => {
@@ -474,7 +504,7 @@ const LessonRegistration = () => {
       {/* Registration Modal */}
       {selectedLesson && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden">
+          <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-pool-blue to-brandeis-blue px-6 py-4 flex justify-between items-center">
               <h3 className="text-xl font-bold text-white">Register for Swim Lesson</h3>
               <button 
@@ -555,6 +585,37 @@ const LessonRegistration = () => {
                     placeholder="Any special requests, allergies, or information for your instructor..."
                   ></textarea>
                 </div>
+
+                {/* Missing Dates Selection */}
+                {selectedLesson?.availableLessonDates && selectedLesson.availableLessonDates.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-500" />
+                      Dates You&#39;ll Miss (Optional)
+                    </label>
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-3">
+                      <p className="text-sm text-amber-700 mb-3">
+                        Select any lesson dates when {swimmers.find(s => s.id.toString() === selectedSwimmer)?.name || 'your swimmer'} will be absent. 
+                        <span className="font-semibold"> These selections are permanent and help us accommodate waitlist swimmers.</span>
+                      </p>
+                      <MultiSelectDropdown
+                        placeholder="Select dates you'll miss..."
+                        options={selectedLesson.availableLessonDates.map(date => ({ value: date, label: date }))}
+                        value={selectedMissingDates}
+                        onChange={setSelectedMissingDates}
+                        className="text-sm"
+                      />
+                      
+                      {selectedMissingDates.length > 0 && (
+                        <div className="mt-3 p-2 bg-amber-100 rounded-lg">
+                          <p className="text-xs text-amber-800 font-medium">
+                            Selected: {selectedMissingDates.join(', ')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -580,7 +641,7 @@ const LessonRegistration = () => {
       {/* Waitlist Modal */}
       {showWaitlistModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden">
+          <div className="bg-white rounded-2xl md:rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-orange-500 to-red-500 px-6 py-4 flex justify-between items-center">
               <h3 className="text-xl font-bold text-white">Join Waitlist</h3>
               <button 

@@ -31,8 +31,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Error updating preferences:', error);
-    return NextResponse.json({ error: 'Failed to update preferences' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update preferences', details: error.message }, { status: 500 });
   }
 }
 
@@ -59,7 +58,6 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ message: 'Registration cancelled successfully' });
   } catch (error) {
-    console.error('Error cancelling registration:', error);
-    return NextResponse.json({ error: 'Failed to cancel registration' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to cancel registration', details: error.message }, { status: 500 });
   }
 }

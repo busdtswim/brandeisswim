@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { hasScheduleConflict } from '@/lib/utils/timeUtils';
 const LessonStore = require('@/lib/stores/LessonStore.js');
 const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
+const InstructorStore = require('@/lib/stores/InstructorStore.js');
+const UserStore = require('@/lib/stores/UserStore.js');
 
 export async function PUT(request, { params }) {
   try {
@@ -89,17 +91,29 @@ export async function PUT(request, { params }) {
       );
     }
 
-    return NextResponse.json(updatedAssignment);
-  } catch (error) {
-    console.error('Error assigning instructor:', error);
+    // Get instructor details and check if they need login credentials
+    const instructor = await InstructorStore.findById(instructorIdInt);
+    let instructorLoginInfo = null;
     
-    // Handle validation errors
-    if (error.message.includes('Invalid') || error.message.includes('required')) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    if (instructor) {
+      // Check if instructor has a user account and needs to change password
+      const instructorUser = await UserStore.findByEmail(instructor.email);
+      if (instructorUser && instructorUser.must_change_password && instructorUser.one_time_login_token) {
+        instructorLoginInfo = {
+          needsLogin: true,
+          email: instructorUser.email,
+          oneTimeToken: instructorUser.one_time_login_token
+        };
+      }
     }
-    
+
+    return NextResponse.json({
+      ...updatedAssignment,
+      instructorLoginInfo
+    });
+  } catch (error) {
     return NextResponse.json(
-      { error: error.message || 'Failed to assign instructor' }, 
+      { error: 'Failed to assign instructor', details: error.message }, 
       { status: 500 }
     );
   }

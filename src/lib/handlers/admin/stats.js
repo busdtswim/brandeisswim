@@ -55,7 +55,6 @@ async function getAdminStats() {
       waitlistEntries: waitlistCount
     };
   } catch (error) {
-    console.error('Error getting admin stats:', error);
     throw new Error('Failed to fetch admin statistics');
   }
 }

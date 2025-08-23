@@ -13,8 +13,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get customer profile
-    const result = await getCustomerProfile(session.user.email);
+    // Get customer profile using both email and ID for robustness
+    const result = await getCustomerProfile(session.user.email, session.user.id);
     
     return NextResponse.json(result);
   } catch (error) {
@@ -41,8 +41,8 @@ export async function PUT(request) {
 
     const updateData = await request.json();
     
-    // Update customer profile
-    const result = await updateCustomerProfile(session.user.email, updateData);
+    // Update customer profile using both email and ID for robustness
+    const result = await updateCustomerProfile(session.user.email, updateData, session.user.id);
     
     return NextResponse.json(result);
   } catch (error) {

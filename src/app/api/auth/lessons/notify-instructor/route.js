@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer';
 
 export async function POST(req) {
   try {
-    const { instructor, swimmer, lessonDetails } = await req.json();
+    const { instructor, swimmer, lessonDetails, loginCredentials } = await req.json();
     
     // Validate the required data
     if (!instructor?.email || !swimmer || !lessonDetails) {
@@ -28,6 +28,11 @@ export async function POST(req) {
     const startDate = lessonDetails.startDate ? new Date(lessonDetails.startDate).toLocaleDateString() : 'Not specified';
     const endDate = lessonDetails.endDate ? new Date(lessonDetails.endDate).toLocaleDateString() : 'Not specified';
     const meetingDays = Array.isArray(lessonDetails.meetingDays) ? lessonDetails.meetingDays.join(', ') : lessonDetails.meetingDays;
+
+    // Generate login URL if credentials are provided
+    const loginUrl = loginCredentials?.oneTimeToken ? 
+      `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/change-password/${loginCredentials.oneTimeToken}` : 
+      null;
 
     const mailOptions = {
       from: process.env.APP_EMAIL,
@@ -53,6 +58,16 @@ export async function POST(req) {
 
         Please make sure to review the schedule and be prepared for your lessons.
         If you have any questions or concerns, please contact the administration.
+
+        ${loginCredentials ? `
+        INSTRUCTOR DASHBOARD ACCESS:
+        This is your first lesson assignment! To access the instructor dashboard, please use the following link:
+        
+        Access URL: ${loginUrl}
+        
+        This link will take you directly to set a new password for your account.
+        After setting your password, you can access the instructor dashboard by logging in normally.
+        ` : ''}
 
         Best regards,
         Brandeis Swimming Lessons Team
@@ -88,6 +103,29 @@ export async function POST(req) {
           
           <p>Please make sure to review the schedule and be prepared for your lessons.</p>
           <p>If you have any questions or concerns, please contact the administration.</p>
+          
+          ${loginCredentials ? `
+                      <div style="background-color: #e8f4fd; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #0066cc;">
+            <h3 style="color: #0066cc; margin-top: 0;">🔑 Instructor Dashboard Access</h3>
+            <p><strong>This is your first lesson assignment!</strong> To access the instructor dashboard where you can view schedules, student information, and manage coverage requests, please use the link below:</p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+              <a href="${loginUrl}" 
+                 style="background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                🔗 Set Password & Access Dashboard
+              </a>
+            </div>
+            
+            <div style="background-color: #fff3cd; padding: 15px; border-radius: 3px; border-left: 4px solid #ffc107;">
+              <p style="margin: 0; font-size: 14px;"><strong>Important:</strong></p>
+              <ul style="margin: 5px 0; padding-left: 20px; font-size: 14px;">
+                <li>This link will take you directly to set a new password for your account</li>
+                <li>After setting your password, you can log in normally at any time</li>
+                <li>The instructor dashboard allows you to view student information and request coverage</li>
+              </ul>
+            </div>
+          </div>
+          ` : ''}
           
           <p style="margin-top: 20px;">Best regards,<br>Brandeis Swimming Lessons Team</p>
         </div>

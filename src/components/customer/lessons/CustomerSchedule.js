@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Calendar, Clock, User, AlertTriangle, Check, X, Filter, Search, Users } from 'lucide-react';
+import { Calendar, Clock, User, AlertTriangle, Check, X, Filter, Users, Trash2, Edit3, Save } from 'lucide-react';
+import MissingDatesManager from './MissingDatesManager';
+import { generateLessonDates } from '@/lib/utils/lessonDateUtils';
 
 const ViewSchedule = () => {
   const { data: session } = useSession();
@@ -12,8 +14,8 @@ const ViewSchedule = () => {
   const [filter, setFilter] = useState('all');
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [selectedClass, setSelectedClass] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(null);
+  const [notesText, setNotesText] = useState('');
 
   const fetchUserClasses = async () => {
     try {
@@ -39,18 +41,76 @@ const ViewSchedule = () => {
     }
   }, [session]);
 
-  const handleScheduleUpdate = async () => {
-    setLoading(true);
-    await fetchUserClasses();
-    setLoading(false);
-  };
-
   const showSuccessMessage = (message) => {
     setSuccessMessage(message);
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
     }, 3000);
+  };
+
+  // Handle removing swimmer from lesson
+  const handleRemoveFromLesson = async (lessonId, swimmerId) => {
+    if (!confirm('Are you sure you want to remove this swimmer from the lesson? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/customer/schedule/remove-swimmer', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ lessonId, swimmerId }),
+      });
+
+      if (response.ok) {
+        showSuccessMessage('Swimmer removed from lesson successfully');
+        await fetchUserClasses(); // Refresh the schedule
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to remove swimmer from lesson');
+      }
+    } catch (error) {
+      alert('Failed to remove swimmer from lesson');
+    }
+  };
+
+  // Handle updating notes
+  const handleUpdateNotes = async (lessonId, swimmerId, notes) => {
+    try {
+      const response = await fetch('/api/auth/customer/schedule/update-notes', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ lessonId, swimmerId, notes }),
+      });
+
+      if (response.ok) {
+        showSuccessMessage('Instructor notes updated successfully');
+        setEditingNotes(null);
+        setNotesText('');
+        await fetchUserClasses(); // Refresh the schedule
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to update notes');
+      }
+    } catch (error) {
+      alert('Failed to update notes');
+    }
+  };
+
+  // Start editing notes
+  const startEditingNotes = (classData) => {
+    setEditingNotes(`${classData.id}-${classData.swimmerId}`);
+    setNotesText(classData.instructorNotes || '');
+  };
+
+  // Cancel editing notes
+  const cancelEditingNotes = () => {
+    setEditingNotes(null);
+    setNotesText('');
   };
 
   const formatDate = (dateString) => {
@@ -212,17 +272,8 @@ const ViewSchedule = () => {
           {filteredClasses.map((classData) => {
             const upcoming = isUpcoming(classData);
             return (
-              <div 
-                key={`${classData.id}-${classData.swimmerId}`}
-                className={`bg-gradient-to-br from-white to-blue-50/50 rounded-2xl shadow-sm border border-gray-100 overflow-hidden card-hover ${
-                  !upcoming ? 'opacity-80' : ''
-                }`}
-              >
-                <div className={`px-6 py-4 text-white ${
-                  upcoming 
-                    ? 'bg-gradient-to-r from-pool-blue to-brandeis-blue' 
-                    : 'bg-gradient-to-r from-gray-500 to-gray-600'
-                }`}>
+              <div key={`${classData.id}-${classData.swimmerId}`} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h2 className="font-bold text-lg">{classData.swimmerName}&#39;s Lesson</h2>
                     {!upcoming && (
@@ -276,17 +327,21 @@ const ViewSchedule = () => {
                   </div>
 
                   {/* Instructor */}
-                  {classData.instructor && (
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-orange-100 to-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <User className="w-5 h-5 text-orange-600" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-700 mb-1">Instructor</p>
-                        <p className="text-gray-900 font-medium">{classData.instructor.name}</p>
-                      </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-orange-100 to-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <User className="w-5 h-5 text-orange-600" />
                     </div>
-                  )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-700 mb-1">Instructor</p>
+                      {classData.instructor ? (
+                        <div className="flex items-center gap-2">
+                          <p className="text-gray-900 font-medium">{classData.instructor.name}</p>
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic text-sm">Instructor not assigned yet</p>
+                      )}
+                    </div>
+                  </div>
 
                   {/* Payment Status */}
                   <div className="pt-4 border-t border-gray-100">
@@ -302,15 +357,82 @@ const ViewSchedule = () => {
                     </div>
                   </div>
 
-                  {/* Notes */}
-                  {classData.instructorNotes && (
-                    <div className="pt-4 border-t border-gray-100">
-                      <p className="text-sm font-medium text-gray-700 mb-2">Notes</p>
-                      <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-700 max-h-20 overflow-y-auto">
-                        {classData.instructorNotes}
+                  {/* Instructor Notes */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-gray-700">Instructor Notes</p>
+                      {editingNotes === `${classData.id}-${classData.swimmerId}` ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleUpdateNotes(classData.id, classData.swimmerId, notesText)}
+                            className="text-green-600 hover:text-green-700 p-1"
+                            title="Save notes"
+                          >
+                            <Save className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={cancelEditingNotes}
+                            className="text-gray-600 hover:text-gray-700 p-1"
+                            title="Cancel editing"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => startEditingNotes(classData)}
+                          className="text-blue-600 hover:text-blue-700 p-1"
+                          title="Edit instructor notes"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    
+                    {editingNotes === `${classData.id}-${classData.swimmerId}` ? (
+                      <textarea
+                        value={notesText}
+                        onChange={(e) => setNotesText(e.target.value)}
+                        placeholder="Add instructor notes here..."
+                        className="w-full p-3 border border-gray-200 rounded-xl focus:border-pool-blue focus:ring-2 focus:ring-pool-blue/20 transition-all duration-200 text-sm"
+                        rows={3}
+                      />
+                    ) : (
+                      <div className={`bg-gray-50 rounded-xl p-3 text-sm text-gray-700 min-h-[3rem] ${
+                        classData.instructorNotes ? '' : 'text-gray-500 italic'
+                      }`}>
+                        {classData.instructorNotes || 'No instructor notes added yet. Click the edit button to add notes.'}
                       </div>
+                    )}
+                  </div>
+
+                  {/* Missing Dates Management */}
+                  {upcoming && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <MissingDatesManager
+                        lessonId={classData.id}
+                        swimmerId={classData.swimmerId}
+                        swimmerName={classData.swimmerName}
+                        lessonDetails={`${classData.meetingDays.join(', ')} at ${classData.time} - ${formatDate(classData.startDate)} to ${formatDate(classData.endDate)}`}
+                        lessonDates={generateLessonDates(classData.meetingDays, classData.startDate, classData.endDate)}
+                        onUpdate={fetchUserClasses}
+                      />
                     </div>
                   )}
+
+                  {/* Action Buttons */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <div className="flex justify-between items-center">
+                      <button
+                        onClick={() => handleRemoveFromLesson(classData.id, classData.swimmerId)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                        title="Remove swimmer from this lesson"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="hidden sm:inline">Remove from Lesson</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             );

@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User, Calendar, LogOut, Home } from 'lucide-react';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { User, Calendar, LogOut, Menu, X } from 'lucide-react';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -44,7 +44,7 @@ const Sidebar = () => {
 
       {/* Sidebar Container */}
       <aside 
-        className={`fixed md:absolute left-0 top-0 bottom-0 bg-gradient-to-b from-white via-gray-50/50 to-white shadow-xl border-r border-gray-100 w-72 z-30
+        className={`fixed md:absolute left-0 top-16 md:top-0 bottom-0 bg-gradient-to-b from-white via-gray-50/50 to-white shadow-xl border-r border-gray-100 w-72 z-30
           transform transition-all duration-300 ease-out overflow-y-auto
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
           md:translate-x-0`}
@@ -55,17 +55,6 @@ const Sidebar = () => {
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-cyan-300/10 rounded-full blur-xl"></div>
           
-          {/* Close button for mobile */}
-          {isOpen && (
-            <button
-              onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 text-white/80 hover:text-white md:hidden transition-colors duration-200 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10"
-              aria-label="Close menu"
-            >
-              <X size={18} />
-            </button>
-          )}
-
           {/* User Info Section */}
           <div className="relative z-10">
             <div className="flex items-center">
@@ -74,7 +63,6 @@ const Sidebar = () => {
               </div>
               <div className="ml-4">
                 <p className="text-lg font-bold text-white">{userName}</p>
-                <p className="text-sm text-white/80 truncate max-w-[160px]">{userEmail}</p>
               </div>
             </div>
           </div>

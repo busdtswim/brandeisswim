@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { Eye, EyeOff, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, LogIn, AlertCircle, Key } from 'lucide-react';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email format').required('Email is required'),
@@ -16,13 +16,43 @@ const validationSchema = Yup.object().shape({
 
 const LoginForm = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loginError, setLoginError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isOneTimeLogin, setIsOneTimeLogin] = useState(false);
   
   const initialValues = {
     email: '',
     password: '',
     rememberMe: false,
+  };
+
+  // Check for one-time token on component mount
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      setIsOneTimeLogin(true);
+      handleOneTimeLogin(token);
+    }
+  }, [searchParams]);
+
+  const handleOneTimeLogin = async (token) => {
+    try {
+      setLoginError('');
+      const result = await signIn('one-time-token', {
+        redirect: false,
+        token: token,
+      });
+
+      if (result?.error) {
+        setLoginError('Invalid or expired login link. Please contact your administrator.');
+      } else {
+        // Redirect to change password page with token
+        router.push(`/change-password/${token}`);
+      }
+    } catch (error) {
+      setLoginError('An unexpected error occurred. Please try again later.');
+    }
   };
 
   const handleSubmit = async (values, { setSubmitting }) => {
@@ -37,10 +67,10 @@ const LoginForm = () => {
       if (result?.error) {
         setLoginError('Invalid email or password. Please try again.');
       } else {
-        router.push('/');
+        // Redirect to callback page that will handle role-based routing
+        router.push('/auth/callback');
       }
     } catch (error) {
-      console.error('Login error:', error);
       setLoginError('An unexpected error occurred. Please try again later.');
     } finally {
       setSubmitting(false);
@@ -49,6 +79,15 @@ const LoginForm = () => {
 
   return (
     <div className="w-full">
+      {isOneTimeLogin && !loginError && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-sm">
+          <div className="flex items-center gap-2">
+            <Key className="w-4 h-4 flex-shrink-0" />
+            <span>Processing instructor login...</span>
+          </div>
+        </div>
+      )}
+      
       {loginError && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
           <div className="flex items-center gap-2">

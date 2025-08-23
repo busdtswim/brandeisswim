@@ -39,7 +39,6 @@ async function getLessonSlots() {
 
     return formattedLessons;
   } catch (error) {
-    console.error('Error fetching lesson slots:', error);
     throw error;
   }
 }

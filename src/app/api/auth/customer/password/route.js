@@ -24,8 +24,15 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.' }, { status: 400 });
     }
 
-    // Find user by email
-    const user = await UserStore.findByEmail(session.user.email);
+    // Find user by ID first (more reliable), fallback to email
+    let user;
+    if (session.user.id) {
+      user = await UserStore.findById(session.user.id);
+    }
+    if (!user && session.user.email) {
+      user = await UserStore.findByEmail(session.user.email);
+    }
+    
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }

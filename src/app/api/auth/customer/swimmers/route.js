@@ -37,8 +37,15 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user by email
-    const user = await UserStore.findByEmail(session.user.email);
+    // Get user by ID first (more reliable), fallback to email
+    let user;
+    if (session.user.id) {
+      user = await UserStore.findById(session.user.id);
+    }
+    if (!user && session.user.email) {
+      user = await UserStore.findByEmail(session.user.email);
+    }
+    
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -78,8 +85,15 @@ export async function POST(request) {
       );
     }
 
-    // Get user ID
-    const user = await UserStore.findByEmail(session.user.email);
+    // Get user ID first (more reliable), fallback to email
+    let user;
+    if (session.user.id) {
+      user = await UserStore.findById(session.user.id);
+    }
+    if (!user && session.user.email) {
+      user = await UserStore.findByEmail(session.user.email);
+    }
+    
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }

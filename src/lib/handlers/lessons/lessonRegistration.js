@@ -9,7 +9,7 @@ const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
  */
 async function handleLessonRegistration(registrationData) {
   try {
-    const { swimmerId, lessonId, preferredInstructorId, instructorNotes } = registrationData;
+    const { swimmerId, lessonId, preferredInstructorId, instructorNotes, missingDates } = registrationData;
 
     // Convert IDs to integers
     const swimmerIdInt = parseInt(swimmerId);
@@ -49,7 +49,8 @@ async function handleLessonRegistration(registrationData) {
       swimmer_id: swimmerIdInt,
       lesson_id: lessonIdInt,
       preferred_instructor_id: preferredInstructorIdInt,
-      instructor_notes: instructorNotes || null
+      instructor_notes: instructorNotes || null,
+      missing_dates: missingDates || null
     });
     
     if (!registration) {

@@ -1,0 +1,314 @@
+{
+  "brandeis_swim_best_practices": {
+    "overview": {
+      "name": "Brandeis Swim Code Best Practices",
+      "version": "1.0",
+      "description": "Comprehensive documentation of coding standards, architecture patterns, and best practices used throughout the project",
+      "last_updated": "2024",
+      "framework": "Next.js 15 + React 18 + PostgreSQL"
+    },
+
+    "architecture_patterns": {
+      "layered_architecture": {
+        "description": "Clear separation of concerns with distinct layers",
+        "layers": [
+          "Pages (src/app/*) - Route handlers and page components",
+          "Components (src/components/*) - Reusable UI components",
+          "Handlers (src/lib/handlers/*) - Business logic and API processing",
+          "Stores (src/lib/stores/*) - Data access and database operations",
+          "Utils (src/lib/utils/*) - Helper functions and utilities",
+          "API Routes (src/app/api/*) - HTTP endpoints and request handling"
+        ],
+        "benefits": [
+          "Maintainable codebase",
+          "Easy testing and debugging",
+          "Clear responsibility boundaries",
+          "Scalable structure"
+        ]
+      },
+      "store_pattern": {
+        "description": "Centralized data access layer using store classes",
+        "implementation": "Each entity has its own store class (UserStore, LessonStore, etc.)",
+        "responsibilities": [
+          "Database queries and operations",
+          "Data validation using Zod schemas",
+          "Error handling and logging",
+          "Type definitions and JSDoc comments"
+        ],
+        "naming_convention": "EntityName + 'Store' (e.g., UserStore, SwimmerStore)"
+      },
+      "handler_pattern": {
+        "description": "Business logic layer that orchestrates store operations",
+        "responsibilities": [
+          "Complex business operations",
+          "Data transformation and formatting",
+          "Multiple store coordination",
+          "Error handling and response formatting"
+        ],
+        "naming_convention": "EntityName + 'Handler' or descriptive function names",
+        "location": "src/lib/handlers/[category]/[entity].js"
+      }
+    },
+
+    "code_quality_standards": {
+      "no_debug_code": {
+        "rule": "NEVER leave console.log statements in production code",
+        "description": "All debug console.log statements must be removed before deployment",
+        "enforcement": "Code review requirement - no console.log statements allowed",
+        "alternatives": [
+          "Use proper logging service in production",
+          "Implement error tracking (Sentry, etc.)",
+          "Use debug flags for development only"
+        ]
+      },
+      "no_unused_code": {
+        "rule": "NEVER declare variables, functions, or imports that are not used",
+        "description": "All code must serve a purpose - no dead code allowed",
+        "enforcement": [
+          "ESLint rules for unused variables",
+          "Code review for unused imports",
+          "Regular cleanup of deprecated code"
+        ],
+        "benefits": [
+          "Smaller bundle sizes",
+          "Easier maintenance",
+          "Clearer codebase",
+          "Better performance"
+        ]
+      },
+      "dry_principle": {
+        "rule": "Don't Repeat Yourself - Extract common functionality into reusable utilities",
+        "examples": [
+          "Date formatting utilities in dateUtils.js",
+          "Common validation schemas in stores",
+          "Reusable UI components",
+          "Shared API response patterns"
+        ],
+        "implementation": [
+          "Create utility functions for common operations",
+          "Extract shared validation logic",
+          "Build component libraries for repeated UI patterns",
+          "Use mixins or composition for shared behavior"
+        ]
+      }
+    },
+
+    "database_best_practices": {
+      "connection_management": {
+        "pool_configuration": {
+          "max_connections": 20,
+          "idle_timeout": "30 seconds",
+          "connection_timeout": "2 seconds",
+          "ssl_config": "Production SSL with rejectUnauthorized: false"
+        },
+        "error_handling": "Connection validation on startup with proper error propagation"
+      },
+      "query_organization": {
+        "location": "All database queries belong in store layer, not handlers",
+        "separation": "Handlers contain business logic, stores contain data access",
+        "benefits": [
+          "Clear separation of concerns",
+          "Easier testing and mocking",
+          "Reusable data access patterns",
+          "Centralized query management"
+        ]
+      },
+      "parameterized_queries": {
+        "security": "Always use parameterized queries to prevent SQL injection",
+        "implementation": "Use $1, $2, etc. placeholders with values array",
+        "example": "INSERT INTO users (email, password) VALUES ($1, $2)"
+      }
+    },
+
+    "validation_and_schema": {
+      "zod_integration": {
+        "description": "Runtime type validation using Zod schemas",
+        "usage": "All user inputs validated with Zod before processing",
+        "benefits": [
+          "Type safety at runtime",
+          "Automatic error messages",
+          "Schema composition and reuse",
+          "Better developer experience"
+        ],
+        "examples": [
+          "UserCreateSchema for user registration",
+          "UserUpdateSchema for user updates",
+          "Custom validation rules for passwords"
+        ]
+      },
+      "password_validation": {
+        "requirements": [
+          "Minimum 8 characters",
+          "At least one lowercase letter",
+          "At least one uppercase letter", 
+          "At least one number",
+          "At least one special character"
+        ],
+        "implementation": "Regex patterns in Zod schemas with descriptive error messages"
+      }
+    },
+
+    "api_design": {
+      "route_structure": {
+        "organization": "Grouped by functionality (auth, admin, customer, instructor)",
+        "naming": "Descriptive route names that indicate purpose",
+        "versioning": "No explicit versioning - using Next.js App Router"
+      },
+      "response_formatting": {
+        "success": "Direct data return for successful operations",
+        "error": "Consistent error format with status codes and messages",
+        "example": "{ error: 'Message', details: 'Additional info', status: 500 }"
+      },
+      "authentication": {
+        "middleware": "NextAuth.js integration with role-based access control",
+        "authorization": "Route-level permission checking in middleware.js",
+        "session_management": "Server-side session validation for protected routes"
+      }
+    },
+
+    "component_architecture": {
+      "component_types": {
+        "pages": "Route-level components in src/app/*/page.js",
+        "layouts": "Layout components for consistent page structure",
+        "forms": "Reusable form components with validation",
+        "ui": "Basic UI components (buttons, accordions, etc.)",
+        "shared": "Common components used across multiple pages"
+      },
+      "component_principles": {
+        "single_responsibility": "Each component has one clear purpose",
+        "reusability": "Components designed to be reused across the application",
+        "props_interface": "Clear prop definitions with proper validation",
+        "state_management": "Local state for component-specific data"
+      },
+      "naming_conventions": {
+        "components": "PascalCase (e.g., ModernHomePage, LoginForm)",
+        "files": "PascalCase for components, camelCase for utilities",
+        "folders": "camelCase for feature folders, PascalCase for component folders"
+      }
+    },
+
+    "state_management": {
+      "approach": "React hooks for local state, NextAuth for authentication state",
+      "patterns": [
+        "useState for component-local state",
+        "useEffect for side effects and lifecycle",
+        "useSession for authentication state",
+        "Custom hooks for complex state logic"
+      ],
+      "no_global_state": "Avoid global state management - use props and context sparingly"
+    },
+
+    "error_handling": {
+      "try_catch_patterns": {
+        "database_operations": "Wrap all database calls in try-catch blocks",
+        "api_calls": "Handle errors gracefully with user-friendly messages",
+        "validation": "Provide clear error messages for validation failures"
+      },
+      "error_logging": {
+        "development": "Detailed error logging for debugging",
+        "production": "Structured error logging without sensitive data exposure"
+      },
+      "user_experience": {
+        "friendly_messages": "User-friendly error messages without technical details",
+        "recovery_options": "Provide clear next steps for users when errors occur"
+      }
+    },
+
+    "security_practices": {
+      "authentication": {
+        "nextauth_integration": "Secure authentication with NextAuth.js",
+        "password_hashing": "bcrypt for password hashing",
+        "session_management": "Secure session handling with proper expiration"
+      },
+      "authorization": {
+        "role_based_access": "Role-based access control (admin, instructor, customer)",
+        "route_protection": "Middleware-based route protection",
+        "api_security": "Server-side session validation for all protected endpoints"
+      },
+      "input_validation": {
+        "client_side": "Form validation with Yup schemas",
+        "server_side": "Zod validation for all API inputs",
+        "sanitization": "DOMPurify for HTML content sanitization"
+      }
+    },
+
+    "performance_optimizations": {
+      "nextjs_features": [
+        "App Router for automatic code splitting",
+        "Image component for optimized image loading",
+        "Priority loading for above-fold images",
+        "Automatic route-based code splitting"
+      ],
+      "react_optimizations": [
+        "useEffect cleanup for event listeners",
+        "Proper dependency arrays in useEffect",
+        "Component memoization when beneficial",
+        "Efficient re-render patterns"
+      ],
+      "database_optimizations": [
+        "Connection pooling for database connections",
+        "Efficient query patterns",
+        "Proper indexing strategies"
+      ]
+    },
+
+
+    "code_style": {
+      "javascript": {
+        "version": "ES6+ with modern JavaScript features",
+        "modules": "ES6 import/export syntax",
+        "async_await": "Prefer async/await over Promises",
+        "arrow_functions": "Use arrow functions for consistency"
+      },
+      "react": {
+        "hooks": "Functional components with React hooks",
+        "jsx": "JSX syntax with proper formatting",
+        "props": "Destructure props for cleaner code",
+        "event_handling": "Proper event handler naming and implementation"
+      },
+      "css": {
+        "framework": "Tailwind CSS for utility-first styling",
+        "custom_classes": "Custom CSS classes in globals.css for complex styles",
+        "responsive_design": "Mobile-first responsive design approach",
+        "design_system": "Follow brandeis-swim-design-system.json guidelines"
+      }
+    },
+
+    "file_organization": {
+      "src_structure": {
+        "app": "Next.js App Router pages and API routes",
+        "components": "Reusable UI components organized by feature",
+        "lib": "Core utilities, stores, handlers, and database code",
+        "middleware": "Next.js middleware for route protection"
+      },
+      "naming_conventions": {
+        "folders": "kebab-case for routes, camelCase for features",
+        "files": "PascalCase for components, camelCase for utilities",
+        "constants": "UPPER_SNAKE_CASE for constants"
+      }
+    },
+
+    "documentation_standards": {
+      "jsdoc": "Comprehensive JSDoc comments for all functions and classes",
+      "readme": "Clear project setup and development instructions",
+      "code_comments": "Inline comments for complex business logic",
+      "api_documentation": "Clear API endpoint documentation in route files"
+    },
+
+    "maintenance_guidelines": {
+      "regular_tasks": [
+        "Remove debug console.log statements",
+        "Clean up unused imports and variables",
+        "Update dependencies and security patches",
+        "Review and optimize database queries",
+        "Update documentation as needed"
+      ],
+      "code_quality": [
+        "Regular linting and formatting",
+        "Code review for all changes",
+        "Performance monitoring and optimization",
+        "Security audit and updates"
+      ]
+    }
+  }
+} 

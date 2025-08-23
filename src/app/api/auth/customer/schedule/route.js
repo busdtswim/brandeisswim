@@ -7,23 +7,18 @@ import { getCustomerSchedule } from '@/lib/handlers/customer/schedule';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
+    
     if (!session || !session.user || !session.user.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get customer schedule
-    const classes = await getCustomerSchedule(session.user.email);
+    // Get customer schedule using both email and ID for robustness
+    const result = await getCustomerSchedule(session.user.email, session.user.id);
     
-    return NextResponse.json(classes);
+    return NextResponse.json(result);
   } catch (error) {
-    console.error('Error fetching schedule:', error);
-    
-    if (error.message.includes('not found')) {
-      return NextResponse.json({ error: error.message }, { status: 404 });
-    }
-    
     return NextResponse.json(
-      { error: 'Failed to fetch schedule' }, 
+      { error: 'Failed to fetch schedule', details: error.message }, 
       { status: 500 }
     );
   }

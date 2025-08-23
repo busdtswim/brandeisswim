@@ -437,13 +437,10 @@ const CreateLessons = () => {
                   <thead className="bg-gray-50">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date Range
+                        Date Range & Time
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Meeting Days
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Time
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Capacity
@@ -460,6 +457,9 @@ const CreateLessons = () => {
                           <div className="text-sm text-gray-900">
                             {formatDate(lesson.start_date)} - {formatDate(lesson.end_date)}
                           </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {lesson.start_time} - {lesson.end_time}
+                          </div>
                           {lesson.exception_dates && (
                             <div className="text-xs text-red-600 mt-1">
                               Exceptions: {DateFormatter.formatExceptionDates(lesson.exception_dates) || 'None'}
@@ -469,11 +469,6 @@ const CreateLessons = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
                             {lesson.meeting_days}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {lesson.start_time} - {lesson.end_time}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

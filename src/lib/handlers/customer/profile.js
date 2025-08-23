@@ -4,11 +4,22 @@ const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
 /**
  * Get customer profile with swimmers
  * @param {string} userEmail - User's email
+ * @param {number} [userId] - User's ID (alternative to email)
  * @returns {Promise<Object>} User profile with swimmers
  */
-async function getCustomerProfile(userEmail) {
+async function getCustomerProfile(userEmail, userId = null) {
   try {
-    const user = await UserStore.findByEmail(userEmail);
+    let user;
+    
+    if (userId) {
+      // Try to find by ID first (more reliable)
+      user = await UserStore.findById(userId);
+    }
+    
+    if (!user && userEmail) {
+      // Fallback to email if ID not provided or user not found by ID
+      user = await UserStore.findByEmail(userEmail);
+    }
 
     if (!user) {
       throw new Error('User not found');
@@ -25,7 +36,6 @@ async function getCustomerProfile(userEmail) {
       swimmers
     };
   } catch (error) {
-    console.error('Error fetching user profile:', error);
     throw error;
   }
 }
@@ -34,11 +44,22 @@ async function getCustomerProfile(userEmail) {
  * Update customer profile
  * @param {string} userEmail - User's email
  * @param {Object} updateData - Profile update data
+ * @param {number} [userId] - User's ID (alternative to email)
  * @returns {Promise<Object>} Updated user profile
  */
-async function updateCustomerProfile(userEmail, updateData) {
+async function updateCustomerProfile(userEmail, updateData, userId = null) {
   try {
-    const user = await UserStore.findByEmail(userEmail);
+    let user;
+    
+    if (userId) {
+      // Try to find by ID first (more reliable)
+      user = await UserStore.findById(userId);
+    }
+    
+    if (!user && userEmail) {
+      // Fallback to email if ID not provided or user not found by ID
+      user = await UserStore.findByEmail(userEmail);
+    }
     
     if (!user) {
       throw new Error('User not found');
@@ -56,7 +77,6 @@ async function updateCustomerProfile(userEmail, updateData) {
       ...userWithoutPassword
     };
   } catch (error) {
-    console.error('Error updating user profile:', error);
     throw error;
   }
 }

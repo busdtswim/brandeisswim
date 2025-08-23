@@ -23,7 +23,7 @@ export async function POST(req) {
     const { swimmerId } = requestData;
 
     // Handle waitlist join
-    const result = await handleWaitlistJoin(swimmerId, session.user.email);
+    const result = await handleWaitlistJoin(swimmerId, session.user.email, session.user.id);
     
     return NextResponse.json(result);
   } catch (error) {

@@ -42,7 +42,6 @@ async function getAdminUsers() {
 
     return formattedUsers;
   } catch (error) {
-    console.error('Error fetching users:', error);
     throw error;
   }
 }

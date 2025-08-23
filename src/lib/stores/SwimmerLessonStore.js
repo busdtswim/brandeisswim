@@ -10,6 +10,7 @@ const { z } = require('zod');
  * @property {number} [instructor_id] - Assigned instructor ID
  * @property {string} [instructor_notes] - Instructor notes
  * @property {number} [preferred_instructor_id] - Preferred instructor ID
+ * @property {string} [missing_dates] - Comma-separated dates when swimmer will be absent
  */
 
 /**
@@ -19,6 +20,7 @@ const { z } = require('zod');
  * @property {number} [instructor_id] - Assigned instructor ID
  * @property {string} [instructor_notes] - Instructor notes
  * @property {number} [preferred_instructor_id] - Preferred instructor ID
+ * @property {string} [missing_dates] - Comma-separated dates when swimmer will be absent
  */
 
 /**
@@ -30,6 +32,7 @@ const { z } = require('zod');
  * @property {number} [instructor_id] - Assigned instructor ID
  * @property {string} [instructor_notes] - Instructor notes
  * @property {number} [preferred_instructor_id] - Preferred instructor ID
+ * @property {string} [missing_dates] - Comma-separated dates when swimmer will be absent
  */
 
 // Zod schemas for validation
@@ -41,6 +44,7 @@ const SwimmerLessonCreateSchema = z.object({
   instructor_id: z.number().positive('Instructor ID must be positive').nullable().optional(),
   instructor_notes: z.string().nullable().optional(),
   preferred_instructor_id: z.number().positive('Preferred instructor ID must be positive').nullable().optional(),
+  missing_dates: z.string().nullable().optional(),
 });
 
 const SwimmerLessonUpdateSchema = z.object({
@@ -49,6 +53,12 @@ const SwimmerLessonUpdateSchema = z.object({
   instructor_id: z.number().positive('Instructor ID must be positive').nullable().optional(),
   instructor_notes: z.string().nullable().optional(),
   preferred_instructor_id: z.number().positive('Preferred instructor ID must be positive').nullable().optional(),
+  missing_dates: z.string().nullable().optional(),
+});
+
+// Schema for adding missing dates
+const MissingDatesSchema = z.object({
+  missing_dates: z.string().min(1, 'Missing dates are required'),
 });
 
 class SwimmerLessonStore {
@@ -63,9 +73,9 @@ class SwimmerLessonStore {
       const validatedData = SwimmerLessonCreateSchema.parse(swimmerLessonData);
       
       const query = `
-        INSERT INTO swimmer_lessons (swimmer_id, lesson_id, registration_date, payment_status, instructor_id, instructor_notes, preferred_instructor_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING swimmer_id, lesson_id, registration_date, payment_status, instructor_id, instructor_notes, preferred_instructor_id
+        INSERT INTO swimmer_lessons (swimmer_id, lesson_id, registration_date, payment_status, instructor_id, instructor_notes, preferred_instructor_id, missing_dates)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING swimmer_id, lesson_id, registration_date, payment_status, instructor_id, instructor_notes, preferred_instructor_id, missing_dates
       `;
       
       const values = [
@@ -75,7 +85,8 @@ class SwimmerLessonStore {
         validatedData.payment_status,
         validatedData.instructor_id,
         validatedData.instructor_notes,
-        validatedData.preferred_instructor_id
+        validatedData.preferred_instructor_id,
+        validatedData.missing_dates
       ];
       
       const result = await pool.query(query, values);
@@ -100,7 +111,7 @@ class SwimmerLessonStore {
   static async findBySwimmerAndLesson(swimmerId, lessonId) {
     try {
       const query = `
-        SELECT sl.swimmer_id, sl.lesson_id, sl.registration_date, sl.payment_status, sl.instructor_id, sl.instructor_notes, sl.preferred_instructor_id,
+        SELECT sl.swimmer_id, sl.lesson_id, sl.registration_date, sl.payment_status, sl.instructor_id, sl.instructor_notes, sl.preferred_instructor_id, sl.missing_dates,
                s.name as swimmer_name, s.proficiency, s.gender, s.birthdate,
                l.meeting_days, l.max_slots, l.start_time, l.end_time, l.start_date, l.end_date,
                i1.name as instructor_name, i1.email as instructor_email,
@@ -128,7 +139,7 @@ class SwimmerLessonStore {
   static async findBySwimmerId(swimmerId) {
     try {
       const query = `
-        SELECT sl.swimmer_id, sl.lesson_id, sl.registration_date, sl.payment_status, sl.instructor_id, sl.instructor_notes, sl.preferred_instructor_id,
+        SELECT sl.swimmer_id, sl.lesson_id, sl.registration_date, sl.payment_status, sl.instructor_id, sl.instructor_notes, sl.preferred_instructor_id, sl.missing_dates,
                s.name as swimmer_name, s.proficiency, s.gender, s.birthdate,
                l.meeting_days, l.max_slots, l.start_time, l.end_time, l.start_date, l.end_date,
                i1.name as instructor_name, i1.email as instructor_email,
@@ -157,7 +168,7 @@ class SwimmerLessonStore {
   static async findByLessonId(lessonId) {
     try {
       const query = `
-        SELECT sl.swimmer_id, sl.lesson_id, sl.registration_date, sl.payment_status, sl.instructor_id, sl.instructor_notes, sl.preferred_instructor_id,
+        SELECT sl.swimmer_id, sl.lesson_id, sl.registration_date, sl.payment_status, sl.instructor_id, sl.instructor_notes, sl.preferred_instructor_id, sl.missing_dates,
                s.name as swimmer_name, s.proficiency, s.gender, s.birthdate,
                l.meeting_days, l.max_slots, l.start_time, l.end_time, l.start_date, l.end_date,
                i1.name as instructor_name, i1.email as instructor_email,
@@ -214,6 +225,10 @@ class SwimmerLessonStore {
         setClause.push(`preferred_instructor_id = $${paramCount++}`);
         values.push(validatedData.preferred_instructor_id);
       }
+      if (validatedData.missing_dates !== undefined) {
+        setClause.push(`missing_dates = $${paramCount++}`);
+        values.push(validatedData.missing_dates);
+      }
 
       if (setClause.length === 0) {
         throw new Error('No fields to update');
@@ -224,7 +239,7 @@ class SwimmerLessonStore {
         UPDATE swimmer_lessons
         SET ${setClause.join(', ')}
         WHERE swimmer_id = $${paramCount++} AND lesson_id = $${paramCount}
-        RETURNING swimmer_id, lesson_id, registration_date, payment_status, instructor_id, instructor_notes, preferred_instructor_id
+        RETURNING swimmer_id, lesson_id, registration_date, payment_status, instructor_id, instructor_notes, preferred_instructor_id, missing_dates
       `;
       
       const result = await pool.query(query, values);
@@ -292,6 +307,202 @@ class SwimmerLessonStore {
       return Math.max(0, max_slots - parseInt(current_participants));
     } catch (error) {
       throw new Error(`Failed to find available slots: ${error.message}`);
+    }
+  }
+
+  /**
+   * Unassign instructor from all lessons
+   * @param {number} instructorId
+   * @returns {Promise<{updatedCount: number}>}
+   */
+  static async unassignInstructorFromAllLessons(instructorId) {
+    try {
+      const query = `
+        UPDATE swimmer_lessons
+        SET instructor_id = NULL
+        WHERE instructor_id = $1
+      `;
+      
+      const result = await pool.query(query, [instructorId]);
+      return { updatedCount: result.rowCount };
+    } catch (error) {
+      throw new Error(`Failed to unassign instructor from lessons: ${error.message}`);
+    }
+  }
+
+  /**
+   * Check if a swimmer is enrolled in a specific lesson
+   * @param {number} swimmerId
+   * @param {number} lessonId
+   * @returns {Promise<boolean>}
+   */
+  static async isSwimmerEnrolledInLesson(swimmerId, lessonId) {
+    try {
+      const query = `
+        SELECT COUNT(*) as count
+        FROM swimmer_lessons 
+        WHERE swimmer_id = $1 AND lesson_id = $2
+      `;
+      
+      const result = await pool.query(query, [swimmerId, lessonId]);
+      return result.rows[0].count > 0;
+    } catch (error) {
+      throw new Error(`Failed to check swimmer enrollment: ${error.message}`);
+    }
+  }
+
+  /**
+   * Update instructor notes for a swimmer's lesson
+   * @param {number} swimmerId - Swimmer ID
+   * @param {number} lessonId - Lesson ID
+   * @param {string} notes - New instructor notes
+   * @returns {Promise<Object|null>}
+   */
+  static async updateInstructorNotes(swimmerId, lessonId, notes) {
+    try {
+      const query = `
+        UPDATE swimmer_lessons
+        SET instructor_notes = $1
+        WHERE swimmer_id = $2 AND lesson_id = $3
+        RETURNING swimmer_id, lesson_id, instructor_notes
+      `;
+      
+      const result = await pool.query(query, [notes, swimmerId, lessonId]);
+      return result.rows[0] || null;
+    } catch (error) {
+      throw new Error(`Failed to update instructor notes: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get participants for a specific lesson assigned to a specific instructor
+   * @param {number} lessonId
+   * @param {number} instructorId
+   * @returns {Promise<Array>} Array of participants assigned to this instructor
+   */
+  static async getLessonParticipants(lessonId, instructorId) {
+    try {
+      const query = `
+        SELECT s.id, s.name, s.proficiency
+        FROM swimmers s
+        INNER JOIN swimmer_lessons sl ON s.id = sl.swimmer_id
+        WHERE sl.lesson_id = $1 AND sl.instructor_id = $2
+        ORDER BY s.name
+      `;
+      
+      const result = await pool.query(query, [lessonId, instructorId]);
+      return result.rows;
+    } catch (error) {
+      throw new Error(`Failed to get lesson participants: ${error.message}`);
+    }
+  }
+
+  /**
+   * Add missing dates for a swimmer's lesson
+   * @param {number} swimmerId - Swimmer ID
+   * @param {number} lessonId - Lesson ID
+   * @param {string} missingDates - Comma-separated dates (MM/DD/YYYY format)
+   * @returns {Promise<Object>} Updated swimmer lesson record
+   */
+  static async addMissingDates(swimmerId, lessonId, missingDates) {
+    try {
+      // Validate input
+      const validatedData = MissingDatesSchema.parse({ missing_dates: missingDates });
+      
+      // Get current missing dates
+      const currentRecord = await this.findBySwimmerAndLesson(swimmerId, lessonId);
+      if (!currentRecord) {
+        throw new Error('Swimmer lesson registration not found');
+      }
+      
+      // Parse and validate dates
+      const newDates = validatedData.missing_dates.split(',').map(date => date.trim());
+      const currentDates = currentRecord.missing_dates ? currentRecord.missing_dates.split(',').map(date => date.trim()) : [];
+      
+      // Check for duplicates
+      const duplicates = newDates.filter(date => currentDates.includes(date));
+      if (duplicates.length > 0) {
+        throw new Error(`Dates already marked as missing: ${duplicates.join(', ')}`);
+      }
+      
+      // Combine dates and sort them
+      const allDates = [...currentDates, ...newDates].sort();
+      const combinedDates = allDates.join(',');
+      
+      // Update the record
+      const query = `
+        UPDATE swimmer_lessons
+        SET missing_dates = $1
+        WHERE swimmer_id = $2 AND lesson_id = $3
+        RETURNING swimmer_id, lesson_id, missing_dates
+      `;
+      
+      const result = await pool.query(query, [combinedDates, swimmerId, lessonId]);
+      return result.rows[0];
+    } catch (error) {
+      throw new Error(`Failed to add missing dates: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get missing dates for a swimmer's lesson
+   * @param {number} swimmerId - Swimmer ID
+   * @param {number} lessonId - Lesson ID
+   * @returns {Promise<string|null>} Comma-separated missing dates or null
+   */
+  static async getMissingDates(swimmerId, lessonId) {
+    try {
+      const query = `
+        SELECT missing_dates
+        FROM swimmer_lessons
+        WHERE swimmer_id = $1 AND lesson_id = $2
+      `;
+      
+      const result = await pool.query(query, [swimmerId, lessonId]);
+      return result.rows[0]?.missing_dates || null;
+    } catch (error) {
+      throw new Error(`Failed to get missing dates: ${error.message}`);
+    }
+  }
+
+  /**
+   * Check if a specific date is marked as missing for a swimmer
+   * @param {number} swimmerId - Swimmer ID
+   * @param {number} lessonId - Lesson ID
+   * @param {string} date - Date to check (MM/DD/YYYY format)
+   * @returns {Promise<boolean>} True if date is marked as missing
+   */
+  static async isDateMarkedAsMissing(swimmerId, lessonId, date) {
+    try {
+      const missingDates = await this.getMissingDates(swimmerId, lessonId);
+      if (!missingDates) return false;
+      
+      const datesList = missingDates.split(',').map(d => d.trim());
+      return datesList.includes(date);
+    } catch (error) {
+      throw new Error(`Failed to check missing date: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get all swimmers with missing dates for a specific lesson
+   * @param {number} lessonId - Lesson ID
+   * @returns {Promise<Array>} Array of swimmers with missing dates
+   */
+  static async getSwimmersWithMissingDates(lessonId) {
+    try {
+      const query = `
+        SELECT sl.swimmer_id, sl.missing_dates, s.name as swimmer_name
+        FROM swimmer_lessons sl
+        INNER JOIN swimmers s ON sl.swimmer_id = s.id
+        WHERE sl.lesson_id = $1 AND sl.missing_dates IS NOT NULL AND sl.missing_dates != ''
+        ORDER BY s.name
+      `;
+      
+      const result = await pool.query(query, [lessonId]);
+      return result.rows;
+    } catch (error) {
+      throw new Error(`Failed to get swimmers with missing dates: ${error.message}`);
     }
   }
 }

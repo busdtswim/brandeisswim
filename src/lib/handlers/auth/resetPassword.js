@@ -39,7 +39,6 @@ async function handlePasswordReset(token, newPassword) {
       message: 'Password reset successful'
     };
   } catch (error) {
-    console.error('Password reset error:', error);
     throw error;
   }
 }

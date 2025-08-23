@@ -1,23 +1,38 @@
 const WaitlistStore = require('@/lib/stores/WaitlistStore.js');
 const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
+const UserStore = require('@/lib/stores/UserStore.js');
 
 /**
  * Join waitlist for a swimmer
  * @param {number} swimmerId - Swimmer ID
  * @param {string} userEmail - Current user's email
+ * @param {number} [userId] - Current user's ID (more reliable)
  * @returns {Promise<Object>} Waitlist join result
  */
-async function handleWaitlistJoin(swimmerId, userEmail) {
+async function handleWaitlistJoin(swimmerId, userEmail, userId = null) {
   try {
     const swimmerIdInt = parseInt(swimmerId);
     if (isNaN(swimmerIdInt)) {
       throw new Error('Invalid swimmer ID');
     }
 
-    // Check if swimmer belongs to the current user
-    const swimmer = await SwimmerStore.findByIdWithUser(swimmerIdInt);
+    // Get user by ID first (more reliable), fallback to email
+    let user;
+    if (userId) {
+      user = await UserStore.findById(userId);
+    }
+    if (!user && userEmail) {
+      user = await UserStore.findByEmail(userEmail);
+    }
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
 
-    if (!swimmer || swimmer.email !== userEmail) {
+    // Check if swimmer belongs to the current user by user ID
+    const swimmer = await SwimmerStore.findById(swimmerIdInt);
+
+    if (!swimmer || swimmer.user_id !== user.id) {
       throw new Error('Swimmer not found or does not belong to this user');
     }
 
@@ -41,7 +56,6 @@ async function handleWaitlistJoin(swimmerId, userEmail) {
       position: waitlistEntry.position
     };
   } catch (error) {
-    console.error('Waitlist join error:', error);
     throw error;
   }
 }

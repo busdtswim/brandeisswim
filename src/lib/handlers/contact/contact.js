@@ -10,7 +10,7 @@ async function handleContactSubmission(contactData) {
     const { name, email, message } = contactData;
 
     // Create a transporter using Gmail
-    let transporter = nodemailer.createTransporter({
+    let transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.APP_EMAIL,
@@ -39,7 +39,6 @@ async function handleContactSubmission(contactData) {
       message: 'Email sent successfully'
     };
   } catch (error) {
-    console.error('Error sending email:', error);
     throw new Error('Failed to send email');
   }
 }

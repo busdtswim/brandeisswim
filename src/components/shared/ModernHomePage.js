@@ -119,7 +119,7 @@ const ModernHomepage = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-12 items-center">
             {/* Left column with image */}
-            <div className="lg:w-2/5 relative h-[400px] lg:h-[500px] rounded-2xl md:rounded-3xl overflow-hidden shadow-xl scroll-reveal">
+            <div className="w-full lg:w-2/5 relative h-[300px] sm:h-[400px] lg:h-[500px] rounded-2xl md:rounded-3xl overflow-hidden shadow-xl scroll-reveal">
               <Image 
                 src="/team.jpg" 
                 alt="Brandeis Swim Program" 

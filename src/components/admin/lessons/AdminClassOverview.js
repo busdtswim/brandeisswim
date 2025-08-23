@@ -15,6 +15,7 @@ import {
 import { DateFormatter } from '@/lib/utils/formatUtils';
 import EditExceptionsModal from '../EditExceptionModal';
 import { hasScheduleConflict } from '@/lib/utils/timeUtils';
+import CoverageIndicator from '../../shared/CoverageIndicator';
 
 const ViewSchedule = () => {
   const [classes, setClasses] = useState([]);
@@ -28,6 +29,7 @@ const ViewSchedule = () => {
   const [message, setMessage] = useState({ text: '', type: '' });
   const [showMessage, setShowMessage] = useState(false);
   const [notesModal, setNotesModal] = useState({ open: false, notes: '' });
+  const [missingDatesModal, setMissingDatesModal] = useState({ open: false, dates: '', swimmer: '' });
   const [contactModal, setContactModal] = useState({ open: false, email: '', phone: '', swimmer: '', parentName: '' });
   const [isAssigning, setIsAssigning] = useState(false);
 
@@ -186,6 +188,10 @@ const ViewSchedule = () => {
         const errorData = await assignResponse.json();
         throw new Error(errorData.error || 'Failed to assign instructor');
       }
+
+      // Get assignment result and check for login credentials
+      const assignmentResult = await assignResponse.json();
+      
       // Notify instructor of assignment
       const classData = classes.find(cls => cls.id === parseInt(classId));
       const swimmer = classData.participants.find(p => p.id === parseInt(swimmerId));
@@ -207,6 +213,7 @@ const ViewSchedule = () => {
                 meetingDays: classData.meetingDays,
                 time: classData.time,
               },
+              loginCredentials: assignmentResult.instructorLoginInfo
             }),
           });
         } catch (notifyError) {
@@ -514,12 +521,6 @@ const ViewSchedule = () => {
                               Swimmer
                             </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Age/Gender
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Proficiency
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Preferred Instructor
                             </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -527,6 +528,12 @@ const ViewSchedule = () => {
                             </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                               Notes for Instructor
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                              Missing Dates
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Coverage
                             </th>
                             <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Payment
@@ -540,32 +547,24 @@ const ViewSchedule = () => {
                           {classData.participants?.map((participant) => (
                             <tr key={participant.id} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <button
-                                  type="button"
-                                  className="font-medium text-blue-600 hover:underline"
-                                  onClick={() => setContactModal({
-                                    open: true,
-                                    parentName: participant.parent_name || '',
-                                    email: participant.parent_email || '',
-                                    phone: participant.parent_phone_number || '',
-                                    swimmer: participant.name || ''
-                                  })}
-                                >
-                                  {participant.name}
-                                </button>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-gray-500">{participant.age} / {participant.gender}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  participant.proficiency === 'beginner' ? 'bg-blue-100 text-blue-800' :
-                                  participant.proficiency === 'intermediate' ? 'bg-green-100 text-green-800' :
-                                  participant.proficiency === 'advanced' ? 'bg-purple-100 text-purple-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {participant.proficiency || 'N/A'}
-                                </span>
+                                <div>
+                                  <button
+                                    type="button"
+                                    className="font-medium text-blue-600 hover:underline"
+                                    onClick={() => setContactModal({
+                                      open: true,
+                                      parentName: participant.parent_name || '',
+                                      email: participant.parent_email || '',
+                                      phone: participant.parent_phone_number || '',
+                                      swimmer: participant.name || ''
+                                    })}
+                                  >
+                                    {participant.name}
+                                  </button>
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    {participant.age} / {participant.gender} • {participant.proficiency || 'N/A'}
+                                  </div>
+                                </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 {participant.preferred_instructor ? (
@@ -603,6 +602,21 @@ const ViewSchedule = () => {
                                 ) : (
                                   <span className="text-gray-400 italic text-sm">None</span>
                                 )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center w-24">
+                                {participant.missing_dates ? (
+                                  <button
+                                    className="text-blue-600 hover:underline text-sm font-medium"
+                                    onClick={() => setMissingDatesModal({ open: true, dates: participant.missing_dates, swimmer: participant.name })}
+                                  >
+                                    View Dates
+                                  </button>
+                                ) : (
+                                  <span className="text-gray-400 italic text-sm">None</span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                                <CoverageIndicator lessonId={classData.id} swimmerId={participant.id} />
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-center">
                                 <div className="relative inline-block w-10 align-middle select-none">
@@ -648,7 +662,7 @@ const ViewSchedule = () => {
                           
                           {(!classData.participants || classData.participants.length === 0) && (
                             <tr>
-                              <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                              <td colSpan="8" className="px-6 py-4 text-center text-gray-500">
                                 No swimmers enrolled in this class
                               </td>
                             </tr>
@@ -687,6 +701,28 @@ const ViewSchedule = () => {
             <h3 className="text-lg font-semibold mb-4">Notes for Instructor</h3>
             <div className="text-gray-700 whitespace-pre-line break-words max-h-60 overflow-y-auto">
               {notesModal.notes}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Missing Dates Modal */}
+      {missingDatesModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setMissingDatesModal({ open: false, dates: '', swimmer: '' })}
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-lg font-semibold mb-4">Missing Dates - {missingDatesModal.swimmer}</h3>
+            <div className="text-gray-700 whitespace-pre-line break-words max-h-60 overflow-y-auto">
+              {missingDatesModal.dates.split(',').map((date, index) => (
+                <div key={index} className="py-1">
+                  <span className="font-medium">{date.trim()}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

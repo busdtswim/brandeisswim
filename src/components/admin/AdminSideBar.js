@@ -37,7 +37,7 @@ const AdminSidebar = () => {
     <>
       {/* Mobile Menu Button */}
       <button 
-        className="fixed top-20 left-4 md:hidden bg-blue-500 text-white p-2 rounded-lg z-20 w-10 h-10 flex items-center justify-center shadow-md transition-colors hover:bg-blue-600"
+        className="fixed top-20 left-4 md:hidden bg-brandeis-blue text-white p-2 rounded-xl z-20 w-10 h-10 flex items-center justify-center shadow-lg transition-all duration-300 hover:bg-pool-blue hover:scale-105"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle menu"
       >
@@ -54,8 +54,8 @@ const AdminSidebar = () => {
 
       {/* Sidebar Container */}
       <aside 
-        className={`fixed md:absolute left-0 top-0 bottom-0 bg-white shadow-sm w-64 z-30
-          transform transition-transform duration-300 ease-in-out overflow-y-auto
+        className={`fixed md:absolute left-0 top-0 bottom-0 bg-white/95 backdrop-blur-lg shadow-xl w-64 z-30
+          transform transition-transform duration-300 ease-out overflow-y-auto
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
           md:translate-x-0`}
       >
@@ -63,7 +63,7 @@ const AdminSidebar = () => {
         {isOpen && (
           <button
             onClick={() => setIsOpen(false)}
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 md:hidden"
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 md:hidden transition-colors"
             aria-label="Close menu"
           >
             <X size={20} />
@@ -71,20 +71,20 @@ const AdminSidebar = () => {
         )}
 
         {/* User Info Section */}
-        <div className="py-8 px-6">
+        <div className="py-8 px-6 border-b border-gray-100">
           <div className="flex items-center">
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
+            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-brandeis-blue to-pool-blue flex items-center justify-center text-white font-bold text-lg shadow-lg">
               {userInitial}
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700">Administrator</p>
+              <p className="text-sm font-semibold text-gray-900">Administrator</p>
               <p className="text-xs text-gray-500">{userEmail}</p>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav>
+        <nav className="py-6">
           <div className="px-6 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
             MAIN
           </div>
@@ -94,21 +94,30 @@ const AdminSidebar = () => {
                 <Link
                   href={item.path}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center px-6 py-3 transition-colors
+                  className={`flex items-center px-6 py-3 transition-all duration-200 mx-2 rounded-xl
                     ${pathname === item.path 
-                      ? 'bg-blue-100 text-blue-600 font-medium' 
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
+                      ? 'bg-gradient-to-r from-brandeis-blue to-pool-blue text-white font-medium shadow-lg' 
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-pool-blue hover:translate-x-1'
                     }`}
                 >
-                  <span className={`mr-3 ${pathname === item.path ? 'text-blue-500' : 'text-gray-500'}`}>
+                  <span className={`mr-3 ${pathname === item.path ? 'text-white' : 'text-gray-500'}`}>
                     {item.icon}
                   </span>
-                  {item.label}
+                  <span className="font-medium">{item.label}</span>
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
+
+        {/* Footer */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-100">
+          <div className="text-center">
+            <div className="w-8 h-1 bg-gradient-to-r from-brandeis-blue to-pool-blue mx-auto mb-2"></div>
+            <p className="text-xs text-gray-500 font-medium">Admin Panel</p>
+            <p className="text-xs text-gray-400">Full System Access</p>
+          </div>
+        </div>
       </aside>
     </>
   );
