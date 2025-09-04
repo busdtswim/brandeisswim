@@ -48,7 +48,7 @@ const ModernHomepage = () => {
           />
           
           {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-pool-blue/20 to-brandeis-blue/40 z-5"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-pool-blue/20 to-brandeis-blue/40 z-[5]"></div>
           
           {/* Hero Content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 text-white z-10">

@@ -60,7 +60,7 @@ async function addMissingDates(data) {
       
       await EmailStore.sendMissingDateNotification({
         swimmerName: swimmer.name,
-        parentName: `${user.first_name} ${user.last_name}`,
+        parentName: `${user.fullname}`,
         parentEmail: user.email,
         lessonDetails: lessonDetails,
         missingDates: result.missing_dates,
