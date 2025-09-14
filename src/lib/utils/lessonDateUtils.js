@@ -107,3 +107,43 @@ export function isFutureDate(dateString) {
 export function filterFutureDates(dates) {
   return dates.filter(date => isFutureDate(date));
 }
+/**
+ * Check if registration is allowed based on one-day buffer rule
+ * If lesson starts on Monday, last day to register is Sunday
+ * @param {Object} lesson - Lesson object with start_date or startDate
+ * @returns {boolean} Whether registration is allowed
+ */
+export function isRegistrationAllowed(lesson) {
+  if (!lesson || (!lesson.start_date && !lesson.startDate)) {
+    return false;
+  }
+
+  const now = new Date();
+  let lessonStartDate;
+  
+  // Handle different date formats
+  const startDateStr = lesson.start_date || lesson.startDate;
+  
+  if (startDateStr.includes('/')) {
+    // MM/DD/YYYY format
+    const [month, day, year] = startDateStr.split("/").map(Number);
+    lessonStartDate = new Date(year, month - 1, day);
+  } else {
+    // ISO format or other
+    lessonStartDate = new Date(startDateStr);
+  }
+  
+  if (isNaN(lessonStartDate.getTime())) {
+    return false;
+  }
+  
+  // Calculate the registration cutoff date (one day before lesson start)
+  const registrationCutoffDate = new Date(lessonStartDate);
+  registrationCutoffDate.setDate(registrationCutoffDate.getDate() - 1);
+  
+  // Allow registration until end of cutoff day (11:59:59 PM)
+  registrationCutoffDate.setHours(23, 59, 59, 999);
+  
+  // Check if current time is before the cutoff
+  return now <= registrationCutoffDate;
+}

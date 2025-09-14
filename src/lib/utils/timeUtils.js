@@ -97,3 +97,66 @@ export const hasScheduleConflict = (lesson1, lesson2) => {
   }
   return false;
 };
+
+// Check if a lesson has already started
+export const hasLessonStarted = (lesson) => {
+  if (!lesson || !lesson.start_date || !lesson.start_time) {
+    return false;
+  }
+
+  const now = DateTime.now().setZone(NY_TIMEZONE);
+  
+  // Parse the lesson start date (MM/DD/YYYY format)
+  const [month, day, year] = lesson.start_date.split("/").map(Number);
+  const lessonStartDate = DateTime.fromObject({ 
+    year, 
+    month, 
+    day 
+  }, { zone: NY_TIMEZONE });
+  
+  // Parse the lesson start time (HH:mm format)
+  const lessonStartTime = DateTime.fromFormat(lesson.start_time, "HH:mm", { zone: NY_TIMEZONE });
+  
+  // Combine date and time
+  const lessonStartDateTime = lessonStartDate.set({
+    hour: lessonStartTime.hour,
+    minute: lessonStartTime.minute,
+    second: 0,
+    millisecond: 0
+  });
+  
+  // Check if the lesson has started
+  return now >= lessonStartDateTime;
+};
+
+// Check if registration is allowed based on one-day buffer rule
+// If lesson starts on Monday, last day to register is Sunday
+export const isRegistrationAllowed = (lesson) => {
+  if (!lesson || !lesson.start_date) {
+    return false;
+  }
+
+  const now = DateTime.now().setZone(NY_TIMEZONE);
+  
+  // Parse the lesson start date (MM/DD/YYYY format)
+  const [month, day, year] = lesson.start_date.split("/").map(Number);
+  const lessonStartDate = DateTime.fromObject({ 
+    year, 
+    month, 
+    day 
+  }, { zone: NY_TIMEZONE });
+  
+  // Calculate the registration cutoff date (one day before lesson start)
+  const registrationCutoffDate = lessonStartDate.minus({ days: 1 });
+  
+  // Allow registration until end of cutoff day (11:59:59 PM)
+  const registrationCutoffDateTime = registrationCutoffDate.set({
+    hour: 23,
+    minute: 59,
+    second: 59,
+    millisecond: 999
+  });
+  
+  // Check if current time is before the cutoff
+  return now <= registrationCutoffDateTime;
+};

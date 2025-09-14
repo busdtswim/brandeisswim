@@ -1,6 +1,7 @@
 const LessonStore = require('@/lib/stores/LessonStore.js');
 const SwimmerStore = require('@/lib/stores/SwimmerStore.js');
 const SwimmerLessonStore = require('@/lib/stores/SwimmerLessonStore.js');
+const { hasLessonStarted, isRegistrationAllowed } = require('@/lib/utils/timeUtils.js');
 
 /**
  * Register a swimmer for a lesson
@@ -24,6 +25,16 @@ async function handleLessonRegistration(registrationData) {
     const lesson = await LessonStore.findById(lessonIdInt);
     if (!lesson) {
       throw new Error('Lesson not found');
+    }
+
+    // Check if the lesson has already started
+    if (hasLessonStarted(lesson)) {
+      throw new Error('Cannot register for a lesson that has already started');
+    }
+
+    // Check if registration is still allowed (one-day buffer rule)
+    if (!isRegistrationAllowed(lesson)) {
+      throw new Error('Registration is no longer allowed for this lesson. Please join the waitlist instead.');
     }
 
     // Check if the lesson is full
@@ -78,4 +89,4 @@ async function handleLessonRegistration(registrationData) {
 
 module.exports = {
   handleLessonRegistration
-}; 
+};

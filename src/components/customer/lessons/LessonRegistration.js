@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Users, XCircle, AlertTriangle, Check, Filter, User, MessageSquare, Plus, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { generateLessonDates, filterFutureDates } from '@/lib/utils/lessonDateUtils';
+import { generateLessonDates, filterFutureDates, isRegistrationAllowed } from '@/lib/utils/lessonDateUtils';
 import MultiSelectDropdown from '@/components/ui/MultiSelectDropdown';
 
 const LessonRegistration = () => {
@@ -391,6 +391,7 @@ const LessonRegistration = () => {
             const maxSlots = lesson.capacity || 1;
             const isFull = registered >= maxSlots;
             const fillPercentage = (registered / maxSlots) * 100;
+            const registrationAllowed = isRegistrationAllowed(lesson);
             
             return (
               <div 
@@ -475,17 +476,17 @@ const LessonRegistration = () => {
                   <div className="space-y-3 pt-4 border-t border-gray-100">
                     <button
                       onClick={() => handleRegisterClick(lesson)}
-                      disabled={isFull}
+                      disabled={isFull || !registrationAllowed}
                       className={`w-full py-3 px-4 rounded-xl font-bold text-center transition-all duration-200 ${
-                        isFull
+                        isFull || !registrationAllowed
                           ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                           : 'bg-gradient-to-r from-pool-blue to-brandeis-blue hover:from-brandeis-blue hover:to-pool-blue text-white transform hover:scale-[1.02] hover:shadow-lg'
                       }`}
                     >
-                      {isFull ? 'Class Full' : 'Register Now'}
+                      {!registrationAllowed ? 'Registration Closed' : (isFull ? 'Class Full' : 'Register Now')}
                     </button>
                     
-                    {isFull && waitlistActive && (
+                    {(isFull || !registrationAllowed) && waitlistActive && (
                       <button
                         onClick={() => handleJoinWaitlistClick()}
                         className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-red-500 hover:to-orange-500 text-white py-3 px-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg"

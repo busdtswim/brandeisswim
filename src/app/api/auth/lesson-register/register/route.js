@@ -36,6 +36,10 @@ export async function POST(req) {
     }
     
     if (error.message.includes('already registered') || error.message.includes('full')) {
+    
+    if (error.message.includes('Registration is no longer allowed')) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     
