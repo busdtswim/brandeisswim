@@ -9,7 +9,11 @@ import {
   Calendar, 
   Mail, 
   Phone, 
-  Search 
+  Search,
+  ArrowUp,
+  X,
+  Clock,
+  Users
 } from 'lucide-react';
 
 const ViewWaitlist = () => {
@@ -19,6 +23,14 @@ const ViewWaitlist = () => {
   const [message, setMessage] = useState({ text: '', type: '' });
   const [showMessage, setShowMessage] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Promotion modal state
+  const [showPromotionModal, setShowPromotionModal] = useState(false);
+  const [selectedWaitlistEntry, setSelectedWaitlistEntry] = useState(null);
+  const [availableLessons, setAvailableLessons] = useState([]);
+  const [loadingLessons, setLoadingLessons] = useState(false);
+  const [promotionLoading, setPromotionLoading] = useState(false);
+
 
   const fetchWaitlist = async () => {
     try {
@@ -35,6 +47,26 @@ const ViewWaitlist = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAvailableLessons = async () => {
+    try {
+      setLoadingLessons(true);
+      const response = await fetch('/api/auth/lessons/classes');
+      if (!response.ok) {
+        throw new Error('Failed to fetch lessons');
+      }
+      const data = await response.json();
+      
+      // Filter for lessons that aren't full
+      const nonFullLessons = data.filter(lesson => lesson.participants.length < lesson.capacity);
+      setAvailableLessons(nonFullLessons);
+    } catch (err) {
+      console.error('Error fetching lessons:', err);
+      displayMessage('Failed to load available lessons', 'error');
+    } finally {
+      setLoadingLessons(false);
     }
   };
 
@@ -87,6 +119,77 @@ const ViewWaitlist = () => {
     }
   };
 
+  const handlePromoteClick = async (waitlistEntry) => {
+    setSelectedWaitlistEntry(waitlistEntry);
+    setShowPromotionModal(true);
+    await fetchAvailableLessons();
+  };
+
+  const handlePromoteToLesson = async (lessonId) => {
+    if (!selectedWaitlistEntry) return;
+
+    try {
+      setPromotionLoading(true);
+      const response = await fetch('/api/auth/admin/waitlist/promote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          waitlistId: selectedWaitlistEntry.id,
+          lessonId: lessonId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to promote swimmer');
+      }
+
+      const result = await response.json();
+      displayMessage(result.message || 'Swimmer promoted successfully!', 'success');
+      setShowPromotionModal(false);
+      setSelectedWaitlistEntry(null);
+      fetchWaitlist();
+    } catch (err) {
+      console.error('Error promoting swimmer:', err);
+      displayMessage(err.message || 'Failed to promote swimmer', 'error');
+    } finally {
+      setPromotionLoading(false);
+    }
+  };
+
+  const closePromotionModal = () => {
+    setShowPromotionModal(false);
+    setSelectedWaitlistEntry(null);
+  };
+
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
+  const formatTime = (timeString) => {
+    // Remove this function since we're using the pre-formatted time from API
+    return timeString;
+  };
+
+  const formatLessonDays = (meetingDays) => {
+    if (!meetingDays || meetingDays.length === 0) return 'No days specified';
+    
+    const dayMap = {
+      'monday': 'Mon',
+      'tuesday': 'Tue', 
+      'wednesday': 'Wed',
+      'thursday': 'Thu',
+      'friday': 'Fri',
+      'saturday': 'Sat',
+      'sunday': 'Sun'
+    };
+    
+    return meetingDays.map(day => dayMap[day.toLowerCase().trim()] || day).join(', ');
+  };
+
   const filteredWaitlist = waitlist.filter(entry => 
     (entry.swimmer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (entry.user_fullname || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -100,11 +203,6 @@ const ViewWaitlist = () => {
       </div>
     );
   }
-
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-  };
 
   return (
     <div className="py-6">
@@ -253,13 +351,22 @@ const ViewWaitlist = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <button
-                        onClick={() => handleRemoveFromWaitlist(entry.id)}
-                        className="text-red-600 hover:text-red-800 font-medium flex items-center ml-auto"
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Remove
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handlePromoteClick(entry)}
+                          className="text-green-600 hover:text-green-800 font-medium flex items-center"
+                        >
+                          <ArrowUp className="w-4 h-4 mr-1" />
+                          Promote
+                        </button>
+                        <button
+                          onClick={() => handleRemoveFromWaitlist(entry.id)}
+                          className="text-red-600 hover:text-red-800 font-medium flex items-center"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Remove
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -268,6 +375,99 @@ const ViewWaitlist = () => {
           </div>
         )}
       </div>
+
+      {/* Promotion Modal */}
+      {showPromotionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Promote {selectedWaitlistEntry?.swimmer_name} to Lesson
+                </h3>
+                <button
+                  onClick={closePromotionModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              {/* Available Lessons */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium text-gray-700">
+                  Available Lessons ({availableLessons.length} available)
+                </h4>
+                
+                {loadingLessons ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : availableLessons.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No available lessons with open spots.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {availableLessons.map((lesson) => (
+                      <div
+                        key={lesson.id}
+                        className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-4 mb-2">
+                              <div className="flex items-center text-gray-600">
+                                <Calendar className="w-4 h-4 mr-1" />
+                                <span className="text-sm">
+                                  {formatDate(lesson.startDate)} - {formatDate(lesson.endDate)}
+                                </span>
+                              </div>
+                              <div className="flex items-center text-gray-600">
+                                <Clock className="w-4 h-4 mr-1" />
+                                <span className="text-sm">
+                                  {lesson.time}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm text-gray-600">
+                                Days: {formatLessonDays(lesson.meetingDays)}
+                              </div>
+                              <div className="flex items-center text-sm text-gray-600">
+                                <Users className="w-4 h-4 mr-1" />
+                                <span>{lesson.participants.length}/{lesson.capacity} spots</span>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handlePromoteToLesson(lesson.id)}
+                            disabled={promotionLoading}
+                            className="ml-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium"
+                          >
+                            {promotionLoading ? 'Promoting...' : 'Promote Here'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={closePromotionModal}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
