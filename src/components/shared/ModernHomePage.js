@@ -163,7 +163,7 @@ const ModernHomepage = () => {
                     </li>
                     <li className="flex items-center gap-3">
                       <span className="inline-block w-2 h-2 bg-pool-blue rounded-full flex-shrink-0"></span>
-                      <span className="text-base md:text-lg">Cost: $40 per session, paid upfront</span>
+                      <span className="text-base md:text-lg">Cost: $45 per session, paid upfront</span>
                     </li>
                     <li className="flex items-center gap-3">
                       <span className="inline-block w-2 h-2 bg-pool-blue rounded-full flex-shrink-0"></span>

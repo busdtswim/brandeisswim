@@ -76,7 +76,7 @@ const LessonsPage = () => {
                 {/* Quick Stats */}
                 <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0">
                   <div className="text-center">
-                    <div className="text-2xl md:text-3xl font-bold text-cyan-300">$40</div>
+                    <div className="text-2xl md:text-3xl font-bold text-cyan-300">$45</div>
                     <div className="text-sm text-white/80">Per Session</div>
                   </div>
                   <div className="text-center">
