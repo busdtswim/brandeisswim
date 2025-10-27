@@ -11,7 +11,7 @@ const ViewSchedule = () => {
   const [userClasses, setUserClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('upcoming');
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [editingNotes, setEditingNotes] = useState(null);
@@ -125,6 +125,7 @@ const ViewSchedule = () => {
   const isUpcoming = (classData) => {
     const endDate = new Date(classData.endDate);
     const currentDate = new Date();
+    // Lesson is upcoming if end date hasn't passed (not archived)
     return endDate >= currentDate;
   };
 
@@ -133,8 +134,10 @@ const ViewSchedule = () => {
     const currentDate = new Date();
     
     if (filter === 'upcoming') {
+      // Show lessons that haven't ended yet (not archived)
       return endDate >= currentDate;
     } else if (filter === 'past') {
+      // Show archived lessons (end date has passed)
       return endDate < currentDate;
     }
     return true; 

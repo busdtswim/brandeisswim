@@ -32,6 +32,7 @@ const CreateLessons = () => {
   const [message, setMessage] = useState({ text: '', type: '' });
   const [showMessage, setShowMessage] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showArchived, setShowArchived] = useState(false);
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -420,16 +421,47 @@ const CreateLessons = () => {
         <div className="lg:col-span-3">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold flex items-center">
-                <CalendarDays className="w-5 h-5 mr-2 text-blue-600" />
-                Existing Lessons
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold flex items-center">
+                  <CalendarDays className="w-5 h-5 mr-2 text-blue-600" />
+                  Existing Lessons
+                </h2>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Show:</span>
+                  <button
+                    onClick={() => setShowArchived(false)}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                      !showArchived
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Active
+                  </button>
+                  <button
+                    onClick={() => setShowArchived(true)}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                      showArchived
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Archived
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {lessons.length === 0 ? (
+            {lessons.filter(lesson => {
+              const currentDate = new Date();
+              currentDate.setHours(0, 0, 0, 0);
+              const endDate = new Date(lesson.end_date);
+              endDate.setHours(0, 0, 0, 0);
+              return showArchived ? endDate < currentDate : endDate >= currentDate;
+            }).length === 0 ? (
               <div className="p-8 text-center text-gray-500">
-                <p>No lessons have been created yet.</p>
-                <p className="mt-2">Use the form to create your first lesson.</p>
+                <p>No {showArchived ? 'archived' : 'active'} lessons available.</p>
+                <p className="mt-2">Use the form to create a new lesson{showArchived ? ' or switch to active lessons' : ''}.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -451,11 +483,38 @@ const CreateLessons = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {lessons.map((lesson) => (
-                      <tr key={lesson.id} className="hover:bg-gray-50">
+                    {lessons
+                      .filter(lesson => {
+                        // Filter based on showArchived state
+                        const currentDate = new Date();
+                        currentDate.setHours(0, 0, 0, 0);
+                        const endDate = new Date(lesson.end_date);
+                        endDate.setHours(0, 0, 0, 0);
+                        if (showArchived) {
+                          return endDate < currentDate;
+                        } else {
+                          return endDate >= currentDate;
+                        }
+                      })
+                      .map((lesson) => {
+                        const currentDate = new Date();
+                        currentDate.setHours(0, 0, 0, 0);
+                        const endDate = new Date(lesson.end_date);
+                        endDate.setHours(0, 0, 0, 0);
+                        const isArchived = endDate < currentDate;
+                        
+                        return (
+                      <tr key={lesson.id} className={`hover:bg-gray-50 ${isArchived ? 'opacity-60' : ''}`}>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {formatDate(lesson.start_date)} - {formatDate(lesson.end_date)}
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm text-gray-900">
+                              {formatDate(lesson.start_date)} - {formatDate(lesson.end_date)}
+                            </div>
+                            {isArchived && (
+                              <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded-full">
+                                Archived
+                              </span>
+                            )}
                           </div>
                           <div className="text-sm text-gray-600 mt-1">
                             {lesson.start_time} - {lesson.end_time}
@@ -486,7 +545,8 @@ const CreateLessons = () => {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    );
+                    })}
                   </tbody>
                 </table>
               </div>

@@ -23,7 +23,7 @@ const ViewSchedule = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [assignError, setAssignError] = useState(null);
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('future');
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [expandedClasses, setExpandedClasses] = useState(new Set());
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -83,18 +83,24 @@ const ViewSchedule = () => {
 
   const filteredClasses = React.useMemo(() => {
     const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
     
     return classes.filter(classData => {
       const startDate = new Date(classData.startDate);
       const endDate = new Date(classData.endDate);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
       
       switch (filter) {
         case 'past':
+          // Archived lessons: end date has passed
           return endDate < currentDate;
         case 'current':
+          // Lessons currently running
           return startDate <= currentDate && endDate >= currentDate;
         case 'future':
-          return startDate > currentDate;
+          // Upcoming lessons that haven't started
+          return startDate > currentDate && endDate >= currentDate;
         default:
           return true; // 'all' case
       }

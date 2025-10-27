@@ -9,7 +9,7 @@ import MultiSelectDropdown from '@/components/ui/MultiSelectDropdown';
 const LessonRegistration = () => {
   const [lessons, setLessons] = useState([]);
   const [filteredLessons, setFilteredLessons] = useState([]);
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('available');
   const [swimmers, setSwimmers] = useState([]);
   const [selectedSwimmer, setSelectedSwimmer] = useState('');
   const [selectedLesson, setSelectedLesson] = useState(null);
@@ -84,20 +84,37 @@ const LessonRegistration = () => {
 
   useEffect(() => {
     let filtered = lessons;
+    const currentDate = new Date();
     
     if (filter === 'upcoming') {
-      const currentDate = new Date();
+      // Future or current lessons (not past)
       filtered = lessons.filter(lesson => {
-        if (!lesson.startDate) return false;
-        return new Date(lesson.startDate) > currentDate;
+        if (!lesson.endDate) return false;
+        const endDate = new Date(lesson.endDate);
+        return endDate >= currentDate;
       });
     } else if (filter === 'available') {
+      // Future or current lessons with available slots
       filtered = lessons.filter(lesson => {
+        if (!lesson.endDate) return false;
+        const endDate = new Date(lesson.endDate);
+        // Lesson must not be archived (end date hasn't passed)
+        if (endDate < currentDate) return false;
+        
+        // Check if there are available slots
         const registered = lesson.participants ? lesson.participants.length : 0;
         const capacity = lesson.capacity || 1;
         return registered < capacity;
       });
+    } else if (filter === 'archived') {
+      // All past lessons
+      filtered = lessons.filter(lesson => {
+        if (!lesson.endDate) return false;
+        const endDate = new Date(lesson.endDate);
+        return endDate < currentDate;
+      });
     }
+    // 'all' filter shows everything, no filtering needed
     
     setFilteredLessons(filtered);
   }, [lessons, filter]);
@@ -267,16 +284,32 @@ const LessonRegistration = () => {
     return `${month}/${day}/${year}`;
   };
 
+  const currentDate = new Date();
+  
   const availableCount = lessons.filter(lesson => {
+    if (!lesson.endDate) return false;
+    const endDate = new Date(lesson.endDate);
+    // Lesson must not be archived (end date hasn't passed)
+    if (endDate < currentDate) return false;
+    
+    // Check if there are available slots
     const registered = lesson.participants ? lesson.participants.length : 0;
     const capacity = lesson.capacity || 1;
     return registered < capacity;
   }).length;
   
   const upcomingCount = lessons.filter(lesson => {
-    if (!lesson.startDate) return false;
-    const startDate = new Date(lesson.startDate);
-    return !isNaN(startDate.getTime()) && startDate > new Date();
+    if (!lesson.endDate) return false;
+    const endDate = new Date(lesson.endDate);
+    // Future or current lessons (not past)
+    return endDate >= currentDate;
+  }).length;
+  
+  const archivedCount = lessons.filter(lesson => {
+    if (!lesson.endDate) return false;
+    const endDate = new Date(lesson.endDate);
+    // All past lessons
+    return endDate < currentDate;
   }).length;
 
   return (
@@ -320,9 +353,10 @@ const LessonRegistration = () => {
             {/* Filter Buttons - Stack on mobile, flex on larger screens */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               {[
-                { value: 'all', label: 'All Lessons', count: lessons.length },
+                { value: 'available', label: 'Available', count: availableCount },
                 { value: 'upcoming', label: 'Upcoming', count: upcomingCount },
-                { value: 'available', label: 'Available', count: availableCount }
+                { value: 'archived', label: 'Archived', count: archivedCount },
+                { value: 'all', label: 'All Lessons', count: lessons.length }
               ].map((option) => (
                 <button
                   key={option.value}
@@ -393,23 +427,35 @@ const LessonRegistration = () => {
             const fillPercentage = (registered / maxSlots) * 100;
             const registrationAllowed = isRegistrationAllowed(lesson);
             
+            // Check if lesson is archived (end date has passed)
+            const currentDate = new Date();
+            const endDate = new Date(lesson.endDate);
+            const isArchived = endDate < currentDate;
+            
             return (
               <div 
                 key={lesson.id} 
                 className={`bg-gradient-to-br from-white to-blue-50/50 rounded-2xl shadow-sm border border-gray-100 overflow-hidden card-hover ${
-                  isFull ? 'opacity-80' : ''
+                  isFull || isArchived ? 'opacity-80' : ''
                 }`}
               >
                 <div className={`px-6 py-4 text-white ${
-                  isFull 
-                    ? 'bg-gradient-to-r from-gray-500 to-gray-600' 
-                    : 'bg-gradient-to-r from-pool-blue to-brandeis-blue'
+                  isArchived
+                    ? 'bg-gradient-to-r from-gray-500 to-gray-600'
+                    : isFull 
+                      ? 'bg-gradient-to-r from-gray-500 to-gray-600' 
+                      : 'bg-gradient-to-r from-pool-blue to-brandeis-blue'
                 }`}>
                   <div className="flex items-center justify-between">
                     <h2 className="font-bold text-lg">
                       {lesson.meetingDays && lesson.meetingDays.length > 0 ? lesson.meetingDays.join(', ') : 'Swimming'} Class
                     </h2>
-                    {isFull && (
+                    {isArchived && (
+                      <span className="text-xs bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/30">
+                        Archived
+                      </span>
+                    )}
+                    {isFull && !isArchived && (
                       <span className="text-xs bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full border border-white/30">
                         Full
                       </span>
@@ -476,17 +522,17 @@ const LessonRegistration = () => {
                   <div className="space-y-3 pt-4 border-t border-gray-100">
                     <button
                       onClick={() => handleRegisterClick(lesson)}
-                      disabled={isFull || !registrationAllowed}
+                      disabled={isFull || !registrationAllowed || isArchived}
                       className={`w-full py-3 px-4 rounded-xl font-bold text-center transition-all duration-200 ${
-                        isFull || !registrationAllowed
+                        isFull || !registrationAllowed || isArchived
                           ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                           : 'bg-gradient-to-r from-pool-blue to-brandeis-blue hover:from-brandeis-blue hover:to-pool-blue text-white transform hover:scale-[1.02] hover:shadow-lg'
                       }`}
                     >
-                      {!registrationAllowed ? 'Registration Closed' : (isFull ? 'Class Full' : 'Register Now')}
+                      {isArchived ? 'Lesson Ended' : !registrationAllowed ? 'Registration Closed' : (isFull ? 'Class Full' : 'Register Now')}
                     </button>
                     
-                    {(isFull || !registrationAllowed) && waitlistActive && (
+                    {(isFull || !registrationAllowed) && !isArchived && waitlistActive && (
                       <button
                         onClick={() => handleJoinWaitlistClick()}
                         className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-red-500 hover:to-orange-500 text-white py-3 px-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg"
